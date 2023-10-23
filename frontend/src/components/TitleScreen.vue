@@ -1,0 +1,83 @@
+<script lang="ts">
+import {defineComponent} from "vue";
+import {useColorStore} from "@/main.ts";
+export default defineComponent({
+  name: "TitleScreen",
+  setup()
+  {
+    const colorStore = useColorStore();
+    return {colorStore}
+  },
+  computed: {
+    selectedColor() {
+      return this.colorStore.color;
+    }
+  }
+})
+</script>
+
+<template>
+  <v-container>
+    <v-row
+        justify="center"
+        align-content="center"
+    >
+      <v-col
+          cols="3"
+      >
+        <v-list
+            bg-color="rgba(0, 0, 0, 0)"
+        >
+          <v-list-item
+              class="mt-4 mb-4"
+          >
+            <v-btn
+                :block="true"
+                size="x-large"
+                :color="selectedColor.base"
+            >
+              {{ $t('start_game') }}
+            </v-btn>
+          </v-list-item>
+          <v-list-item
+              class="mt-4 mb-4"
+          >
+            <v-btn
+                :block="true"
+                size="x-large"
+                :color="selectedColor.base"
+            >
+              {{ $t('load_game') }}
+            </v-btn>
+          </v-list-item>
+          <v-list-item
+              class="mt-4 mb-4"
+          >
+            <v-btn
+                :block="true"
+                size="x-large"
+                :color="selectedColor.base"
+                @click="$router.push('/settings')"
+            >
+              {{ $t('settings') }}
+            </v-btn>
+          </v-list-item>
+        </v-list>
+      </v-col>
+    </v-row>
+  </v-container>
+</template>
+
+<style scoped lang="scss">
+.v-card-text {
+  display: flex;
+  justify-content: center;
+}
+.v-container{
+  display: flex;
+  height: calc(100vh - 56px);
+  align-items: center;
+  align-content: center;
+}
+
+</style>
