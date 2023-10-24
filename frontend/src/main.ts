@@ -11,43 +11,36 @@ import { createVuetify } from 'vuetify'
 import { aliases, fa } from 'vuetify/iconsets/fa'
 import * as components from 'vuetify/components'
 import * as directives from 'vuetify/directives'
-import colors from 'vuetify/lib/util/colors'
+
 
 import {createRouter, createWebHistory} from "vue-router";
 import { TinyEmitter } from 'tiny-emitter';
 import {i18n} from "@/lang";
 
-import { defineStore, createPinia } from 'pinia'
-import {ColorState} from "@/vite-env";
+import { createPinia } from 'pinia'
 
 import TitleScreen from "@/components/TitleScreen.vue";
 import Settings from "@/components/Settings.vue";
-
-export const useColorStore = defineStore('colorStore',{
-    state: (): ColorState =>  {
-        return {
-                color: colors.blue
-            }
-        },
-    actions: {
-        changeColor(newColor){
-            console.log(newColor);
-            this.color = newColor
-        }
-    },
-    getters: {
-        currentColor: (state) => state.color,
-
-    }
-
-})
+import Game from "@/components/Game.vue";
 
 
+/* import the fontawesome core */
+import { library } from '@fortawesome/fontawesome-svg-core'
+/* import font awesome icon component */
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+/* import specific icons */
+import {faCheckCircle}  from '@fortawesome/free-regular-svg-icons'
+import {faLanguage} from "@fortawesome/free-solid-svg-icons";
+import {faHome} from "@fortawesome/free-solid-svg-icons";
+import {faSun as fasSun} from "@fortawesome/free-solid-svg-icons/faSun";
+import {faSun as farSun} from "@fortawesome/free-regular-svg-icons/faSun";
+
+library.add(faCheckCircle, faLanguage, faHome, fasSun, farSun)
 
 const app = createApp(App)
 app.use( createPinia())
 app.config.globalProperties.$emitter = new TinyEmitter()
-
+app.component('font-awesome-icon', FontAwesomeIcon)
 
 app.use(i18n)
 
@@ -83,10 +76,14 @@ const router = createRouter({
             path: "/settings",
             name: "Settings",
             component: Settings
+        },
+        {
+            path: "/game",
+            name: "Game",
+            component: Game
         }
     ]
 })
 app.use(router)
-
 
 app.mount('#app')

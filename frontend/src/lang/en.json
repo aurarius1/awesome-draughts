@@ -2,5 +2,13 @@
   "draughts-title": "Awesome draughts",
   "start_game": "New game",
   "load_game": "Load game",
-  "settings": "Settings"
+  "settings": "Settings",
+  "select_language": "Select language",
+  "select_color": "Select color scheme",
+  "select_theme": "Select theme",
+  "exit_settings": "Exit settings",
+  "language": {
+    "de": "Deutsch",
+    "en": "English"
+  }
 }

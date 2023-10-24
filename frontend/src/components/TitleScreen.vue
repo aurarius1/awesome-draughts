@@ -1,17 +1,18 @@
 <script lang="ts">
-import {defineComponent} from "vue";
-import {useColorStore} from "@/main.ts";
+import {useColorStore} from "@/store";
 export default defineComponent({
   name: "TitleScreen",
   setup()
   {
     const colorStore = useColorStore();
-    return {colorStore}
+    return { colorStore }
   },
   computed: {
     selectedColor() {
       return this.colorStore.color;
     }
+  },
+  methods: {
   }
 })
 </script>
@@ -35,6 +36,7 @@ export default defineComponent({
                 :block="true"
                 size="x-large"
                 :color="selectedColor.base"
+                @click="$router.push('game')"
             >
               {{ $t('start_game') }}
             </v-btn>

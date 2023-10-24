@@ -2,6 +2,14 @@
   "draughts-title": "Tolle Dame",
   "start_game": "Neues Spiel",
   "load_game": "Lade Spiel",
-  "settings": "Einstellungen"
+  "settings": "Einstellungen",
+  "select_language": "Sprache wählen",
+  "select_color": "Farbschema wählen",
+  "select_theme": "Theme wählen",
+  "exit_settings": "Verlasse Einstellungen",
+  "language": {
+    "de": "Deutsch",
+    "en": "English"
+  }
 
 }

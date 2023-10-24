@@ -4,19 +4,20 @@ type TestType = {
     end: string
 }
 
-export type ColorState = {
-    color: {
-        base: object
-    }
+type ColorState = {
+    color: Object
+}
+type LanguageState = {
+    language: RemovableRef<string>
+}
+type ThemeState = {
+    theme: RemoveableRef<string>
 }
 
-declare module '@vue/runtime-core' {
-    interface ComponentCustomProperties {
-        $emitter: any,
-        $colorStore: any
-    }
+declare module '*.vue'{
+
 }
 
 
 
-export {}
+

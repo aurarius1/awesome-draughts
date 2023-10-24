@@ -1,9 +1,21 @@
 
 <script lang="ts">
-import {defineComponent} from "vue";
+import { useTheme } from 'vuetify'
 
 export default defineComponent({
+  setup()
+  {
+    const languageStore = useLanguageStore();
+    const themeStore = useThemeStore();
+    const vuetifyTheme = useTheme()
+    return {languageStore, themeStore, vuetifyTheme}
+  },
   components: {
+  },
+  beforeCreate()
+  {
+    this.vuetifyTheme.global.name.value = this.themeStore.currentTheme;
+    this.$i18n.locale = this.languageStore.currentLanguage;
   },
   created(){
   },
