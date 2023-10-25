@@ -5,24 +5,24 @@ import {i18n} from "@/lang";
 
 
 export const useColorStore = defineStore('colorStore',{
-    state: (): ColorState =>  {
+    state: (): typeof ColorState =>  {
         return {
             color: useLocalStorage("color", colors.blue),
         }
     },
     actions: {
-        changeColor(newColor: Object){
+        changeColor(newColor: typeof Color){
             console.log(newColor);
             this.color = newColor
         }
     },
     getters: {
-        currentColor: (state) => state.color,
+        currentColor: (state): typeof Color => state.color,
     }
 })
 
 export const useLanguageStore = defineStore('languageStore',{
-    state: (): LanguageState =>  {
+    state: (): typeof LanguageState =>  {
         return {
             language: useLocalStorage("language", navigator.language),
         }
@@ -39,7 +39,7 @@ export const useLanguageStore = defineStore('languageStore',{
 })
 
 export const useThemeStore = defineStore('themeStore',{
-    state: (): ThemeState =>  {
+    state: (): typeof ThemeState =>  {
         return {
             theme: useLocalStorage("theme", "dark"),
         }

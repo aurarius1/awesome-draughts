@@ -1,14 +1,30 @@
 <script lang="ts">
 import {defineComponent} from 'vue'
 import Square from "@/components/Draughts/Square.vue";
+import Piece  from "@/components/Draughts/Piece.vue";
+import Game from '@draughts';
+import {Position} from "@/vite-env";
 
 export default defineComponent({
   name: "GameField",
-  components: {Square},
+  components: {Piece, Square},
   setup()
   {
     const colorStore = useColorStore()
-    return {colorStore}
+    const toast = useToast()
+    return {colorStore, toast}
+  },
+  emits: {
+    playerSwitched(payload: string)
+    {
+      return payload === "white" || payload === "black";
+    }
+  },
+  created(){
+    this.$emitter.on('piece-selected', (piece) => {
+      this.currentlySelectedPiece = piece
+      this.$emitter.emit("highlight-field", this._gameState.getFieldsToHighlight(piece));
+    })
   },
   props: {
     cardHeight: {
@@ -22,17 +38,27 @@ export default defineComponent({
     width: {
       type: Number,
       default: 960,
+    },
+    fieldDimensions: {
+      type: Number,
+      default: 10
     }
   },
+  data()
+  {
+    return {
+      _gameState: undefined as Game,
+      currentlySelectedPiece: -1,
+    }
+  },
+  beforeMount()
+  {
+    this._gameState = new Game(this.fieldDimensions);
+    this.$emit('playerSwitched', this.gameState.activePlayer);
 
+  },
   computed: {
-    computedSideLength()
-    {
-      return Math.floor((document.documentElement.clientWidth/100)*40);
-    },
-
     computedStyle() {
-      console.log();
       return {
         height: `${this.height}px`,
         width: `${this.width}px`,
@@ -40,7 +66,35 @@ export default defineComponent({
         boxSizing: 'border-box',
         marginTop: "24px"
       }
+    },
+    gameField(){
+      return this.gameState.field
+    },
+    gameState(){
+      return this._gameState
     }
+  },
+  methods: {
+    movePiece(targetPosition: Position)
+    {
+      this.gameState.movePiece(this.currentlySelectedPiece, targetPosition)
+      this.currentlySelectedPiece = -1
+
+      let winner = this.gameState.isGameOver()
+      if(winner === this.gameState.activePlayer)
+      {
+        this.toast.success(this.$t(`player.wins.${winner}`))
+        this.$router.push("/")
+        return;
+      }
+
+
+
+
+      this.gameState.switchActivePlayer();
+      this.$emit('playerSwitched', this.gameState.activePlayer);
+    },
+
   }
 })
 </script>
@@ -57,19 +111,32 @@ export default defineComponent({
           :style="computedStyle"
       >
         <v-row
-            :style="`height: ${Math.floor(this.height/10)}px`"
+            :style="`height: ${Math.floor(height/10)}px`"
             no-gutters
-            v-for="j in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]"
+            v-for="row in gameField"
         >
           <v-col
-              v-for="i in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]"
+              v-for="col in row"
           >
             <square
-                :width="`${Math.floor(this.width/10)}px`"
-                :height="`${Math.floor(this.height/10)}px`"
-                :piece-idx-x="j"
-                :piece-idx-y="i"
-            />
+                :width="`${Math.floor(width/10)}px`"
+                :height="`${Math.floor(height/10)}px`"
+                :position="col.position"
+                :selected-piece="_gameState.getPositionOfPiece(currentlySelectedPiece)"
+                @move-selected-to="movePiece"
+
+            >
+              <template v-slot:piece>
+                <piece
+                  :color="col.piece.color"
+                  :piece-id="col.piece.id"
+                  :piece-position="col.piece.position"
+                  :active-player="gameState.activePlayer"
+                  v-if="col.containsPiece"
+
+                />
+              </template>
+            </square>
           </v-col>
         </v-row>
 

@@ -34,8 +34,13 @@ import {faLanguage} from "@fortawesome/free-solid-svg-icons";
 import {faHome} from "@fortawesome/free-solid-svg-icons";
 import {faSun as fasSun} from "@fortawesome/free-solid-svg-icons/faSun";
 import {faSun as farSun} from "@fortawesome/free-regular-svg-icons/faSun";
+import {faSignOutAlt} from "@fortawesome/free-solid-svg-icons";
 
-library.add(faCheckCircle, faLanguage, faHome, fasSun, farSun)
+import Toast, {PluginOptions} from "vue-toastification";
+// Import the CSS or use your own!
+import "vue-toastification/dist/index.css";
+
+library.add(faCheckCircle, faLanguage, faHome, fasSun, farSun,faSignOutAlt)
 
 const app = createApp(App)
 app.use( createPinia())
@@ -61,9 +66,6 @@ const vuetify = createVuetify({
 })
 app.use(vuetify)
 
-
-
-
 const router = createRouter({
     history: createWebHistory(),
     routes: [
@@ -85,5 +87,13 @@ const router = createRouter({
     ]
 })
 app.use(router)
+
+
+const toastOptions: PluginOptions = {
+    transition: "Vue-Toastification__bounce",
+    maxToasts: 20,
+    newestOnTop: true
+}
+app.use(Toast, toastOptions);
 
 app.mount('#app')

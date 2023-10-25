@@ -9,7 +9,7 @@ export default defineComponent({
   },
   computed: {
     selectedColor() {
-      return this.colorStore.color;
+      return this.colorStore.currentColor;
     }
   },
   methods: {

@@ -75,7 +75,7 @@ export default defineComponent({
     getIconColor()
     {
       return {
-        color: this.colorStore.color.lighten1
+        color: this.colorStore.currentColor.lighten1
       }
     },
     changeTheme()

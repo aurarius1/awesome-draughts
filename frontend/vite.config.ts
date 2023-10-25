@@ -14,7 +14,9 @@ export default defineConfig({
           'vue',
           'vue-router',
           {
-            "@/store": ["useColorStore", "useLanguageStore", "useThemeStore"]
+            "@/store": ["useColorStore", "useLanguageStore", "useThemeStore"],
+            "@/vite-env": ["Color", "ColorState", "LanguageState", "ThemeState"],
+            "vue-toastification": ["useToast"]
           }
         ]
       })
@@ -22,6 +24,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, "./src"),
+      '@draughts': path.resolve(__dirname, './src/draughts')
     }
   },
   server: {
