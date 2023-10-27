@@ -120,30 +120,91 @@ export class Game {
         this._field[newPosition.y][newPosition.x].containsPiece = true;
         this._field[newPosition.y][newPosition.x].piece = piece;
 
+        if(piece.isKing){
+            //TODO
+        }else{
+            let xDiff = newPosition.x - piece.position.x;
+            if(Math.abs(xDiff) !== 1){
+                let yDiff = newPosition.y - piece.position.y;
+                let deletingX = piece.position.x + (xDiff/2);
+                let deletingY = piece.position.y + (yDiff/2);
+                console.log(deletingX, deletingY)
+
+                this._field[deletingY][deletingX].containsPiece = false;
+                this._field[deletingY][deletingX].piece.isAlive = false;
+                this._field[deletingY][deletingX].piece = undefined;
+            }
+
+        }
+
         piece.position = newPosition
+    }
+
+    private evaluatePosition(pos: Position, offset: number, operation: string){
+        switch (operation){
+            case '--':
+                //TopLeft
+                return {x: pos.x-offset, y:pos.y-offset};
+            case '+-':
+                //TopRight
+                return {x: pos.x+offset, y:pos.y-offset};
+
+            case '-+':
+                //BottomLeft
+                return {x: pos.x-offset, y:pos.y+offset};
+
+            case '++':
+                //BottomRight
+                return {x: pos.x+offset, y:pos.y+offset};
+
+            default:
+                console.log("SHOULD NEVER HAPPEN!!")
+                return {x: -1, y: -1};
+        }
     }
     public getFieldsToHighlight(pieceId: number)
     {
         let fieldsToHighlight: Array<Position> = [];
         let piece = this.findPieceInGamefield(pieceId)
 
-        for(let y = -1; y < 2; y+=2)
-        {
-            for(let x = -1; x < 2; x+=2)
-            {
-                let posX = piece.position.x + x;
-                let posY = piece.position.y + y;
-                console.log(posX, posY);
+        const operations = ['--', '+-', '-+', '++'];//TopLeft, TopRight, BottomLeft, BottomRight
+
+        operations.forEach((ops, index) => {
+            let hitPiece = false;
+            let maxDistance = piece.isKing ? 10 : 3;
+
+            for(let offset = 1; offset < maxDistance; offset+=1){
+                if(offset > 1 && !piece.isKing && !hitPiece){
+                    break;
+                }
+
+                let pos = this.evaluatePosition(piece.position, offset, ops);
+                let posX = pos.x;
+                let posY = pos.y;
+                //console.log(posX, posY);
 
                 if(posX < 0 || posX > 9 || posY < 0 || posY > 9)
-                    continue;
+                    break;
 
-                if(this._field[posY][posX].containsPiece)
+                if(this._field[posY][posX].containsPiece){
+                    let notOpposing = this._field[posY][posX].piece.color === piece.color;
+                    if(hitPiece || notOpposing){
+                        break;
+                    }
+                    hitPiece = true;
                     continue;
+                }
+
+                if(offset == 1 && !piece.isKing){
+                    if(piece.color === "white" && (index == 0 || index == 1))
+                        break;
+                    if(piece.color === "black" && (index == 2 || index == 3))
+                        break;
+                }
 
                 fieldsToHighlight.push({x: posX, y: posY})
             }
-        }
+        })
 
 
         return fieldsToHighlight
