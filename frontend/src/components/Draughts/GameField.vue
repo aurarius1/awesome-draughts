@@ -1,17 +1,18 @@
 <script lang="ts">
-import {defineComponent} from 'vue'
-import Square from "@/components/Draughts/Square.vue";
-import Piece  from "@/components/Draughts/Piece.vue";
-import Game from '@draughts';
-import {Position} from "@/vite-env";
+import GameSquare from "@/components/Draughts/Square.vue";
+import GamePiece  from "@/components/Draughts/Piece.vue";
+import {StyleValue} from "vue";
+
+import Game from "@/draughts";
 
 export default defineComponent({
   name: "GameField",
-  components: {Piece, Square},
+  components: {GamePiece, GameSquare},
   setup()
   {
     const colorStore = useColorStore()
     const toast = useToast()
+
     return {colorStore, toast}
   },
   emits: {
@@ -21,7 +22,7 @@ export default defineComponent({
     }
   },
   created(){
-    this.$emitter.on('piece-selected', (piece) => {
+    this.$emitter.on('piece-selected', (piece: number) => {
       this.currentlySelectedPiece = piece
       this.$emitter.emit("highlight-field", this._gameState.getFieldsToHighlight(piece));
     })
@@ -47,7 +48,7 @@ export default defineComponent({
   data()
   {
     return {
-      _gameState: undefined as Game,
+      _gameState: Game,
       currentlySelectedPiece: -1,
     }
   },
@@ -58,7 +59,7 @@ export default defineComponent({
 
   },
   computed: {
-    computedStyle() {
+    computedStyle(): StyleValue{
       return {
         height: `${this.height}px`,
         width: `${this.width}px`,
@@ -88,9 +89,6 @@ export default defineComponent({
         return;
       }
 
-
-
-
       this.gameState.switchActivePlayer();
       this.$emit('playerSwitched', this.gameState.activePlayer);
     },
@@ -118,7 +116,7 @@ export default defineComponent({
           <v-col
               v-for="col in row"
           >
-            <square
+            <game-square
                 :width="`${Math.floor(width/10)}px`"
                 :height="`${Math.floor(height/10)}px`"
                 :position="col.position"
@@ -127,7 +125,7 @@ export default defineComponent({
 
             >
               <template v-slot:piece>
-                <piece
+                <game-piece
                   :color="col.piece.color"
                   :piece-id="col.piece.id"
                   :piece-position="col.piece.position"
@@ -136,7 +134,7 @@ export default defineComponent({
 
                 />
               </template>
-            </square>
+            </game-square>
           </v-col>
         </v-row>
 

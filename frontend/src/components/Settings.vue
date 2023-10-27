@@ -2,34 +2,36 @@
 import colors from 'vuetify/lib/util/colors'
 import ColorSwatch from "@/components/ColorSelector/ColorSwatch.vue";
 import ColorSelector from "@/components/ColorSelector/ColorSelector.vue";
-import {useLanguageStore} from "@/store";
 import {FontAwesomeIcon} from "@fortawesome/vue-fontawesome";
+
+import {useColorStore, useLanguageStore} from "@/store";
 import {useTheme} from "vuetify";
 
 export default defineComponent({
   name: "Settings",
-  setup()
-  {
-    const colorStore = useColorStore()
-    const languageStore = useLanguageStore()
-    const themeStore = useThemeStore()
-    const vuetifyTheme = useTheme()
-    return { colorStore, languageStore, themeStore, vuetifyTheme }
-  },
   components: {
     FontAwesomeIcon,
     ColorSelector,
     ColorSwatch
   },
+  setup()
+  {
+    const _colorStore = useColorStore()
+    const _languageStore = useLanguageStore()
+    const _themeStore = useThemeStore()
+    const _vuetifyTheme = useTheme()
+
+    return {_colorStore, _languageStore, _themeStore, _vuetifyTheme}
+  },
   watch: {
     selectedLanguage(newVal: string){
-      this.languageStore.changeLanguage(newVal);
+      this.languageStore().changeLanguage(newVal);
     }
   },
   data(){
     return{
-      selected: this.colorStore.currentColor.base,
-      selectedLanguage: this.languageStore.currentLanguage,
+      selected: this.colorStore().currentColor.base,
+      selectedLanguage: this.languageStore().currentLanguage,
       palette: [
         [
           colors.red.base,
@@ -55,7 +57,7 @@ export default defineComponent({
           colors.orange.base,
           colors.deepOrange.base,
         ]
-      ]
+      ],
     }
   },
   methods: {
@@ -67,7 +69,7 @@ export default defineComponent({
       {
         if(colors[keys[i]].base === this.selected)
         {
-          this.colorStore.changeColor(colors[keys[i]])
+          this.colorStore().changeColor(colors[keys[i]])
           break;
         }
       }
@@ -75,13 +77,29 @@ export default defineComponent({
     getIconColor()
     {
       return {
-        color: this.colorStore.currentColor.lighten1
+        color: this.colorStore().currentColor.lighten1
       }
     },
     changeTheme()
     {
-      this.themeStore.changeTheme(this.themeStore.currentTheme === 'light' ? 'dark' : 'light');
-      this.vuetifyTheme.global.name.value = this.themeStore.currentTheme;
+      this.themeStore().changeTheme(this.themeStore().currentTheme === 'light' ? 'dark' : 'light');
+      this.vuetifyTheme().global.name.value = this.themeStore().currentTheme;
+    },
+    languageStore()
+    {
+      return this._languageStore
+    },
+    colorStore()
+    {
+      return this._colorStore
+    },
+    vuetifyTheme()
+    {
+      return this._vuetifyTheme
+    },
+    themeStore()
+    {
+      return this._themeStore
     }
   },
   beforeMount()
@@ -138,7 +156,7 @@ export default defineComponent({
               </p>
 
               <font-awesome-icon
-                  :icon="themeStore.currentTheme === 'light' ? ['far', 'sun'] : ['fas', 'sun']"
+                  :icon="themeStore().currentTheme === 'light' ? ['far', 'sun'] : ['fas', 'sun']"
                   size="2x"
                   :style="getIconColor()"
                   class="ml-theme-selector"
@@ -170,7 +188,7 @@ export default defineComponent({
               <v-select
                   density="compact"
                   :items="$i18n.availableLocales"
-                  :color="colorStore.currentColor.base"
+                  :color="colorStore().currentColor.base"
                   v-model="selectedLanguage"
               >
                 <template v-slot:item="{props, item}">
@@ -200,7 +218,7 @@ export default defineComponent({
           class="ml-exit-btn"
       >
         <v-btn
-          :color="colorStore.currentColor.accent1"
+          :color="colorStore().currentColor.accent1"
           @click="$router.push('/')"
         >
           {{ $t("exit_settings") }}

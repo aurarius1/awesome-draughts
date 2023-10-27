@@ -10,14 +10,14 @@
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
-    "isolatedModules": true,
+    "isolatedModules": false,
     "noEmit": true,
     "jsx": "preserve",
 
     /* Linting */
     "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
     "noFallthroughCasesInSwitch": true,
     "allowJs": true,
 
@@ -29,7 +29,7 @@
         "./src/draughts/*"
       ]
     },
-    "types": ["vuetify", "vite/client"]
+    "types": ["./src/types.d.ts"]
   },
   "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue", "**/*.ts"],
   "references": [{ "path": "./tsconfig.node.json" }]

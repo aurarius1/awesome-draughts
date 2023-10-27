@@ -32,7 +32,7 @@ export default defineComponent({
     }
   },
   methods: {
-    selectNewColor(color)
+    selectNewColor(color: string)
     {
       //this.selected = color
       this.$emit("colorSelected", color);
@@ -56,8 +56,8 @@ export default defineComponent({
     <v-card>
       <v-container>
         <v-row
-          v-for="group in this.colors"
-          dense
+          v-for="group in colors"
+          :dense="true"
         >
           <v-col
             v-for="color in group"

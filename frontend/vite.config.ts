@@ -8,16 +8,21 @@ export default defineConfig({
   plugins: [
       vue(),
       AutoImport({
+        include: [
+          /\.ts$/, // .ts, .tsx, .js, .jsx
+          /\.tsx$/,
+          /\.vue$/,
+          /\.vue\?vue/, // .vue
+        ],
         // global imports to register
         imports: [
           // presets
           'vue',
           'vue-router',
           {
-            "@/store": ["useColorStore", "useLanguageStore", "useThemeStore"],
-            "@/vite-env": ["Color", "ColorState", "LanguageState", "ThemeState"],
+            "@/store": [ "useLanguageStore", "useThemeStore", "useColorStore" ],
             "vue-toastification": ["useToast"]
-          }
+          },
         ]
       })
   ],

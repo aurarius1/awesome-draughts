@@ -17,7 +17,7 @@ export default defineComponent({
       // TODO IMPLEMENT
       console.log("LEAVING")
     },
-    setCurrentPlayer(player)
+    setCurrentPlayer(player: string)
     {
       this.currentPlayer = player
       console.log(player)

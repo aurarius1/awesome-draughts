@@ -1,13 +1,12 @@
 <script lang="ts">
 import {defineComponent} from 'vue'
 import colors from 'vuetify/lib/util/colors'
-import Piece from "@/components/Draughts/Piece.vue";
-import {isPlayableField} from "@draughts";
-import {Position} from "@/vite-env";
+import GamePiece from "@/components/Draughts/Piece.vue";
+import {isPlayableField} from "@/draughts";
 
 export default defineComponent({
-  name: "Square",
-  components: {Piece},
+  name: "GameSquare",
+  components: {GamePiece},
   setup()
   {
     const colorStore = useColorStore();

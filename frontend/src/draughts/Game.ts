@@ -1,13 +1,13 @@
 import {isPlayableField} from "./Helper";
-import {History, GameField, Pieces, PieceColors, Position, GameState} from "@/vite-env";
 
-export class Piece{
-    private readonly _id: number
-    private readonly _color: PieceColors
 
-    private _position: Position
-    private _isKing: boolean
-    private _isAlive: boolean
+export class Piece  {
+    readonly _id: number
+    readonly _color: PieceColors
+
+    _position: Position
+    _isKing: boolean
+    _isAlive: boolean
 
     constructor(color: PieceColors, id: number, position: Position)
     {
@@ -16,6 +16,8 @@ export class Piece{
         this._color = color
         this._isAlive = true
         this._position = position
+
+
     }
     public get id()
     {

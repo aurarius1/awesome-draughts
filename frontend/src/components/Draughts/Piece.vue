@@ -1,10 +1,9 @@
 <script lang="ts">
 import {PropType, StyleValue} from "vue";
-import {Position} from "@/vite-env";
 import {useColorStore} from "@/store";
 
 export default defineComponent({
-  name: "Piece",
+  name: "GamePiece",
   setup(){
     const colorStore = useColorStore();
     const toast = useToast();
@@ -78,7 +77,7 @@ export default defineComponent({
   },
   created()
   {
-    this.$emitter.on('piece-selected', (piece) => {
+    this.$emitter.on('piece-selected', (piece: Number) => {
       if(piece !== this.pieceId)
       {
         this.selected = false;
