@@ -24,7 +24,7 @@ export default defineComponent({
   created(){
     this.$emitter.on('piece-selected', (piece: number) => {
       this.currentlySelectedPiece = piece
-      this.$emitter.emit("highlight-field", this._gameState.getFieldsToHighlight(piece));
+      this.$emitter.emit("highlight-field", this.gameState.getFieldsToHighlight(piece));
     })
   },
   props: {
@@ -48,7 +48,7 @@ export default defineComponent({
   data()
   {
     return {
-      _gameState: Game,
+      _gameState: undefined as undefined|Game,
       currentlySelectedPiece: -1,
     }
   },
@@ -72,6 +72,13 @@ export default defineComponent({
       return this.gameState.field
     },
     gameState(){
+      if(this._gameState === undefined)
+      {
+        console.log("THIS SHOULD NOT HAVE HAPPENED")
+        // TODO CORRECT HANDLING WITH USER INTERACTION
+
+        return new Game(this.fieldDimensions)
+      }
       return this._gameState
     }
   },
@@ -81,8 +88,8 @@ export default defineComponent({
       this.gameState.movePiece(this.currentlySelectedPiece, targetPosition)
       this.currentlySelectedPiece = -1
 
-      let winner = this.gameState.isGameOver()
-      if(winner === this.gameState.activePlayer)
+      let winner = this.gameState?.isGameOver()
+      if(winner === this.gameState?.activePlayer)
       {
         this.toast.success(this.$t(`player.wins.${winner}`))
         this.$router.push("/")
@@ -90,7 +97,7 @@ export default defineComponent({
       }
 
       this.gameState.switchActivePlayer();
-      this.$emit('playerSwitched', this.gameState.activePlayer);
+      this.$emit('playerSwitched', this.gameState.activePlayer ?? "");
     },
 
   }
@@ -120,7 +127,7 @@ export default defineComponent({
                 :width="`${Math.floor(width/10)}px`"
                 :height="`${Math.floor(height/10)}px`"
                 :position="col.position"
-                :selected-piece="_gameState.getPositionOfPiece(currentlySelectedPiece)"
+                :selected-piece="gameState.getPositionOfPiece(currentlySelectedPiece)"
                 @move-selected-to="movePiece"
 
             >
