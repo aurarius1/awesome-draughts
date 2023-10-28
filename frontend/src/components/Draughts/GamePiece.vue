@@ -1,6 +1,7 @@
 <script lang="ts">
 import {PropType, StyleValue} from "vue";
 import {useColorStore} from "@/store";
+import {Position} from "@draughts/Game.ts";
 
 export default defineComponent({
   name: "GamePiece",
@@ -10,11 +11,11 @@ export default defineComponent({
     return {colorStore, toast};
   },
   emits: {
-    getMoves(){
-
-    },
     pieceSelected(payload: number){
       return payload
+    },
+    invalidSelect(){
+
     }
   },
   props: {
@@ -69,7 +70,7 @@ export default defineComponent({
         this.$emitter.emit('piece-selected', this.pieceId);
       }
       else {
-        this.toast.warning(this.$t("toasts.warning.not_your_turn"))
+        this.$emit("invalidSelect")
       }
 
 

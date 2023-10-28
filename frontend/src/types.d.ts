@@ -1,6 +1,3 @@
-
-
-
 type Color = {
     base: string,
     lighten5: string,
@@ -17,31 +14,3 @@ type Color = {
     accent3: string,
     accent4: string
 }
-
-type GameField = Array<Array<GameState>>
-
-type GameState = {
-    position: Position,
-    containsPiece: boolean,
-    piece: Piece|undefined
-}
-type PieceColors =  "white" | "black" | undefined
-
-type Pieces = {
-    white: Array<Piece>
-    black: Array<Piece>
-}
-
-type History = {
-    pieceId: number,
-    start: Position,
-    end: Position,
-    killedPieceId: number | undefined
-
-}
-
-type Position = {
-    x: number,
-    y: number,
-}
-

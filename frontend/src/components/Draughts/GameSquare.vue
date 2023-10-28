@@ -1,8 +1,9 @@
 <script lang="ts">
 import {defineComponent} from 'vue'
 import colors from 'vuetify/lib/util/colors'
-import GamePiece from "@/components/Draughts/Piece.vue";
-import {isPlayableField} from "@/draughts";
+import GamePiece from "@/components/Draughts/GamePiece.vue";
+import {isPlayableField, positionEqual} from "@/draughts";
+import {Position} from "@draughts/Game.ts";
 
 export default defineComponent({
   name: "GameSquare",
@@ -14,8 +15,8 @@ export default defineComponent({
     return {colorStore, toast};
   },
   emits: {
-    moveSelectedTo(payload: Position){
-      return payload
+    moveSelectedTo(gameSquarePos: Position, isHighlighted: boolean){
+        return true;
     }
   },
   created()
@@ -47,20 +48,6 @@ export default defineComponent({
     position: {
       type: Object as PropType<Position>,
       default: {x: -1, y: -1}
-    },
-    selectedPiece: {
-      type: Object as PropType<Position>,
-      default: undefined
-    }
-  },
-  watch:
-  {
-    selectedPiece(newVal)
-    {
-      if(newVal === undefined)
-      {
-        this.highlight = false
-      }
     }
   },
   data()
@@ -91,18 +78,7 @@ export default defineComponent({
     },
     moveToMe()
     {
-
-      if(this.selectedPiece === this.position || this.selectedPiece === undefined)
-      {
-        return;
-      }
-      if(!this.highlight)
-      {
-        this.toast.warning(this.$t('toasts.warning.invalid_move'))
-        return;
-      }
-
-      this.$emit('moveSelectedTo', this.position)
+      this.$emit('moveSelectedTo', this.position, this.highlight)
 
     }
   },

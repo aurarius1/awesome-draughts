@@ -1,9 +1,12 @@
 <script lang="ts">
-import GameSquare from "@/components/Draughts/Square.vue";
-import GamePiece  from "@/components/Draughts/Piece.vue";
-import {StyleValue} from "vue";
+import GameSquare from "@/components/Draughts/GameSquare.vue";
+import GamePiece  from "@/components/Draughts/GamePiece.vue";
 
-import Game from "@/draughts";
+import Game, {positionEqual} from "@/draughts";
+import {StyleValue} from "vue";
+import {useGameStore} from "@/store";
+
+
 
 export default defineComponent({
   name: "GameField",
@@ -26,6 +29,28 @@ export default defineComponent({
       this.currentlySelectedPiece = piece
       this.$emitter.emit("highlight-field", this.gameState.getFieldsToHighlight(piece));
     })
+
+  },
+  watch: {
+    leave(newVal)
+    {
+      const gameStore = useGameStore();
+      switch(newVal)
+      {
+        case 1:
+          gameStore.endAndSave(false)
+          break
+        case 2:
+          gameStore.endAndSave(true)
+          break
+        case 3:
+          gameStore.clear()
+          break
+        default:
+          return
+      }
+      this.$router.push('/')
+    }
   },
   props: {
     cardHeight: {
@@ -43,6 +68,10 @@ export default defineComponent({
     fieldDimensions: {
       type: Number,
       default: 10
+    },
+    leave: {
+      type: Number,
+      default: -1,
     }
   },
   data()
@@ -54,8 +83,9 @@ export default defineComponent({
   },
   beforeMount()
   {
-    this._gameState = new Game(this.fieldDimensions);
-    this.$emit('playerSwitched', this.gameState.activePlayer);
+    const gameStore = useGameStore()
+    gameStore.startNewGame(this.fieldDimensions)
+    this.$emit('playerSwitched', this.gameState.activePlayer)
 
   },
   computed: {
@@ -71,20 +101,29 @@ export default defineComponent({
     gameField(){
       return this.gameState.field
     },
-    gameState(){
-      if(this._gameState === undefined)
+    gameState(): Game{
+      const gameStore = useGameStore()
+      if(gameStore.currentGame.fieldDimensions === -1)
       {
-        console.log("THIS SHOULD NOT HAVE HAPPENED")
-        // TODO CORRECT HANDLING WITH USER INTERACTION
-
-        return new Game(this.fieldDimensions)
+        gameStore.startNewGame(this.fieldDimensions)
       }
-      return this._gameState
+      return gameStore.currentGame
     }
   },
   methods: {
-    movePiece(targetPosition: Position)
+    movePiece(targetPosition: Position, isHighlighted: Boolean)
     {
+      let selectedPiecePosition = this.gameState.getPositionOfPiece(this.currentlySelectedPiece)
+      if(selectedPiecePosition === undefined || positionEqual(selectedPiecePosition, targetPosition))
+      {
+        return
+      }
+      if(!isHighlighted)
+      {
+        this.toast.warning(this.$t('toasts.warning.invalid_move'))
+        return
+      }
+      this.$emitter.emit('highlight-field', [])
       this.gameState.movePiece(this.currentlySelectedPiece, targetPosition)
       this.currentlySelectedPiece = -1
 
@@ -99,6 +138,16 @@ export default defineComponent({
       this.gameState.switchActivePlayer();
       this.$emit('playerSwitched', this.gameState.activePlayer ?? "");
     },
+    invalidSelect()
+    {
+      if(this.currentlySelectedPiece !== -1)
+      {
+        // no need to emit warning, different warning is already displayed
+
+        return;
+      }
+      this.toast.warning(this.$t("toasts.warning.not_your_turn"))
+    }
 
   }
 })
@@ -127,18 +176,17 @@ export default defineComponent({
                 :width="`${Math.floor(width/10)}px`"
                 :height="`${Math.floor(height/10)}px`"
                 :position="col.position"
-                :selected-piece="gameState.getPositionOfPiece(currentlySelectedPiece)"
                 @move-selected-to="movePiece"
 
             >
               <template v-slot:piece>
                 <game-piece
-                  :color="col.piece.color"
-                  :piece-id="col.piece.id"
-                  :piece-position="col.piece.position"
-                  :active-player="gameState.activePlayer"
                   v-if="col.containsPiece"
-
+                  :color="col.piece?.color"
+                  :piece-id="col.piece?.id"
+                  :piece-position="col.piece?.position"
+                  :active-player="gameState.activePlayer"
+                  @invalid-select="invalidSelect()"
                 />
               </template>
             </game-square>

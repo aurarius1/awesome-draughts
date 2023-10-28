@@ -35,12 +35,13 @@ import {faHome} from "@fortawesome/free-solid-svg-icons";
 import {faSun as fasSun} from "@fortawesome/free-solid-svg-icons/faSun";
 import {faSun as farSun} from "@fortawesome/free-regular-svg-icons/faSun";
 import {faSignOutAlt} from "@fortawesome/free-solid-svg-icons";
+import {faClose} from "@fortawesome/free-solid-svg-icons";
 
 import Toast, {PluginOptions} from "vue-toastification";
 // Import the CSS or use your own!
 import "vue-toastification/dist/index.css";
 
-library.add(faCheckCircle, faLanguage, faHome, fasSun, farSun,faSignOutAlt)
+library.add(faCheckCircle, faLanguage, faHome, fasSun, farSun,faSignOutAlt, faClose)
 
 const app = createApp(App)
 app.use( createPinia())

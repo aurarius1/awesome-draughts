@@ -104,7 +104,6 @@ export default defineComponent({
   },
   beforeMount()
   {
-    console.log(this.selected);
   }
 })
 </script>

@@ -10,7 +10,7 @@
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
-    "isolatedModules": false,
+    "isolatedModules": true,
     "noEmit": true,
     "jsx": "preserve",
 
@@ -29,7 +29,7 @@
         "./src/draughts/*"
       ]
     },
-    "types": ["./src/types.d.ts"]
+    "types": ["./src/types.d.ts", "vuetify"]
   },
   "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue", "**/*.ts"],
   "references": [{ "path": "./tsconfig.node.json" }]
