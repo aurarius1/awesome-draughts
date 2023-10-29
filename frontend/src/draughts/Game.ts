@@ -1,26 +1,37 @@
-import {isPlayableField} from "./Helper";
-export type GameField = Array<Array<GameState>>
+import {isPlayableField} from "./Helper"
 
-export type GameState = {
+export {Piece, Game}
+export type {Position, History, PieceColors, GameState, GameField}
+
+
+type GameField = Array<Array<GameState>>
+
+type GameState = {
     position: Position,
     containsPiece: boolean,
     piece: Piece|undefined
 }
-export type PieceColors =  "white" | "black" | undefined
+type PieceColors =  "white" | "black" | undefined
 
 type Pieces = {
-    [key: string]: Array<Piece>
+    [key: string]: {
+        [key: number]: Piece
+    }
 }
 
-export type History = {
+type History = {
+    moves: Array<Move>,
+    lastMove: number,
+}
+type Move = {
     pieceId: number,
     start: Position,
     end: Position,
-    killedPieceId: number | undefined
-
+    killedPieceId: number,
+    pieceUpgraded: boolean
 }
 
-export type Position = {
+type Position = {
     x: number,
     y: number,
 }
@@ -86,22 +97,26 @@ class Piece  {
 
 }
 
-export class Game {
+class Game {
     private readonly _gameId: number
     private _field: GameField
     private _pieces: Pieces
-    private _history: History | undefined
+    private _history: History
     private _currentPlayer: 'white' | 'black'
     private readonly _fieldDimensions: number
 
     constructor({fieldDimensions = -1, serialized = ""} = {}){
         if(fieldDimensions !== -1)
         {
-            this._gameId = Date.now();
+            this._history = {
+                moves: [],
+                lastMove: -1
+            }
+            this._gameId = Date.now()
             this._field = []
             this._pieces = {
-                white: [],
-                black: []
+                white: {},
+                black: {}
             }
             this._fieldDimensions = fieldDimensions
             this._currentPlayer = 'white'
@@ -122,7 +137,7 @@ export class Game {
                     if(containsPiece)
                     {
                         piece = new Piece(pieceColor, (y*10)+x, position)
-                        this._pieces[pieceColor].push(piece)
+                        this._pieces[pieceColor][piece.id] = piece
                     }
 
                     let state: GameState = {
@@ -136,24 +151,32 @@ export class Game {
         }
         else if(serialized !== "")
         {
+            // TODO VALIDATE ALL MVOES ETC
+
+
             let deserializedGame = JSON.parse(serialized)
             this._gameId = deserializedGame._gameId
             this._fieldDimensions = deserializedGame._fieldDimensions
             this._field = this.initalizeFieldWithoutPieces()
 
-            let pieces = JSON.parse(deserializedGame._pieces)
+            let pieces = deserializedGame._pieces
+            console.log(pieces)
             this._pieces = {
-                white: [],
-                black: []
+                white: {},
+                black: {}
             }
             Object.keys(this._pieces).forEach((key) => {
-                pieces[key].forEach((piece: SerializedPiece) => {
+                Object.keys(pieces[key]).forEach((id) => {
+
+                    let piece: SerializedPiece = pieces[key][id]
+
+
                     let deserializedPiece =
                         new Piece(piece._color, piece._id, piece._position, {
                             isAlive: piece._isAlive,
                             isKing: piece._isKing
                         })
-                    this._pieces[key].push(deserializedPiece)
+                    this._pieces[key][deserializedPiece.id] = deserializedPiece
 
                     if(deserializedPiece.isAlive)
                     {
@@ -163,7 +186,8 @@ export class Game {
                     }
                 })
             })
-
+            console.log(deserializedGame._history)
+            this._history = deserializedGame._history
             this._currentPlayer = deserializedGame._currentPlayer
         }
         else
@@ -176,7 +200,6 @@ export class Game {
                 black: []
             }
             this._currentPlayer = "white"
-            this._history = undefined
         }
 
 
@@ -200,22 +223,23 @@ export class Game {
     }
     private findPieceInGamefield(pieceId: number): Piece|undefined
     {
-        let whitePiece = this._pieces.white.find((piece) => {
-            return piece.id === pieceId
-        })
-        if(whitePiece)
+        let whitePiece = this._pieces.white[pieceId]
+        if(whitePiece !== undefined)
         {
             return whitePiece
         }
-        return this._pieces.black.find((piece) => {
-            return piece.id === pieceId
-        })
+        return this._pieces.black[pieceId]
     }
     public movePiece(pieceId: number, newPosition: Position)
     {
         let piece = this.findPieceInGamefield(pieceId);
+
+
+
         if(piece === undefined)
             return;
+
+
 
 
         this._field[piece.position.y][piece.position.x].containsPiece = false;
@@ -223,6 +247,8 @@ export class Game {
 
         this._field[newPosition.y][newPosition.x].containsPiece = true;
         this._field[newPosition.y][newPosition.x].piece = piece;
+
+        let killedPiece = -1
 
         if(piece.isKing){
             //TODO
@@ -233,6 +259,8 @@ export class Game {
                 let deletingX = piece.position.x + (xDiff/2);
                 let deletingY = piece.position.y + (yDiff/2);
 
+                killedPiece = this._field[deletingY][deletingX].piece?.id ?? -1
+
                 this._field[deletingY][deletingX].containsPiece = false;
                 this._field[deletingY][deletingX].piece?.die()
                 this._field[deletingY][deletingX].piece = undefined;
@@ -241,6 +269,21 @@ export class Game {
 
         }
 
+        this._history.moves = []
+
+        let move: Move = {
+            pieceId: pieceId,
+            start: piece.position,
+            end: newPosition,
+            killedPieceId: killedPiece,
+            pieceUpgraded: false, // TODO
+        }
+
+        // TODO reset everything after current node if redo
+
+        this._history.moves.push(move)
+        this._history.lastMove = this._history.lastMove+1
+        console.log("HALLLO" , this._history.lastMove)
         piece.position = newPosition
     }
 
@@ -334,14 +377,15 @@ export class Game {
 
     public isGameOver()
     {
-        let allWhiteDead = this._pieces.white.every((piece) => !piece.isAlive)
+
+        let allWhiteDead =  Object.values(this._pieces.white).every((piece) => !piece.isAlive)
         if(allWhiteDead)
         {
             return "black"
         }
 
 
-        let allBlackDead = this._pieces.black.every((piece) => !piece.isAlive)
+        let allBlackDead = Object.values(this._pieces.black).every((piece) => !piece.isAlive)
         if(allBlackDead)
         {
             return "white"
@@ -356,13 +400,43 @@ export class Game {
         return this._fieldDimensions
     }
 
+    public undoMove()
+    {
+        // TODO FIX ME
+        let lastMove = this._history.moves[this._history.lastMove];
+        if(lastMove === undefined){
+            return
+        }
 
+        let piece = this.findPieceInGamefield(lastMove.pieceId)
+        if(piece === undefined) {
+            return
+        }
+
+        this._field[piece.position.y][piece.position.x].containsPiece = false
+        this._field[piece.position.y][piece.position.x].piece = undefined
+
+        piece.position = lastMove.start
+
+        this._field[lastMove.start.y][lastMove.start.x].containsPiece = true
+        this._field[lastMove.start.y][lastMove.start.x].piece = piece
+
+
+        let killedPiece = this.findPieceInGamefield(lastMove.killedPieceId)
+        if(killedPiece !== undefined)
+        {
+            this._field[killedPiece.position.y][killedPiece.position.x].containsPiece = true
+            this._field[killedPiece.position.y][killedPiece.position.x].piece = killedPiece
+        }
+        this._history.lastMove = this._history.lastMove - 1;
+        this.switchActivePlayer()
+    }
     public serialize()
     {
         let gameObj = {
             _gameId: this._gameId,
-            _pieces: JSON.stringify(this._pieces),
-            _history: undefined,
+            _pieces: this._pieces,
+            _history: this._history,
             _currentPlayer: this._currentPlayer,
             _fieldDimensions: this._fieldDimensions
         }
@@ -378,4 +452,3 @@ export class Game {
 
 }
 
-export {Piece}

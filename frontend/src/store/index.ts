@@ -5,21 +5,23 @@ import {i18n} from "@/lang";
 
 import Game from "@/draughts"
 import fileDownload from 'js-file-download'
+import {ca} from "vuetify/locale";
+import {Exception} from "sass";
 
 export const useColorStore = defineStore('colorStore',{
     state: () =>  {
         return {
-            color: useLocalStorage("color", colors.blue),
+            _currentColor: useLocalStorage("color", colors.blue),
         }
     },
     actions: {
         changeColor(newColor: Color){
-            this.color = newColor
+            this._currentColor = newColor
         }
     },
     getters: {
         currentColor(state): Color{
-            return state.color
+            return state._currentColor
         }
     }
 })
@@ -27,7 +29,7 @@ export const useColorStore = defineStore('colorStore',{
 export const useLanguageStore = defineStore('languageStore',{
     state: () =>  {
         return {
-            language: useLocalStorage("language", navigator.language),
+            _currentLanguage: useLocalStorage("language", navigator.language),
         }
     },
     actions: {
@@ -35,30 +37,30 @@ export const useLanguageStore = defineStore('languageStore',{
             i18n.global.availableLocales.forEach((locale) => {
                 if(locale === newLanguage)
                 {
-                    this.language = newLanguage
+                    this._currentLanguage = newLanguage
                     i18n.global.locale = locale
                 }
             })
         }
     },
     getters: {
-        currentLanguage: (state) => state.language,
+        currentLanguage: (state) => state._currentLanguage,
     }
 })
 
 export const useThemeStore = defineStore('themeStore',{
     state: () =>  {
         return {
-            theme: useLocalStorage("theme", "dark"),
+            _currentTheme: useLocalStorage("theme", "dark"),
         }
     },
     actions: {
         changeTheme(newTheme: string){
-            this.theme = newTheme
+            this._currentTheme = newTheme
         }
     },
     getters: {
-        currentTheme: (state) => state.theme,
+        currentTheme: (state) => state._currentTheme,
     }
 })
 
@@ -114,6 +116,17 @@ export const useGameStore = defineStore('gameStore',{
                 this._currentGame = new Game({fieldDimensions: -1})
             }
         },
+        loadGame(gameState: string)
+        {
+            try{
+                this._currentGame = deserializeGameState(gameState)
+                return this._currentGame.fieldDimensions !== -1;
+            }
+            catch(error: any){
+                console.log(error)
+                return false
+            }
+        }
 
     },
     getters: {

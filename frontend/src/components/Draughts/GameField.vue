@@ -2,11 +2,10 @@
 import GameSquare from "@/components/Draughts/GameSquare.vue";
 import GamePiece  from "@/components/Draughts/GamePiece.vue";
 
-import Game, {positionEqual} from "@/draughts";
-import {StyleValue} from "vue";
+import Game, {positionEqual, Position} from "@/draughts";
+import {PropType, StyleValue} from "vue";
 import {useGameStore} from "@/store";
-
-
+import {LeaveTypes} from "@/globals.ts"
 
 export default defineComponent({
   name: "GameField",
@@ -21,6 +20,9 @@ export default defineComponent({
   emits: {
     playerSwitched(payload: string)
     {
+      return payload === "white" || payload === "black";
+    },
+    undoServed(payload: string){
       return payload === "white" || payload === "black";
     }
   },
@@ -37,21 +39,33 @@ export default defineComponent({
       const gameStore = useGameStore();
       switch(newVal)
       {
-        case 1:
+        case LeaveTypes.saveLocal:
           gameStore.endAndSave(false)
           break
-        case 2:
+        case LeaveTypes.saveRemote:
           gameStore.endAndSave(true)
           break
-        case 3:
+        case LeaveTypes.exit:
           gameStore.clear()
           break
         default:
           return
       }
       this.$router.push('/')
+    },
+    undoRequest(newVal)
+    {
+      if(!newVal){
+        return
+      }
+
+      this.toast.info("HALLO");
+      this.gameState.undoMove()
+      this.$emit("undoServed", this.gameState.activePlayer)
+
     }
   },
+
   props: {
     cardHeight: {
       type: String,
@@ -70,8 +84,12 @@ export default defineComponent({
       default: 10
     },
     leave: {
-      type: Number,
-      default: -1,
+      type: Object as PropType<LeaveTypes>,
+      default: LeaveTypes.noLeave,
+    },
+    undoRequest: {
+      type: Boolean,
+      default: false
     }
   },
   data()

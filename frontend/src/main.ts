@@ -29,19 +29,28 @@ import { library } from '@fortawesome/fontawesome-svg-core'
 /* import font awesome icon component */
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 /* import specific icons */
-import {faCheckCircle}  from '@fortawesome/free-regular-svg-icons'
-import {faLanguage} from "@fortawesome/free-solid-svg-icons";
-import {faHome} from "@fortawesome/free-solid-svg-icons";
-import {faSun as fasSun} from "@fortawesome/free-solid-svg-icons/faSun";
-import {faSun as farSun} from "@fortawesome/free-regular-svg-icons/faSun";
-import {faSignOutAlt} from "@fortawesome/free-solid-svg-icons";
-import {faClose} from "@fortawesome/free-solid-svg-icons";
+import {faCheckCircle, faSun as farSun}  from '@fortawesome/free-regular-svg-icons'
+import {
+    faLanguage,
+    faHome,
+    faSun as fasSun,
+    faSignOutAlt,
+    faClose,
+    faPaperclip,
+    faArrowLeft,
+    faUndo
+} from "@fortawesome/free-solid-svg-icons";
 
 import Toast, {PluginOptions} from "vue-toastification";
 // Import the CSS or use your own!
 import "vue-toastification/dist/index.css";
 
-library.add(faCheckCircle, faLanguage, faHome, fasSun, farSun,faSignOutAlt, faClose)
+library.add(faCheckCircle,
+    faLanguage, faHome, fasSun,
+    farSun,faSignOutAlt, faClose,
+    faPaperclip, faArrowLeft, faUndo
+
+)
 
 const app = createApp(App)
 app.use( createPinia())

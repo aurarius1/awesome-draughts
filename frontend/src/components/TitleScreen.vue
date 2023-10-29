@@ -1,7 +1,9 @@
 <script lang="ts">
 import {useColorStore} from "@/store";
+import LoadSaveGameDialog from "@/components/LoadSaveGameDialog.vue";
 export default defineComponent({
   name: "TitleScreen",
+  components: {LoadSaveGameDialog},
   setup()
   {
     const colorStore = useColorStore();
@@ -12,13 +14,26 @@ export default defineComponent({
       return this.colorStore.currentColor;
     }
   },
+  data()
+  {
+    return {
+      loadDialogVisible: false
+    }
+  },
   methods: {
   }
 })
 </script>
 
 <template>
+  <load-save-game-dialog
+      :visible="loadDialogVisible"
+      @update-visible="(newValue) => loadDialogVisible = newValue"
+
+  />
+
   <v-container>
+
     <v-row
         justify="center"
         align-content="center"
@@ -48,6 +63,7 @@ export default defineComponent({
                 :block="true"
                 size="x-large"
                 :color="selectedColor.base"
+                @click="loadDialogVisible=true"
             >
               {{ $t('load_game') }}
             </v-btn>

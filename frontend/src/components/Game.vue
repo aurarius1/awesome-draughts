@@ -2,6 +2,7 @@
 import GameField from "@/components/Draughts/GameField.vue";
 import {FontAwesomeIcon} from "@fortawesome/vue-fontawesome";
 import {StyleValue} from "vue";
+import {LeaveTypes} from '@/globals.ts'
 
 export default defineComponent({
   name: "Game.vue",
@@ -17,13 +18,20 @@ export default defineComponent({
       currentPlayer: "",
       playerWantsToLeave: false,
       dialogCloseHover: false,
-      exitType: -1,
+      exitType: LeaveTypes.noLeave,
+      undoRequest: false,
     }
   },
   methods: {
-    leaveGame(exitType: number)
+    leaveAndSaveRemote() {
+      this.exitType = LeaveTypes.saveRemote
+    },
+    leaveAndSaveLocal(){
+      this.exitType = LeaveTypes.saveLocal
+    },
+    leaveGame()
     {
-      this.exitType = exitType
+      this.exitType = LeaveTypes.exit
     },
     getColor()
     {
@@ -32,6 +40,11 @@ export default defineComponent({
     setCurrentPlayer(player: string)
     {
       this.currentPlayer = player
+    },
+    undoServed(player: string)
+    {
+      this.undoRequest = false
+      this.setCurrentPlayer(player)
     }
   },
   computed:
@@ -89,7 +102,7 @@ export default defineComponent({
                 :color="getColor()"
                 variant="outlined"
                 v-bind="props"
-                @click="leaveGame(1)"
+                @click="leaveAndSaveLocal()"
             >
               {{ $t('save_locally') }}
             </v-btn>
@@ -104,7 +117,7 @@ export default defineComponent({
                 :color="getColor()"
                 variant="elevated"
                 v-bind="props"
-                @click="leaveGame(2)"
+                @click="leaveAndSaveRemote()"
             >
               {{ $t('save_remote') }}
             </v-btn>
@@ -118,7 +131,7 @@ export default defineComponent({
                 :color="getColor()"
                 variant="plain"
                 v-bind="props"
-                @click="leaveGame(3)"
+                @click="leaveGame()"
             >
               {{ $t('exit') }}
             </v-btn>
@@ -133,8 +146,10 @@ export default defineComponent({
     class="ml-game-container"
   >
     <game-field
-      :leave="this.exitType"
+      :leave="exitType"
       @player-switched="setCurrentPlayer"
+      @undo-served="undoServed"
+      :undo-request="undoRequest"
     />
     <v-card
 
@@ -152,16 +167,48 @@ export default defineComponent({
       </v-card-text>
       <v-card-actions
       >
-        <v-btn
-          @click="playerWantsToLeave=true"
-        >
-          <font-awesome-icon
-              :icon="['fas', 'sign-out-alt']"
-              size="lg"
-              class="me-4"
-          />
-          {{ $t("leave_game") }}
-        </v-btn>
+        <v-container>
+          <v-row>
+            <v-col>
+              <v-btn
+                  @click="undoRequest=true"
+                  :disabled="undoRequest"
+              >
+                <font-awesome-icon
+                    :icon="['fas', 'fa-undo']"
+                    size="lg"
+                    class="me-4"
+                />
+                {{ $t("undo") }}
+              </v-btn>
+
+            </v-col>
+            <v-col>
+              <v-btn>
+                draw
+              </v-btn>
+            </v-col>
+          </v-row>
+          <v-row
+            align-content="center"
+            justify="center"
+          >
+            <v-col
+                align-self="center"
+            >
+              <v-btn
+                  @click="playerWantsToLeave=true"
+              >
+                <font-awesome-icon
+                    :icon="['fas', 'sign-out-alt']"
+                    size="lg"
+                    class="me-4"
+                />
+                {{ $t("leave_game") }}
+              </v-btn>
+            </v-col>
+          </v-row>
+        </v-container>
       </v-card-actions>
     </v-card>
   </div>
@@ -188,5 +235,6 @@ export default defineComponent({
   display: flex;
   justify-content: space-evenly;
 }
+
 
 </style>
