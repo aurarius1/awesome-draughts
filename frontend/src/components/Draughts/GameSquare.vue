@@ -12,7 +12,7 @@ export default defineComponent({
   {
     const colorStore = useColorStore();
     const toast = useToast();
-    return {colorStore, toast};
+    return {getColorStore: colorStore, toast};
   },
   emits: {
     moveSelectedTo(gameSquarePos: Position, isHighlighted: boolean){
@@ -72,7 +72,7 @@ export default defineComponent({
     {
       if(isPlayableField(this.position?.x, this.position?.y))
       {
-        return this.colorStore.currentColor.darken2;
+        return this.getColorStore.currentColor.darken2;
       }
       return colors.grey.lighten2
     },

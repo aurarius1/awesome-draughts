@@ -8,7 +8,7 @@ export default defineComponent({
   setup()
   {
     const colorStore = useColorStore();
-    return {colorStore}
+    return {getColorStore: colorStore}
   },
   props: {
     icon: {
@@ -40,7 +40,7 @@ export default defineComponent({
   methods: {
     getColor(color: string = "base")
     {
-      return this.colorStore.currentColor[color]
+      return this.getColorStore.currentColor[color]
     }
   }
 })

@@ -7,11 +7,11 @@ export default defineComponent({
   setup()
   {
     const colorStore = useColorStore();
-    return { colorStore }
+    return { getColorStore: colorStore }
   },
   computed: {
     selectedColor() {
-      return this.colorStore.currentColor;
+      return this.getColorStore.currentColor;
     }
   },
   data()

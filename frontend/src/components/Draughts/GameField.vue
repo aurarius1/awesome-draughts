@@ -15,7 +15,7 @@ export default defineComponent({
     const colorStore = useColorStore()
     const toast = useToast()
 
-    return {colorStore, toast}
+    return {getColorStore: colorStore, toast}
   },
   emits: {
     playerSwitched(payload: string)
@@ -210,7 +210,7 @@ export default defineComponent({
       this.toast.warning(this.$t("toasts.warning.not_your_turn"))
     },
     getColor(color: string = "base"){
-      return this.colorStore.currentColor[color]
+      return this.getColorStore.currentColor[color]
     }
   }
 })

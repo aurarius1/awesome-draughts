@@ -11,7 +11,7 @@ export default defineComponent({
     const colorStore = useColorStore()
     const gameStore = useGameStore()
     const toast = useToast()
-    return {colorStore, gameStore, toast}
+    return {getColorStore: colorStore, gameStore, toast}
   },
   props: {
     visible: {
@@ -52,7 +52,7 @@ export default defineComponent({
   },
   methods: {
     getColor(color: string = "base"){
-      return this.colorStore.currentColor[color]
+      return this.getColorStore.currentColor[color]
 
     },
     updateVisible() {

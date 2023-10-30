@@ -35,7 +35,7 @@ export default defineComponent({
       default: ""
     },
     btnVariant: {
-      type: Object as PropType<VBtnVariant>,
+      type: String as PropType<VBtnVariant>,
       default: 'text',
       validator(value: string){
         return ['text', 'flat', 'elevated', 'tonal', 'outlined', 'plain'].includes(value)

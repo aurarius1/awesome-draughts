@@ -16,22 +16,22 @@ export default defineComponent({
   },
   setup()
   {
-    const _colorStore = useColorStore()
-    const _languageStore = useLanguageStore()
-    const _themeStore = useThemeStore()
-    const _vuetifyTheme = useTheme()
+    const colorStore = useColorStore()
+    const languageStore = useLanguageStore()
+    const themeStore = useThemeStore()
+    const vuetifyTheme = useTheme()
 
-    return {_colorStore, _languageStore, _themeStore, _vuetifyTheme}
+    return {colorStore, languageStore, themeStore, vuetifyTheme}
   },
   watch: {
     selectedLanguage(newVal: string){
-      this.languageStore().changeLanguage(newVal);
+      this.getLanguageStore().changeLanguage(newVal);
     }
   },
   data(){
     return{
-      selected: this.colorStore().currentColor.base,
-      selectedLanguage: this.languageStore().currentLanguage,
+      selected: this.getColorStore().currentColor.base,
+      selectedLanguage: this.getLanguageStore().currentLanguage,
       palette: [
         [
           colors.red.base,
@@ -69,7 +69,7 @@ export default defineComponent({
       {
         if(colors[keys[i]].base === this.selected)
         {
-          this.colorStore().changeColor(colors[keys[i]])
+          this.getColorStore().changeColor(colors[keys[i]])
           break;
         }
       }
@@ -77,29 +77,29 @@ export default defineComponent({
     getIconColor()
     {
       return {
-        color: this.colorStore().currentColor.lighten1
+        color: this.getColorStore().currentColor.lighten1
       }
     },
     changeTheme()
     {
-      this.themeStore().changeTheme(this.themeStore().currentTheme === 'light' ? 'dark' : 'light');
-      this.vuetifyTheme().global.name.value = this.themeStore().currentTheme;
+      this.getThemeStore().changeTheme(this.getThemeStore().currentTheme === 'light' ? 'dark' : 'light');
+      this.getVuetifyTheme().global.name.value = this.getThemeStore().currentTheme;
     },
-    languageStore()
+    getLanguageStore()
     {
-      return this._languageStore
+      return this.languageStore
     },
-    colorStore()
+    getColorStore()
     {
-      return this._colorStore
+      return this.colorStore
     },
-    vuetifyTheme()
+    getVuetifyTheme()
     {
-      return this._vuetifyTheme
+      return this.vuetifyTheme
     },
-    themeStore()
+    getThemeStore()
     {
-      return this._themeStore
+      return this.themeStore
     }
   },
   beforeMount()
@@ -155,7 +155,7 @@ export default defineComponent({
               </p>
 
               <font-awesome-icon
-                  :icon="themeStore().currentTheme === 'light' ? ['far', 'sun'] : ['fas', 'sun']"
+                  :icon="getThemeStore().currentTheme === 'light' ? ['far', 'sun'] : ['fas', 'sun']"
                   size="2x"
                   :style="getIconColor()"
                   class="ml-theme-selector"
@@ -187,7 +187,7 @@ export default defineComponent({
               <v-select
                   density="compact"
                   :items="$i18n.availableLocales"
-                  :color="colorStore().currentColor.base"
+                  :color="getColorStore().currentColor.base"
                   v-model="selectedLanguage"
               >
                 <template v-slot:item="{props, item}">
@@ -217,7 +217,7 @@ export default defineComponent({
           class="ml-exit-btn"
       >
         <v-btn
-          :color="colorStore().currentColor.accent1"
+          :color="getColorStore().currentColor.accent1"
           @click="$router.push('/')"
         >
           {{ $t("exit_settings") }}

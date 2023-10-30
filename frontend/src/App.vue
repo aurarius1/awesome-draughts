@@ -8,14 +8,14 @@ export default defineComponent({
     const languageStore = useLanguageStore();
     const themeStore = useThemeStore();
     const vuetifyTheme = useTheme()
-    return {languageStore, themeStore, vuetifyTheme}
+    return {getLanguageStore: languageStore, getThemeStore: themeStore, getVuetifyTheme: vuetifyTheme}
   },
   components: {
   },
   beforeCreate()
   {
-    this.vuetifyTheme.global.name.value = this.themeStore.currentTheme;
-    this.$i18n.locale = this.languageStore.currentLanguage;
+    this.getVuetifyTheme.global.name.value = this.getThemeStore.currentTheme;
+    this.$i18n.locale = this.getLanguageStore.currentLanguage;
   },
   created(){
   },

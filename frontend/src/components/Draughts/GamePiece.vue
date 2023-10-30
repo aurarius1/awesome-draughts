@@ -10,7 +10,7 @@ export default defineComponent({
   setup(){
     const colorStore = useColorStore();
     const toast = useToast();
-    return {colorStore, toast};
+    return {getColorStore: colorStore, toast};
   },
   emits: {
     pieceSelected(payload: number){
@@ -86,7 +86,7 @@ export default defineComponent({
     },
     getColor(type: string = "base")
     {
-      return this.colorStore.currentColor[type]
+      return this.getColorStore.currentColor[type]
     }
 
   },

@@ -13,7 +13,7 @@ export default defineComponent({
   {
     const colorStore = useColorStore();
     const toast = useToast();
-    return {colorStore, toast}
+    return {getColorStore: colorStore, toast}
   },
   data()
   {
@@ -38,7 +38,7 @@ export default defineComponent({
       this.exitType = LeaveTypes.exit
     },
     getColor(color: string = 'lighten1'){
-        return this.colorStore.currentColor[color]
+        return this.getColorStore.currentColor[color]
     },
     setCurrentPlayer(player: string) {
       this.currentPlayer = player
