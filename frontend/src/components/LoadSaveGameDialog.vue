@@ -1,9 +1,12 @@
 <script lang="ts">
 import {defineComponent, StyleValue} from 'vue'
 import {useGameStore} from "@/store";
+import FontAwesomeBtn from "@/components/FontAwesomeBtn.vue";
+import VFontAwesomeBtn from "@/components/VFontAwesomeBtn.vue";
 
 export default defineComponent({
   name: "LoadSaveGameDialog",
+  components: {VFontAwesomeBtn, FontAwesomeBtn},
   setup(){
     const colorStore = useColorStore()
     const gameStore = useGameStore()
@@ -26,12 +29,13 @@ export default defineComponent({
 
           if(!this.gameStore.loadGame(fileContent))
           {
-            this.toast.error(this.$t('game_state_invalid'))
+            this.toast.error(this.$t('toasts.error.gamestate_invalid'))
             this.fileUploaded = false
             this.uploadedGameState = [];
           }
           else
           {
+            this.toast.success(this.$t('toasts.success.gamestate_valid'))
             this.$router.push("/game")
           }
         })
@@ -40,41 +44,20 @@ export default defineComponent({
   },
   data() {
     return {
-      closeBtnHovered: false,
-      backBtnHovered: false,
       loadFromFile: false,
       loadFromServer: false,
       fileUploaded: false,
       uploadedGameState: [] as Array<File>
     }
   },
-  computed: {
-    btnHoveredStyle(): StyleValue{
-      return {
-        cursor: "pointer",
-        color: this.getColor(),
-
-      }
-    },
-  },
   methods: {
-    getBtnStyle(param: string)
-    {
-      if(!this.closeBtnHovered && param === "close")
-        return {}
-      if(!this.backBtnHovered && param === "back")
-        return {}
-      return this.btnHoveredStyle
-    },
     getColor(color: string = "base"){
       return this.colorStore.currentColor[color]
 
     },
     updateVisible() {
-      this.closeBtnHovered = false
       this.loadFromFile = false
       this.loadFromServer = false
-      this.backBtnHovered = false
       this.fileUploaded = false
       this.$emit('updateVisible', false)
     },
@@ -92,8 +75,6 @@ export default defineComponent({
     {
       this.loadFromFile = false
       this.loadFromServer = false
-      this.backBtnHovered = false
-      this.closeBtnHovered = false
       this.fileUploaded = false
     },
 
@@ -113,24 +94,26 @@ export default defineComponent({
           <v-col
               cols="10"
           >
-            {{ $t('load_game')}}
+            {{ $t('load_dialog.title')}}
           </v-col>
           <v-spacer v-if="!loadFromFile && !loadFromServer"/>
           <v-col  v-else>
-            <font-awesome-icon
-                :icon="['fas', 'fa-arrow-left']"
-                @mouseover="backBtnHovered=true"
-                @mouseleave="backBtnHovered=false"
-                :style="getBtnStyle('back')"
-                @click="goBack()"
-            />
+            <v-tooltip
+              :text="$t('load_dialog.tooltips.back_btn')"
+              location="left"
+            >
+              <template v-slot:activator="{ props }">
+                <font-awesome-btn
+                    v-bind="props"
+                    :icon="['fas', 'fa-arrow-left']"
+                    @click="goBack()"
+                />
+              </template>
+            </v-tooltip>
           </v-col>
           <v-col>
-            <font-awesome-icon
+            <font-awesome-btn
                 :icon="['fas', 'fa-close']"
-                @mouseover="closeBtnHovered=true"
-                @mouseleave="closeBtnHovered=false"
-                :style="getBtnStyle('close')"
                 @click="updateVisible()"
             />
           </v-col>
@@ -139,7 +122,7 @@ export default defineComponent({
       <v-card-text v-if="loadFromFile">
         <v-overlay
             v-model="fileUploaded"
-            contained
+            :contained="true"
             class="align-center justify-center"
         >
           <v-progress-circular
@@ -147,16 +130,12 @@ export default defineComponent({
             size="70"
             width="3"
             :color="getColor('darken1')"
-          >
-
-          </v-progress-circular>
+          />
         </v-overlay>
-
-
 
         <v-file-input
             variant="outlined"
-            :label="$t('upload_gamestate')"
+            :label="$t('load_dialog.upload_gamestate')"
             prepend-icon=""
             :show-size="true"
             :counter="true"
@@ -171,10 +150,9 @@ export default defineComponent({
         </v-file-input>
       </v-card-text>
       <v-card-text v-else-if="loadFromServer">
-
       </v-card-text>
-      <v-card-text v-else>
-        {{ $t("load_game_desc") }}
+      <v-card-text class="ml-save-dialog-text" v-else>
+        {{ $t("load_dialog.description") }}
       </v-card-text>
       <v-card-actions v-if="loadFromServer">
 
@@ -184,32 +162,37 @@ export default defineComponent({
       </v-card-actions>
       <v-card-actions v-else>
         <v-tooltip
-            :text="$t('load_local_tooltip')"
+            :text="$t('load_dialog.tooltips.load_local')"
         >
           <template v-slot:activator="{ props }">
-            <v-btn
-                :color="getColor()"
-                variant="outlined"
+
+            <v-font-awesome-btn
                 v-bind="props"
+                :btn-color="getColor()"
+                btn-variant="outlined"
                 @click="loadLocal()"
-            >
-              {{ $t('load_local') }}
-            </v-btn>
+                :icon="['fas', 'fa-upload']"
+                icon-text-spacing="me-2"
+                size="lg"
+                :text="$t('load_dialog.load')"
+            />
           </template>
 
         </v-tooltip>
         <v-tooltip
-            :text="$t('load_remote_tooltip')"
+            :text="$t('load_dialog.tooltips.load_remote')"
         >
           <template v-slot:activator="{ props }">
-            <v-btn
-                :color="getColor()"
-                variant="elevated"
+            <v-font-awesome-btn
                 v-bind="props"
+                :btn-color="getColor()"
+                btn-variant="elevated"
                 @click="loadRemote()"
-            >
-              {{ $t('load_remote') }}
-            </v-btn>
+                :icon="['fas', 'fa-cloud-download-alt']"
+                icon-text-spacing="me-2"
+                size="lg"
+                :text="$t('load_dialog.load')"
+            />
           </template>
         </v-tooltip>
       </v-card-actions>
@@ -222,4 +205,9 @@ export default defineComponent({
   display: flex;
   justify-content: space-evenly;
 }
+.ml-save-dialog-text{
+  text-align: justify;
+  text-justify: inter-word;
+}
+
 </style>

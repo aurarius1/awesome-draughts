@@ -10,5 +10,53 @@
   "language": {
     "de": "Deutsch",
     "en": "English"
+  },
+  "player": {
+    "white": "WHITE: {name}",
+    "black": "BLACK: {name}",
+    "wins": "Player {name} wins"
+  },
+  "undo": "UNDO",
+  "redo": "REDO",
+  "exit_dialog": {
+    "title": "To save or not to save?",
+    "description": "If you want to save the game you have the option to do that on our server or locally (this will download a '.aw' file). If you do not want to keep your game state just hit 'exit' :)",
+    "tooltips": {
+      "save_local": "Downloads a '.aw' file",
+      "save_remote": "Save your game state on the server",
+      "exit": "All unsaved data will be lost"
+    },
+    "save": "Save",
+    "exit": "Exit"
+  },
+  "draw": "Draw",
+  "leave_game": "Leave",
+  "load_dialog": {
+    "title": "Load saved game",
+    "description": "If you want to load your game you have the option to do that from our server or from a local '.aw' file. :)",
+    "tooltips": {
+      "back_btn": "Go back to load selection",
+      "load_local": "Upload a '.aw' file",
+      "load_remote": "Select one of your remotely stored game states"
+    },
+    "load": "Load",
+    "upload_gamestate": "Upload your '.aw' file..."
+
+  },
+  "toasts": {
+    "warning":{
+      "invalid_move": "This move is not valid :(",
+      "not_your_turn": "It's not your turn to play, be patient :)"
+    },
+    "info": {
+      "undo_successful": "Undo of last move was successful",
+      "redo_successful": "Redo of last undo was successful"
+    },
+    "error": {
+      "gamestate_invalid": "Your uploaded game state was invalid. Please supply a valid '.aw' file :)"
+    },
+    "success": {
+      "gamestate_valid": "Your provided game state was loaded successful"
+    }
   }
 }

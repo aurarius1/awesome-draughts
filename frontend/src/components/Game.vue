@@ -3,23 +3,28 @@ import GameField from "@/components/Draughts/GameField.vue";
 import {FontAwesomeIcon} from "@fortawesome/vue-fontawesome";
 import {StyleValue} from "vue";
 import {LeaveTypes} from '@/globals.ts'
+import FontAwesomeBtn from "@/components/FontAwesomeBtn.vue";
+import VFontAwesomeBtn from "@/components/VFontAwesomeBtn.vue";
 
 export default defineComponent({
   name: "Game.vue",
-  components: {FontAwesomeIcon, GameField},
+  components: {VFontAwesomeBtn, FontAwesomeBtn, FontAwesomeIcon, GameField},
   setup()
   {
     const colorStore = useColorStore();
-    return {colorStore}
+    const toast = useToast();
+    return {colorStore, toast}
   },
   data()
   {
     return{
       currentPlayer: "",
       playerWantsToLeave: false,
-      dialogCloseHover: false,
       exitType: LeaveTypes.noLeave,
       undoRequest: false,
+      redoRequest: false,
+      undoPossible: false,
+      redoPossible: false,
     }
   },
   methods: {
@@ -29,33 +34,49 @@ export default defineComponent({
     leaveAndSaveLocal(){
       this.exitType = LeaveTypes.saveLocal
     },
-    leaveGame()
-    {
+    leaveGame(){
       this.exitType = LeaveTypes.exit
     },
-    getColor()
-    {
-        return this.colorStore.currentColor.lighten1
+    getColor(color: string = 'lighten1'){
+        return this.colorStore.currentColor[color]
     },
-    setCurrentPlayer(player: string)
-    {
+    setCurrentPlayer(player: string) {
       this.currentPlayer = player
     },
-    undoServed(player: string)
-    {
+    undoServed(player: string) {
       this.undoRequest = false
       this.setCurrentPlayer(player)
-    }
+    },
+    redoServed(player: string) {
+      this.redoRequest = false
+      this.setCurrentPlayer(player)
+    },
+    getPlayerName(player: string = "") {
+      if(player === "")
+      {
+        player = this.currentPlayer
+      }
+      if(player === "white" )
+      {
+        return "Alice"
+      }
+      return "Bob"
+    },
+    gameOver(winner: string) {
+
+      this.toast.success(this.$t(`player.wins`, {name: this.getPlayerName(winner)}))
+      this.$router.push("/")
+    },
   },
   computed:
   {
-    dialogCloseHoverStyle(): StyleValue{
-      if(!this.dialogCloseHover)
-        return {}
-
+    infoCardContainerStyle(): StyleValue{
       return {
-        cursor: "pointer",
-        color: this.getColor()
+        height: "992px",
+        width: "600px",
+        backgroundColor: this.getColor('lighten3'),
+        borderRadius: "4px"
+
       }
     }
 
@@ -68,73 +89,84 @@ export default defineComponent({
     v-model="playerWantsToLeave"
     width="500"
   >
-    <v-card>
+    <v-card
+      class="ml-save-dialog"
+    >
       <v-card-title>
         <v-row>
           <v-col
             cols="11"
           >
-            {{ $t('save_or_exit')}}
+            {{ $t('exit_dialog.title')}}
           </v-col>
           <v-col>
-            <font-awesome-icon
+            <font-awesome-btn
                 :icon="['fas', 'fa-close']"
-                @mouseover="dialogCloseHover=true"
-                @mouseleave="dialogCloseHover=false"
-                :style="dialogCloseHoverStyle"
                 @click="playerWantsToLeave=false"
             />
           </v-col>
         </v-row>
 
       </v-card-title>
-      <v-card-text>
-        {{ $t('save_or_exit_desc') }}
+      <v-card-text
+        class="ml-save-dialog-text"
+      >
+        {{ $t('exit_dialog.description') }}
       </v-card-text>
       <v-card-actions
-
+        class="ml-save-dialog-actions"
       >
         <v-tooltip
-            :text="$t('save_locally_tooltip')"
+            :text="$t('exit_dialog.tooltips.save_local')"
         >
           <template v-slot:activator="{ props }">
-            <v-btn
-                :color="getColor()"
-                variant="outlined"
+
+            <v-font-awesome-btn
                 v-bind="props"
+                :btn-color="getColor()"
+                btn-variant="outlined"
                 @click="leaveAndSaveLocal()"
-            >
-              {{ $t('save_locally') }}
-            </v-btn>
+                :icon="['fas', 'fa-download']"
+                size="lg"
+                :text="$t('exit_dialog.save')"
+                icon-text-spacing="me-2"
+            />
           </template>
 
         </v-tooltip>
         <v-tooltip
-          :text="$t('save_remote_tooltip')"
+          :text="$t('exit_dialog.tooltips.save_remote')"
         >
           <template v-slot:activator="{ props }">
-            <v-btn
-                :color="getColor()"
-                variant="elevated"
+
+            <v-font-awesome-btn
                 v-bind="props"
+                :btn-color="getColor()"
+                btn-variant="elevated"
                 @click="leaveAndSaveRemote()"
-            >
-              {{ $t('save_remote') }}
-            </v-btn>
+                :icon="['fas', 'fa-cloud-upload-alt']"
+                size="lg"
+                :text="$t('exit_dialog.save')"
+                icon-text-spacing="me-2"
+            />
           </template>
         </v-tooltip>
         <v-tooltip
-            :text="$t('exit_tooltip')"
+            :text="$t('exit_dialog.tooltips.exit')"
         >
           <template v-slot:activator="{ props }">
-            <v-btn
-                :color="getColor()"
-                variant="plain"
+
+            <v-font-awesome-btn
                 v-bind="props"
+                :btn-color="getColor()"
+                btn-variant="plain"
                 @click="leaveGame()"
-            >
-              {{ $t('exit') }}
-            </v-btn>
+                :icon="['fas', 'fa-sign-out-alt']"
+                size="lg"
+                :text="$t('exit_dialog.exit')"
+                icon-text-spacing="me-2"
+            />
+
           </template>
         </v-tooltip>
       </v-card-actions>
@@ -147,93 +179,172 @@ export default defineComponent({
   >
     <game-field
       :leave="exitType"
+      card-height="992px"
       @player-switched="setCurrentPlayer"
       @undo-served="undoServed"
+      @redo-served="redoServed"
+      @undo-possible="(possible: boolean) => {undoPossible=possible}"
+      @redo-possible="(possible: boolean) => {redoPossible=possible}"
+      @game-over="gameOver"
       :undo-request="undoRequest"
+      :redo-request="redoRequest"
     />
-    <v-card
-
-      width="300px"
-      elevation="6"
-      class="ml-12"
+    <div
+      class="ml-game-info-card-container ml-12"
+      :style="infoCardContainerStyle"
     >
-      <v-card-title
-          class="ml-title-row"
+      <v-card
+          class="ml-game-info-card"
       >
-        {{ $t(`player.${currentPlayer}`)}}
-      </v-card-title>
-      <v-card-text>
+        <v-card-title
+            class="ml-game-info-title"
+        >
+         <v-row>
+           <v-col
+               cols="10"
+           >
+             {{ $t(`player.${currentPlayer}`, {name: getPlayerName()}) }}
+           </v-col>
+           <v-col>
+             <font-awesome-btn
+                :icon="['fas', 'fa-edit']"
+                color="lighten1"
+                @click="() => {console.log('hallo')}"
+             />
+           </v-col>
+           <v-col>
+             <font-awesome-btn
+                 :icon="['fas', 'fa-gears']"
+                 color="lighten1"
+                 @click="() => {console.log('yes that works')}"
+             />
+           </v-col>
+         </v-row>
+        </v-card-title>
+        <v-card-text
+            class="ml-game-info-card-content"
+        >
 
-      </v-card-text>
-      <v-card-actions
-      >
-        <v-container>
-          <v-row>
-            <v-col>
-              <v-btn
-                  @click="undoRequest=true"
-                  :disabled="undoRequest"
-              >
-                <font-awesome-icon
-                    :icon="['fas', 'fa-undo']"
-                    size="lg"
-                    class="me-4"
-                />
-                {{ $t("undo") }}
-              </v-btn>
+        </v-card-text>
+        <v-card-actions
+            class="ml-game-info-card-actions"
+        >
 
-            </v-col>
-            <v-col>
-              <v-btn>
-                draw
-              </v-btn>
-            </v-col>
-          </v-row>
-          <v-row
-            align-content="center"
-            justify="center"
+          <v-container
+              class="container"
           >
-            <v-col
-                align-self="center"
-            >
-              <v-btn
-                  @click="playerWantsToLeave=true"
+            <v-row>
+              <v-col
+                  class="ml-game-info-card-actions-column"
               >
-                <font-awesome-icon
+                <v-font-awesome-btn
+                  @click="undoRequest=true"
+                  :disabled="undoRequest || !undoPossible"
+                  :icon="['fas', 'fa-undo']"
+                  size="lg"
+                  :icon-color="getColor()"
+                  :text="$t('undo')"
+                />
+              </v-col>
+              <v-col
+                  class="ml-game-info-card-actions-column"
+              >
+                <v-font-awesome-btn
+                    @click="redoRequest=true"
+                    :disabled="redoRequest || !redoPossible"
+                    :icon="['fas', 'fa-redo']"
+                    size="lg"
+                    :icon-color="getColor()"
+                    :text="$t('redo')"
+                />
+
+              </v-col>
+
+            </v-row>
+            <v-row
+                align-content="center"
+                justify="center"
+            >
+              <v-col
+                  class="ml-game-info-card-actions-column"
+              >
+                <v-font-awesome-btn
+                    :icon="['fas', 'fa-handshake']"
+                    size="lg"
+                    :icon-color="getColor()"
+                    :text="$t('draw')"
+                />
+              </v-col>
+              <v-col
+                  class="ml-game-info-card-actions-column"
+              >
+
+                <v-font-awesome-btn
+                    @click="playerWantsToLeave=true"
                     :icon="['fas', 'sign-out-alt']"
                     size="lg"
-                    class="me-4"
+                    :text="$t('leave_game')"
                 />
-                {{ $t("leave_game") }}
-              </v-btn>
-            </v-col>
-          </v-row>
-        </v-container>
-      </v-card-actions>
-    </v-card>
+              </v-col>
+            </v-row>
+          </v-container>
+
+
+        </v-card-actions>
+      </v-card>
+    </div>
   </div>
 </template>
 
 <style scoped lang="scss">
+
+
 .ml-game-container{
   display: flex;
   height: calc(100vh - 56px);
   align-items: center;
   top: 56px;
   justify-content: center;
-}
-.v-card-actions{
-  display: flex;
-  justify-content: space-evenly;
-}
-.ml-title-row{
-  display: flex;
-  justify-content: center;
+  overflow-y: hidden;
 }
 
+
 .ml-save-dialog{
+  .ml-save-dialog-text{
+    text-align: justify;
+    text-justify: inter-word;
+  }
+  .ml-save-dialog-actions{
+    display: flex;
+    justify-content: space-evenly;
+  }
+}
+
+.ml-game-info-card-container{
   display: flex;
-  justify-content: space-evenly;
+  justify-content: center;
+  align-content: center;
+  .ml-game-info-card{
+    margin: 16px;
+    width: 568px;
+    box-shadow: 0px 0px 32px 2px rgba(54,54,54,1);
+    .ml-game-info-title{
+      display: flex;
+      justify-content: center;
+    }
+    .ml-game-info-card-content{
+      height: 780px;
+    }
+    .ml-game-info-card-actions{
+      .ml-game-info-card-actions-column{
+        display: flex;
+        justify-content: center;
+      }
+    }
+
+
+  }
+
 }
 
 

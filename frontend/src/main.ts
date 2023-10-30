@@ -38,7 +38,16 @@ import {
     faClose,
     faPaperclip,
     faArrowLeft,
-    faUndo
+    faUndo,
+    faRedo,
+    faCloudUploadAlt,
+    faDownload,
+    faCloudDownloadAlt,
+    faUpload,
+    faHandshake,
+    faCrown,
+    faGears,
+    faEdit
 } from "@fortawesome/free-solid-svg-icons";
 
 import Toast, {PluginOptions} from "vue-toastification";
@@ -48,8 +57,10 @@ import "vue-toastification/dist/index.css";
 library.add(faCheckCircle,
     faLanguage, faHome, fasSun,
     farSun,faSignOutAlt, faClose,
-    faPaperclip, faArrowLeft, faUndo
-
+    faPaperclip, faArrowLeft, faUndo,
+    faRedo, faCloudUploadAlt, faDownload,
+    faCloudDownloadAlt, faUpload,faHandshake,
+    faCrown, faGears, faEdit
 )
 
 const app = createApp(App)
@@ -101,7 +112,7 @@ app.use(router)
 
 const toastOptions: PluginOptions = {
     transition: "Vue-Toastification__bounce",
-    maxToasts: 20,
+    maxOpened: 20,
     newestOnTop: true
 }
 app.use(Toast, toastOptions);

@@ -93,7 +93,7 @@ export const useGameStore = defineStore('gameStore',{
     },
     actions: {
         startNewGame(dimensions: number){
-            if(this._currentGame?.fieldDimensions === -1)
+            if(this._currentGame?.fieldDimensions === -1 || this._currentGame.gameOver)
             {
                 this._currentGame = new Game({fieldDimensions: dimensions})
             }

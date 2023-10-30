@@ -21,8 +21,9 @@ type Pieces = {
 
 type History = {
     moves: Array<Move>,
-    lastMove: number,
+    revertedMoves: Array<Move>
 }
+
 type Move = {
     pieceId: number,
     start: Position,
@@ -84,6 +85,10 @@ class Piece  {
     {
         this._isAlive = false;
     }
+    public undie()
+    {
+        this._isAlive = true
+    }
     public get position()
     {
         return this._position;
@@ -104,13 +109,14 @@ class Game {
     private _history: History
     private _currentPlayer: 'white' | 'black'
     private readonly _fieldDimensions: number
+    private _gameOver: boolean = false
 
     constructor({fieldDimensions = -1, serialized = ""} = {}){
         if(fieldDimensions !== -1)
         {
             this._history = {
                 moves: [],
-                lastMove: -1
+                revertedMoves: [],
             }
             this._gameId = Date.now()
             this._field = []
@@ -186,7 +192,6 @@ class Game {
                     }
                 })
             })
-            console.log(deserializedGame._history)
             this._history = deserializedGame._history
             this._currentPlayer = deserializedGame._currentPlayer
         }
@@ -200,6 +205,10 @@ class Game {
                 black: []
             }
             this._currentPlayer = "white"
+            this._history = {
+                moves: [],
+                revertedMoves: [],
+            }
         }
 
 
@@ -234,13 +243,8 @@ class Game {
     {
         let piece = this.findPieceInGamefield(pieceId);
 
-
-
         if(piece === undefined)
             return;
-
-
-
 
         this._field[piece.position.y][piece.position.x].containsPiece = false;
         this._field[piece.position.y][piece.position.x].piece = undefined;
@@ -249,9 +253,30 @@ class Game {
         this._field[newPosition.y][newPosition.x].piece = piece;
 
         let killedPiece = -1
+        let pieceUpgraded = false
+        if(piece._isKing){
+            let xDiff = newPosition.x - piece.position.x;
+            let yDiff = newPosition.y - piece.position.y;
 
-        if(piece.isKing){
-            //TODO
+            let xOffset = xDiff/Math.abs(xDiff);
+            let yOffset = yDiff/Math.abs(yDiff);
+
+            for(let multiplier = 1; multiplier < Math.abs(xDiff); multiplier++){
+                let deletingX = piece.position.x + (xOffset*multiplier);
+                let deletingY = piece.position.y + (yOffset*multiplier);
+                console.log("HOLA QUE TAL", deletingX, deletingY)
+                if(this._field[deletingY][deletingX].containsPiece){
+
+                    killedPiece = this._field[deletingY][deletingX].piece?.id ?? -1
+
+                    this._field[deletingY][deletingX].containsPiece = false;
+                    this._field[deletingY][deletingX].piece?.die()
+                    this._field[deletingY][deletingX].piece = undefined;
+
+                    break;
+                }
+
+            }
         }else{
             let xDiff = newPosition.x - piece.position.x;
             if(Math.abs(xDiff) !== 1){
@@ -267,23 +292,28 @@ class Game {
 
             }
 
-        }
+            if(piece.color === "white" && newPosition.y === this._fieldDimensions-1)
+            {
+                pieceUpgraded = true
+            }
+            else if(piece.color === "black" && newPosition.y === 0)
+            {
+                pieceUpgraded = true
+            }
 
-        this._history.moves = []
+
+            piece._isKing = pieceUpgraded
+        }
 
         let move: Move = {
             pieceId: pieceId,
             start: piece.position,
             end: newPosition,
             killedPieceId: killedPiece,
-            pieceUpgraded: false, // TODO
+            pieceUpgraded: pieceUpgraded, // TODO
         }
-
-        // TODO reset everything after current node if redo
-
         this._history.moves.push(move)
-        this._history.lastMove = this._history.lastMove+1
-        console.log("HALLLO" , this._history.lastMove)
+        this._history.revertedMoves = []
         piece.position = newPosition
     }
 
@@ -381,6 +411,7 @@ class Game {
         let allWhiteDead =  Object.values(this._pieces.white).every((piece) => !piece.isAlive)
         if(allWhiteDead)
         {
+            this._gameOver = true;
             return "black"
         }
 
@@ -388,6 +419,7 @@ class Game {
         let allBlackDead = Object.values(this._pieces.black).every((piece) => !piece.isAlive)
         if(allBlackDead)
         {
+            this._gameOver = true;
             return "white"
         }
     }
@@ -402,8 +434,8 @@ class Game {
 
     public undoMove()
     {
-        // TODO FIX ME
-        let lastMove = this._history.moves[this._history.lastMove];
+        let lastMove = this._history.moves.pop()
+
         if(lastMove === undefined){
             return
         }
@@ -427,10 +459,67 @@ class Game {
         {
             this._field[killedPiece.position.y][killedPiece.position.x].containsPiece = true
             this._field[killedPiece.position.y][killedPiece.position.x].piece = killedPiece
+            killedPiece.undie()
         }
-        this._history.lastMove = this._history.lastMove - 1;
+
+        if(lastMove.pieceUpgraded)
+        {
+            piece._isKing = false
+        }
+
+        this._history.revertedMoves.push(lastMove)
+
         this.switchActivePlayer()
+        return this._history.moves.length === 0
     }
+
+    public redoMove()
+    {
+        let nextMove = this._history.revertedMoves.pop()
+        if(nextMove === undefined){
+            return
+        }
+        let piece = this.findPieceInGamefield(nextMove.pieceId)
+        if(piece === undefined) {
+            return
+        }
+        this._field[piece.position.y][piece.position.x].containsPiece = false
+        this._field[piece.position.y][piece.position.x].piece = undefined
+        piece.position = nextMove.end
+        this._field[nextMove.end.y][nextMove.end.x].containsPiece = true
+        this._field[nextMove.end.y][nextMove.end.x].piece = piece
+
+        let killedPiece = this.findPieceInGamefield(nextMove.killedPieceId)
+        if(killedPiece !== undefined)
+        {
+            this._field[killedPiece.position.y][killedPiece.position.x].containsPiece = false
+            this._field[killedPiece.position.y][killedPiece.position.x].piece = undefined
+            killedPiece.die()
+        }
+        if(nextMove.pieceUpgraded)
+        {
+            piece._isKing = true
+        }
+
+        this._history.moves.push(nextMove)
+        this.switchActivePlayer()
+        return this._history.revertedMoves.length === 0
+    }
+
+    public undoPossible()
+    {
+        return this._history.moves.length !== 0
+    }
+    public redoPossible()
+    {
+        return this._history.revertedMoves.length !== 0
+    }
+
+    public get gameOver()
+    {
+        return this._gameOver
+    }
+
     public serialize()
     {
         let gameObj = {
@@ -438,7 +527,8 @@ class Game {
             _pieces: this._pieces,
             _history: this._history,
             _currentPlayer: this._currentPlayer,
-            _fieldDimensions: this._fieldDimensions
+            _fieldDimensions: this._fieldDimensions,
+            _gameOver: this._gameOver
         }
 
 

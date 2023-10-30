@@ -2,9 +2,11 @@
 import {PropType, StyleValue} from "vue";
 import {useColorStore} from "@/store";
 import {Position} from "@draughts/Game.ts";
+import {FontAwesomeIcon} from "@fortawesome/vue-fontawesome";
 
 export default defineComponent({
   name: "GamePiece",
+  components: {FontAwesomeIcon},
   setup(){
     const colorStore = useColorStore();
     const toast = useToast();
@@ -31,6 +33,10 @@ export default defineComponent({
       type: String,
       default: ""
     },
+    isKing: {
+      type: Boolean,
+      default: false
+    },
     activePlayer: {
       type: String,
       default: ""
@@ -56,6 +62,11 @@ export default defineComponent({
         boxShadow: shadow
       }
     },
+    kingColor(): StyleValue{
+      return {
+        color: this.getColor()
+      }
+    },
     clicked() {
       return this.selected ? "selected" : ""
     }
@@ -72,9 +83,12 @@ export default defineComponent({
       else {
         this.$emit("invalidSelect")
       }
-
-
+    },
+    getColor(type: string = "base")
+    {
+      return this.colorStore.currentColor[type]
     }
+
   },
   created()
   {
@@ -100,6 +114,17 @@ export default defineComponent({
 
       @click="selectPiece()"
   >
+    <div
+        v-if="isKing"
+        class="king"
+        :style="kingColor"
+    >
+      <font-awesome-icon
+        class="icon"
+        :icon="['fas', 'fa-crown']"
+        size="3x"
+      />
+    </div>
   </div>
 
 </template>
@@ -109,6 +134,15 @@ export default defineComponent({
   width: 75%;
   height: 75%;
   border-radius: 40px;
+  .king {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+  }
 }
+
 
 </style>

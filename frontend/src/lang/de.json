@@ -10,6 +10,53 @@
   "language": {
     "de": "Deutsch",
     "en": "English"
-  }
+  },
+  "player": {
+    "white": "WEIẞ: {name}",
+    "black": "SCHWARZ: {name}",
+    "wins": "Spieler {name} gewinnt"
+  },
+  "undo": "UNDO",
+  "redo": "REDO",
+  "exit_dialog": {
+    "title": "Speichern oder nicht speichern?",
+    "description": "Wenn du das Spiel speichern möchten, hast du die Möglichkeit, dies auf unserem Server oder lokal zu tun (dadurch wird eine '.aw'-Datei heruntergeladen). Wenn du deinen Spielstatus nicht behalten möchten, klick einfach auf 'Beenden' :)",
+    "tooltips": {
+      "save_local": "Lädt eine '.aw' Datei herunter",
+      "save_remote": "Speichert deinen Spielstatus auf unserem Server",
+      "exit": "Alle nicht gespeicherten Daten gehen verloren"
+    },
+    "save": "Speichern",
+    "exit": "Beenden"
+  },
+  "draw": "Unentschieden",
+  "leave_game": "Verlassen",
+  "load_dialog": {
+    "title": "Lade gespeichertes Spiel",
+    "description": "Wenn du dein Spiel laden möchten, hast du die Möglichkeit, dies von unserem Server oder von einer lokalen '.aw'-Datei zu tun. :) ",
+    "tooltips": {
+      "back_btn": "Zurück zum Ladebildschirm",
+      "load_local": "Eine '.aw' Datei hochladen",
+      "load_remote": "Wähle einen auf dem Server gespeicherten Spielstände aus"
+    },
+    "load": "Laden",
+    "upload_gamestate": "'.aw' Datei hochladen..."
 
+  },
+  "toasts": {
+    "warning": {
+      "invalid_move": "Dieser Zug ist nicht valide :(",
+      "not_your_turn": "Sei geduldig, du bist noch nicht an der Reihe :)"
+    },
+    "info": {
+      "undo_successful": "Letzter Zug erfolgreich rückgängig gemacht",
+      "redo_successful": "Letztes rückgängig machen erfolgreich rückgängig gemacht"
+    },
+    "error": {
+      "gamestate_invalid": "Dein hochgeladener Spielstatus war ungültig. Bitte gib eine gültige '.aw'-Datei an :)"
+    },
+    "success": {
+      "gamestate_valid": "Dein bereitgestellter Spielstatus wurde erfolgreich geladen"
+    }
+  }
 }

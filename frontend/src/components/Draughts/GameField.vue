@@ -20,10 +20,25 @@ export default defineComponent({
   emits: {
     playerSwitched(payload: string)
     {
-      return payload === "white" || payload === "black";
+      return payload === "white" || payload === "black"
+    },
+    redoPossible(payload: boolean)
+    {
+      return true
+    },
+    undoPossible(payload: boolean)
+    {
+      return true
     },
     undoServed(payload: string){
-      return payload === "white" || payload === "black";
+      return payload === "white" || payload === "black"
+    },
+    redoServed(payload: string)  {
+      return payload === "white" || payload === "black"
+    },
+    gameOver(payload: string)
+    {
+      return payload === "white" || payload === "black"
     }
   },
   created(){
@@ -59,13 +74,30 @@ export default defineComponent({
         return
       }
 
-      this.toast.info("HALLO");
-      this.gameState.undoMove()
+      this.toast.info(this.$t('toasts.info.undo_successful'));
+      if(this.gameState.undoMove())
+      {
+        this.$emit('undoPossible', false)
+      }
+      this.$emit('redoPossible', true)
       this.$emit("undoServed", this.gameState.activePlayer)
 
+    },
+    redoRequest(newVal)
+    {
+      if(!newVal){
+        return
+      }
+      this.toast.info(this.$t('toasts.info.redo_successful'));
+      if(this.gameState.redoMove())
+      {
+        this.$emit('redoPossible', false)
+      }
+      this.$emit('undoPossible', true)
+
+      this.$emit("redoServed", this.gameState.activePlayer)
     }
   },
-
   props: {
     cardHeight: {
       type: String,
@@ -84,10 +116,14 @@ export default defineComponent({
       default: 10
     },
     leave: {
-      type: Object as PropType<LeaveTypes>,
+      type: Number as PropType<LeaveTypes>,
       default: LeaveTypes.noLeave,
     },
     undoRequest: {
+      type: Boolean,
+      default: false
+    },
+    redoRequest: {
       type: Boolean,
       default: false
     }
@@ -103,6 +139,8 @@ export default defineComponent({
   {
     const gameStore = useGameStore()
     gameStore.startNewGame(this.fieldDimensions)
+    this.$emit('undoPossible', this.gameState.undoPossible())
+    this.$emit('redoPossible', this.gameState.redoPossible())
     this.$emit('playerSwitched', this.gameState.activePlayer)
 
   },
@@ -113,7 +151,8 @@ export default defineComponent({
         width: `${this.width}px`,
         aspectRatio: '1/1',
         boxSizing: 'border-box',
-        marginTop: "24px"
+        borderRadius: "4px",
+        boxShadow: '0px 0px 32px 2px rgba(54,54,54,1)'
       }
     },
     gameField(){
@@ -146,14 +185,18 @@ export default defineComponent({
       this.currentlySelectedPiece = -1
 
       let winner = this.gameState?.isGameOver()
+
       if(winner === this.gameState?.activePlayer)
       {
-        this.toast.success(this.$t(`player.wins.${winner}`))
-        this.$router.push("/")
+        const gameStore = useGameStore()
+        gameStore.clear()
+        this.$emit('gameOver', winner)
         return;
       }
 
       this.gameState.switchActivePlayer();
+      this.$emit('undoPossible', true)
+      this.$emit('redoPossible', false)
       this.$emit('playerSwitched', this.gameState.activePlayer ?? "");
     },
     invalidSelect()
@@ -165,54 +208,59 @@ export default defineComponent({
         return;
       }
       this.toast.warning(this.$t("toasts.warning.not_your_turn"))
+    },
+    getColor(color: string = "base"){
+      return this.colorStore.currentColor[color]
     }
-
   }
 })
 </script>
 
 <template>
   <v-card
-    class="mt-16 mb-16 ml-game-card"
+    class=" ml-game-card"
     :height="cardHeight"
     max-width="1030px"
     elevation="6"
+    :color="getColor('lighten3')"
   >
-    <v-card-text>
-      <v-container
-          :style="computedStyle"
+
+    <v-container
+        :style="computedStyle"
+        class="ms-4 me-4 mt-4 mb-2 "
+    >
+      <v-row
+          :style="`height: ${Math.floor(height/10)}px`"
+          no-gutters
+          v-for="row in gameField"
       >
-        <v-row
-            :style="`height: ${Math.floor(height/10)}px`"
-            no-gutters
-            v-for="row in gameField"
+        <v-col
+            v-for="col in row"
         >
-          <v-col
-              v-for="col in row"
+          <game-square
+              :width="`${Math.floor(width/10)}px`"
+              :height="`${Math.floor(height/10)}px`"
+              :position="col.position"
+              @move-selected-to="movePiece"
+
           >
-            <game-square
-                :width="`${Math.floor(width/10)}px`"
-                :height="`${Math.floor(height/10)}px`"
-                :position="col.position"
-                @move-selected-to="movePiece"
+            <template v-slot:piece>
+              <game-piece
+                v-if="col.containsPiece"
+                :color="col.piece?.color"
+                :piece-id="col.piece?.id"
+                :piece-position="col.piece?.position"
+                :active-player="gameState.activePlayer"
+                :is-king="col.piece?.isKing"
+                @invalid-select="invalidSelect()"
+              />
+            </template>
+          </game-square>
+        </v-col>
+      </v-row>
 
-            >
-              <template v-slot:piece>
-                <game-piece
-                  v-if="col.containsPiece"
-                  :color="col.piece?.color"
-                  :piece-id="col.piece?.id"
-                  :piece-position="col.piece?.position"
-                  :active-player="gameState.activePlayer"
-                  @invalid-select="invalidSelect()"
-                />
-              </template>
-            </game-square>
-          </v-col>
-        </v-row>
+    </v-container>
 
-      </v-container>
-    </v-card-text>
   </v-card>
 </template>
 
@@ -236,5 +284,7 @@ export default defineComponent({
   overflow-x: scroll;
   overflow-y: scroll;
 }
+
+
 </style>
 
