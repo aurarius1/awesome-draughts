@@ -45,10 +45,6 @@ export default defineComponent({
     {
       return this.colorStore;
     }
-  },
-  beforeMount()
-  {
-    console.log(this.player, this._name, this.name)
   }
 })
 </script>
