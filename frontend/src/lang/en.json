@@ -53,7 +53,8 @@
       "redo_successful": "Redo of last undo was successful"
     },
     "error": {
-      "gamestate_invalid": "Your uploaded game state was invalid. Please supply a valid '.aw' file :)"
+      "gamestate_invalid": "Your uploaded game state was invalid. Please supply a valid '.aw' file :)",
+      "on_kill_streak": "You're currently on a kill streak, you need to finish it before doing other moves! :)"
     },
     "success": {
       "gamestate_valid": "Your provided game state was loaded successful"

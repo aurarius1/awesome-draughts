@@ -40,11 +40,14 @@ export default defineComponent({
     activePlayer: {
       type: String,
       default: ""
+    },
+    selectedPiece: {
+      type: Number,
+      default: -1
     }
   },
   data(){
     return {
-      selected: false,
       hover: false,
     }
   },
@@ -69,6 +72,10 @@ export default defineComponent({
     },
     clicked() {
       return this.selected ? "selected" : ""
+    },
+    selected()
+    {
+      return this.selectedPiece === this.pieceId
     }
   },
   methods:
@@ -77,7 +84,6 @@ export default defineComponent({
     {
       if(this.activePlayer === this.color)
       {
-        this.selected = true
         this.$emitter.emit('piece-selected', this.pieceId);
       }
       else {
@@ -89,15 +95,6 @@ export default defineComponent({
       return this.getColorStore.currentColor[type]
     }
 
-  },
-  created()
-  {
-    this.$emitter.on('piece-selected', (piece: Number) => {
-      if(piece !== this.pieceId)
-      {
-        this.selected = false;
-      }
-    })
   }
 })
 </script>

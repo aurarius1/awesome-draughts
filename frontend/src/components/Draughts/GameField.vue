@@ -2,7 +2,7 @@
 import GameSquare from "@/components/Draughts/GameSquare.vue";
 import GamePiece  from "@/components/Draughts/GamePiece.vue";
 
-import Game, {positionEqual, Position} from "@/draughts";
+import Game, {positionEqual, Position, PlayerNames} from "@/draughts";
 import {PropType, StyleValue} from "vue";
 import {useGameStore} from "@/store";
 import {LeaveTypes} from "@/globals.ts"
@@ -39,12 +39,26 @@ export default defineComponent({
     gameOver(payload: string)
     {
       return payload === "white" || payload === "black"
+    },
+    playerNames(payload: PlayerNames)
+    {
+      return payload.white !== "" && payload.black !== ""
     }
   },
   created(){
     this.$emitter.on('piece-selected', (piece: number) => {
+
+      if(this.isOnKillStreak)
+      {
+        return
+      }
+
       this.currentlySelectedPiece = piece
       this.$emitter.emit("highlight-field", this.gameState.getFieldsToHighlight(piece));
+    })
+    this.$emitter.on('player-name-changed', (player: string, name: string) => {
+      this.gameState.updatePlayerName(player, name)
+      this.$emit('playerNames', this.gameState.playerNames)
     })
 
   },
@@ -126,13 +140,14 @@ export default defineComponent({
     redoRequest: {
       type: Boolean,
       default: false
-    }
+    },
   },
   data()
   {
     return {
       _gameState: undefined as undefined|Game,
       currentlySelectedPiece: -1,
+      isOnKillStreak: false
     }
   },
   beforeMount()
@@ -142,7 +157,7 @@ export default defineComponent({
     this.$emit('undoPossible', this.gameState.undoPossible())
     this.$emit('redoPossible', this.gameState.redoPossible())
     this.$emit('playerSwitched', this.gameState.activePlayer)
-
+    this.$emit('playerNames', this.gameState.playerNames)
   },
   computed: {
     computedStyle(): StyleValue{
@@ -163,6 +178,7 @@ export default defineComponent({
       if(gameStore.currentGame.fieldDimensions === -1)
       {
         gameStore.startNewGame(this.fieldDimensions)
+        this.$emit('playerNames', this.gameState.playerNames)
       }
       return gameStore.currentGame
     }
@@ -175,13 +191,34 @@ export default defineComponent({
       {
         return
       }
+
       if(!isHighlighted)
       {
-        this.toast.warning(this.$t('toasts.warning.invalid_move'))
+        if(this.isOnKillStreak)
+        {
+          this.toast.error(this.$t('toasts.error.on_kill_streak'))
+        }
+        else
+        {
+          this.toast.warning(this.$t('toasts.warning.invalid_move'))
+        }
         return
       }
       this.$emitter.emit('highlight-field', [])
-      this.gameState.movePiece(this.currentlySelectedPiece, targetPosition)
+      let killStreakPossible = this.gameState.movePiece(this.currentlySelectedPiece, targetPosition)
+      if(killStreakPossible.length !== 0)
+      {
+        this.$emitter.emit('highlight-field', killStreakPossible)
+        this.isOnKillStreak = true
+        return;
+      }
+      else
+      {
+        this.isOnKillStreak = false
+      }
+
+
+
       this.currentlySelectedPiece = -1
 
       let winner = this.gameState?.isGameOver()
@@ -193,6 +230,10 @@ export default defineComponent({
         this.$emit('gameOver', winner)
         return;
       }
+
+
+
+
 
       this.gameState.switchActivePlayer();
       this.$emit('undoPossible', true)
@@ -252,6 +293,7 @@ export default defineComponent({
                 :piece-position="col.piece?.position"
                 :active-player="gameState.activePlayer"
                 :is-king="col.piece?.isKing"
+                :selected-piece="currentlySelectedPiece"
                 @invalid-select="invalidSelect()"
               />
             </template>

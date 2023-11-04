@@ -5,17 +5,21 @@ import {StyleValue} from "vue";
 import {LeaveTypes} from '@/globals.ts'
 import FontAwesomeBtn from "@/components/FontAwesomeBtn.vue";
 import VFontAwesomeBtn from "@/components/VFontAwesomeBtn.vue";
+import Settings from "@/components/Settings.vue";
+import {PlayerNames} from "@/draughts";
+import NameSelection from "@/components/NameSelection/NameSelection.vue";
+import Moves from "@/components/Draughts/Moves.vue";
 
 export default defineComponent({
   name: "Game.vue",
-  components: {VFontAwesomeBtn, FontAwesomeBtn, FontAwesomeIcon, GameField},
+  components: {Moves, NameSelection, Settings, VFontAwesomeBtn, FontAwesomeBtn, FontAwesomeIcon, GameField},
   setup()
   {
     const colorStore = useColorStore();
     const toast = useToast();
     return {getColorStore: colorStore, toast}
   },
-  data()
+  data() :{[key: string]: string | boolean | LeaveTypes | PlayerNames}
   {
     return{
       currentPlayer: "",
@@ -25,6 +29,9 @@ export default defineComponent({
       redoRequest: false,
       undoPossible: false,
       redoPossible: false,
+      settingsVisible: false,
+      gameSettingsVisible: false,
+      playerNames: {}
     }
   },
   methods: {
@@ -52,21 +59,23 @@ export default defineComponent({
       this.setCurrentPlayer(player)
     },
     getPlayerName(player: string = "") {
+
       if(player === "")
       {
         player = this.currentPlayer
       }
-      if(player === "white" )
-      {
-        return "Alice"
-      }
-      return "Bob"
+      return this.playerNames[player]
     },
     gameOver(winner: string) {
 
       this.toast.success(this.$t(`player.wins`, {name: this.getPlayerName(winner)}))
       this.$router.push("/")
     },
+    setPlayerNames(playerNames: PlayerNames){
+      this.playerNames = {
+        ...playerNames
+      }
+    }
   },
   computed:
   {
@@ -116,59 +125,39 @@ export default defineComponent({
       <v-card-actions
         class="ml-save-dialog-actions"
       >
-        <v-tooltip
-            :text="$t('exit_dialog.tooltips.save_local')"
-        >
-          <template v-slot:activator="{ props }">
-
-            <v-font-awesome-btn
-                v-bind="props"
-                :btn-color="getColor()"
-                btn-variant="outlined"
-                @click="leaveAndSaveLocal()"
-                :icon="['fas', 'fa-download']"
-                size="lg"
-                :text="$t('exit_dialog.save')"
-                icon-text-spacing="me-2"
-            />
-          </template>
-
-        </v-tooltip>
-        <v-tooltip
-          :text="$t('exit_dialog.tooltips.save_remote')"
-        >
-          <template v-slot:activator="{ props }">
-
-            <v-font-awesome-btn
-                v-bind="props"
-                :btn-color="getColor()"
-                btn-variant="elevated"
-                @click="leaveAndSaveRemote()"
-                :icon="['fas', 'fa-cloud-upload-alt']"
-                size="lg"
-                :text="$t('exit_dialog.save')"
-                icon-text-spacing="me-2"
-            />
-          </template>
-        </v-tooltip>
-        <v-tooltip
-            :text="$t('exit_dialog.tooltips.exit')"
-        >
-          <template v-slot:activator="{ props }">
-
-            <v-font-awesome-btn
-                v-bind="props"
-                :btn-color="getColor()"
-                btn-variant="plain"
-                @click="leaveGame()"
-                :icon="['fas', 'fa-sign-out-alt']"
-                size="lg"
-                :text="$t('exit_dialog.exit')"
-                icon-text-spacing="me-2"
-            />
-
-          </template>
-        </v-tooltip>
+        <v-font-awesome-btn
+            :btn-color="getColor()"
+            btn-variant="outlined"
+            @click="leaveAndSaveLocal()"
+            :icon="['fas', 'fa-download']"
+            size="lg"
+            :text="$t('exit_dialog.save')"
+            icon-text-spacing="me-2"
+            :tooltip-text="$t('exit_dialog.tooltips.save_local')"
+            tooltip-location="bottom"
+        />
+        <v-font-awesome-btn
+            :btn-color="getColor()"
+            btn-variant="elevated"
+            @click="leaveAndSaveRemote()"
+            :icon="['fas', 'fa-cloud-upload-alt']"
+            size="lg" 
+            :text="$t('exit_dialog.save')"
+            icon-text-spacing="me-2"
+            :tooltip-text="$t('exit_dialog.tooltips.save_remote')"
+            tooltip-location="bottom"
+        />
+        <v-font-awesome-btn
+            :btn-color="getColor()"
+            btn-variant="plain"
+            @click="leaveGame()"
+            :icon="['fas', 'fa-sign-out-alt']"
+            size="lg"
+            :text="$t('exit_dialog.exit')"
+            icon-text-spacing="me-2"
+            :tooltip-text="$t('exit_dialog.tooltips.exit')"
+            tooltip-location="bottom"
+        />
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -186,6 +175,7 @@ export default defineComponent({
       @undo-possible="(possible: boolean) => {undoPossible=possible}"
       @redo-possible="(possible: boolean) => {redoPossible=possible}"
       @game-over="gameOver"
+      @player-names="setPlayerNames"
       :undo-request="undoRequest"
       :redo-request="redoRequest"
     />
@@ -209,14 +199,17 @@ export default defineComponent({
              <font-awesome-btn
                 :icon="['fas', 'fa-edit']"
                 color="lighten1"
-                @click="() => {console.log('hallo')}"
+                :active="gameSettingsVisible"
+                @click="() => {gameSettingsVisible=!gameSettingsVisible; settingsVisible=false}"
              />
            </v-col>
            <v-col>
              <font-awesome-btn
                  :icon="['fas', 'fa-gears']"
                  color="lighten1"
-                 @click="() => {console.log('yes that works')}"
+                 :active="settingsVisible"
+                 @click="() => {settingsVisible = !settingsVisible; gameSettingsVisible=false}"
+
              />
            </v-col>
          </v-row>
@@ -224,6 +217,21 @@ export default defineComponent({
         <v-card-text
             class="ml-game-info-card-content"
         >
+          <settings
+            col-size="12"
+            v-if="settingsVisible"
+            :in-game="true"
+            @close-settings="settingsVisible=false"
+          />
+          <name-selection
+              v-else-if="gameSettingsVisible"
+              v-bind:default-names="playerNames"
+              @leave-game-settings="gameSettingsVisible=false"
+          />
+          <moves
+            v-else
+          />
+
 
         </v-card-text>
         <v-card-actions
@@ -334,6 +342,14 @@ export default defineComponent({
     }
     .ml-game-info-card-content{
       height: 780px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+
+      vertical-align: center;
+      align-content: center;
+      align-items: center;
     }
     .ml-game-info-card-actions{
       .ml-game-info-card-actions-column{

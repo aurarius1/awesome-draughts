@@ -53,7 +53,8 @@
       "redo_successful": "Letztes rückgängig machen erfolgreich rückgängig gemacht"
     },
     "error": {
-      "gamestate_invalid": "Dein hochgeladener Spielstatus war ungültig. Bitte gib eine gültige '.aw'-Datei an :)"
+      "gamestate_invalid": "Dein hochgeladener Spielstatus war ungültig. Bitte gib eine gültige '.aw'-Datei an :)",
+      "on_kill_streak": "Du befindest dich gerade in einer Kill Streak, du musst diese beenden, bevor du andere Moves ausführen kannst! :)"
     },
     "success": {
       "gamestate_valid": "Dein bereitgestellter Spielstatus wurde erfolgreich geladen"

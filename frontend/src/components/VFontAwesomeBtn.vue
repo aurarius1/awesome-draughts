@@ -1,5 +1,6 @@
 <script lang="ts">
 import {defineComponent, PropType} from 'vue'
+import {Anchor} from "@/vite-env"
 
 type FaSizes = '2xs' | 'xs' | 'sm' | 'lg' | 'xl' | '2xl' | '1x' | '2x' | '3x' | '4x' | '5x' | '6x' | '7x' | '8x' | '9x' | '10x'
 type VBtnVariant = 'text' | 'flat' | 'elevated' | 'tonal' | 'outlined' | 'plain'
@@ -47,27 +48,43 @@ export default defineComponent({
       validator(value: string){
         return value.startsWith("me-")
       }
+    },
+    tooltipText: {
+      type: String,
+      default: ""
+    },
+    tooltipLocation:{
+      type: String as PropType<Anchor>,
+      default: "right",
+      validator(value: string){
+        return ["bottom", "top", "left", "right"].includes(value)
+      }
     }
   }
 })
 </script>
 
 <template>
-  <v-btn
-    :disabled="disabled"
-    :color="btnColor"
-    :variant="btnVariant"
-  >
-    <font-awesome-icon
-        v-if="icon.length !== 0"
-        :icon="icon"
-        :size="size"
-        :class="iconTextSpacing"
-        :color="iconColor"
-    />
-    {{ text }}
-  </v-btn>
-
+    <v-btn
+        :disabled="disabled"
+        :color="btnColor"
+        :variant="btnVariant"
+    >
+      <v-tooltip
+          v-if="tooltipText !== ''"
+          :text="tooltipText"
+          activator="parent"
+          :location="tooltipLocation"
+      />
+      <font-awesome-icon
+          v-if="icon.length !== 0"
+          :icon="icon"
+          :size="size"
+          :class="iconTextSpacing"
+          :color="iconColor"
+      />
+      {{ text }}
+    </v-btn>
 </template>
 
 <style scoped lang="scss">

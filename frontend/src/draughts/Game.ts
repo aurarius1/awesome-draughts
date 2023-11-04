@@ -45,6 +45,10 @@ type SerializedPiece = {
     _isAlive: boolean,
 }
 
+export type PlayerNames = {
+    [key: string]: string
+}
+
 class Piece  {
     readonly _id: number
     readonly _color: PieceColors
@@ -110,6 +114,10 @@ class Game {
     private _currentPlayer: 'white' | 'black'
     private readonly _fieldDimensions: number
     private _gameOver: boolean = false
+    private _playerNames: PlayerNames = {
+        "white": "Alice",
+        "black": "Bob"
+    }
 
     constructor({fieldDimensions = -1, serialized = ""} = {}){
         if(fieldDimensions !== -1)
@@ -166,7 +174,6 @@ class Game {
             this._field = this.initalizeFieldWithoutPieces()
 
             let pieces = deserializedGame._pieces
-            console.log(pieces)
             this._pieces = {
                 white: {},
                 black: {}
@@ -194,6 +201,10 @@ class Game {
             })
             this._history = deserializedGame._history
             this._currentPlayer = deserializedGame._currentPlayer
+            this._playerNames = deserializedGame._playerNames ?? {
+                "black": "Bob",
+                "white": "Alice"
+            }
         }
         else
         {
@@ -239,12 +250,15 @@ class Game {
         }
         return this._pieces.black[pieceId]
     }
+    private isKillStreakPossible(piece: Piece){
+        return this._getFieldsToHighlight(piece, true)
+    }
     public movePiece(pieceId: number, newPosition: Position)
     {
         let piece = this.findPieceInGamefield(pieceId);
 
         if(piece === undefined)
-            return;
+            return [];
 
         this._field[piece.position.y][piece.position.x].containsPiece = false;
         this._field[piece.position.y][piece.position.x].piece = undefined;
@@ -264,11 +278,8 @@ class Game {
             for(let multiplier = 1; multiplier < Math.abs(xDiff); multiplier++){
                 let deletingX = piece.position.x + (xOffset*multiplier);
                 let deletingY = piece.position.y + (yOffset*multiplier);
-                console.log("HOLA QUE TAL", deletingX, deletingY)
                 if(this._field[deletingY][deletingX].containsPiece){
-
                     killedPiece = this._field[deletingY][deletingX].piece?.id ?? -1
-
                     this._field[deletingY][deletingX].containsPiece = false;
                     this._field[deletingY][deletingX].piece?.die()
                     this._field[deletingY][deletingX].piece = undefined;
@@ -315,6 +326,14 @@ class Game {
         this._history.moves.push(move)
         this._history.revertedMoves = []
         piece.position = newPosition
+
+        if(killedPiece !== -1)
+        {
+            return this.isKillStreakPossible(piece)
+        }
+
+
+        return []
     }
 
     private evaluatePosition(pos: Position|undefined, offset: number, operation: string){
@@ -341,10 +360,20 @@ class Game {
                 return {x: -1, y: -1};
         }
     }
+
     public getFieldsToHighlight(pieceId: number)
     {
+        let piece: Piece|undefined = this.findPieceInGamefield(pieceId);
+        if(piece === undefined)
+        {
+            return []
+        }
+        return this._getFieldsToHighlight(piece)
+    }
+
+    private _getFieldsToHighlight(piece: Piece, checkForAdditionalKill: boolean = false)
+    {
         let fieldsToHighlight: Array<Position> = [];
-        let piece = this.findPieceInGamefield(pieceId)
 
         const operations = ['--', '+-', '-+', '++'];//TopLeft, TopRight, BottomLeft, BottomRight
 
@@ -379,8 +408,18 @@ class Game {
                     if(piece?.color === "black" && (index == 2 || index == 3))
                         break;
                 }
+                if(checkForAdditionalKill)
+                {
+                    if(hitPiece)
+                    {
+                        fieldsToHighlight.push({x: posX, y: posY})
+                    }
 
-                fieldsToHighlight.push({x: posX, y: posY})
+                } else
+                {
+                    fieldsToHighlight.push({x: posX, y: posY})
+                }
+
             }
         })
 
@@ -395,7 +434,6 @@ class Game {
     {
         return this._field
     }
-
     public get activePlayer()
     {
         return this._currentPlayer
@@ -404,10 +442,8 @@ class Game {
     {
         this._currentPlayer = this._currentPlayer === "white" ? "black" : "white"
     }
-
     public isGameOver()
     {
-
         let allWhiteDead =  Object.values(this._pieces.white).every((piece) => !piece.isAlive)
         if(allWhiteDead)
         {
@@ -431,81 +467,78 @@ class Game {
     {
         return this._fieldDimensions
     }
-
     public undoMove()
     {
-        let lastMove = this._history.moves.pop()
-
-        if(lastMove === undefined){
-            return
-        }
-
-        let piece = this.findPieceInGamefield(lastMove.pieceId)
-        if(piece === undefined) {
-            return
-        }
-
-        this._field[piece.position.y][piece.position.x].containsPiece = false
-        this._field[piece.position.y][piece.position.x].piece = undefined
-
-        piece.position = lastMove.start
-
-        this._field[lastMove.start.y][lastMove.start.x].containsPiece = true
-        this._field[lastMove.start.y][lastMove.start.x].piece = piece
+        let lastMove: Move|undefined = undefined
+        let piece: Piece|undefined = undefined;
+        do{
+            lastMove = this._history.moves.pop()
+            if(lastMove === undefined){
+                return
+            }
+            piece = this.findPieceInGamefield(lastMove.pieceId)
+            if(piece === undefined) {
+                return
+            }
+            this._field[piece.position.y][piece.position.x].containsPiece = false
+            this._field[piece.position.y][piece.position.x].piece = undefined
+            piece.position = lastMove.start
+            this._field[lastMove.start.y][lastMove.start.x].containsPiece = true
+            this._field[lastMove.start.y][lastMove.start.x].piece = piece
 
 
-        let killedPiece = this.findPieceInGamefield(lastMove.killedPieceId)
-        if(killedPiece !== undefined)
-        {
-            this._field[killedPiece.position.y][killedPiece.position.x].containsPiece = true
-            this._field[killedPiece.position.y][killedPiece.position.x].piece = killedPiece
-            killedPiece.undie()
-        }
-
-        if(lastMove.pieceUpgraded)
-        {
-            piece._isKing = false
-        }
-
-        this._history.revertedMoves.push(lastMove)
+            let killedPiece = this.findPieceInGamefield(lastMove.killedPieceId)
+            if(killedPiece !== undefined)
+            {
+                this._field[killedPiece.position.y][killedPiece.position.x].containsPiece = true
+                this._field[killedPiece.position.y][killedPiece.position.x].piece = killedPiece
+                killedPiece.undie()
+            }
+            if(lastMove.pieceUpgraded)
+            {
+                piece._isKing = false
+            }
+            this._history.revertedMoves.push(lastMove)
+        }while(piece?.id === this._history.moves[this._history.moves.length-1].pieceId)
 
         this.switchActivePlayer()
         return this._history.moves.length === 0
     }
-
     public redoMove()
     {
-        let nextMove = this._history.revertedMoves.pop()
-        if(nextMove === undefined){
-            return
-        }
-        let piece = this.findPieceInGamefield(nextMove.pieceId)
-        if(piece === undefined) {
-            return
-        }
-        this._field[piece.position.y][piece.position.x].containsPiece = false
-        this._field[piece.position.y][piece.position.x].piece = undefined
-        piece.position = nextMove.end
-        this._field[nextMove.end.y][nextMove.end.x].containsPiece = true
-        this._field[nextMove.end.y][nextMove.end.x].piece = piece
+        let nextMove: Move|undefined = undefined
+        let piece: Piece|undefined = undefined;
+        do{
+            nextMove = this._history.revertedMoves.pop()
+            if(nextMove === undefined){
+                return
+            }
+            piece = this.findPieceInGamefield(nextMove.pieceId)
+            if(piece === undefined) {
+                return
+            }
+            this._field[piece.position.y][piece.position.x].containsPiece = false
+            this._field[piece.position.y][piece.position.x].piece = undefined
+            piece.position = nextMove.end
+            this._field[nextMove.end.y][nextMove.end.x].containsPiece = true
+            this._field[nextMove.end.y][nextMove.end.x].piece = piece
 
-        let killedPiece = this.findPieceInGamefield(nextMove.killedPieceId)
-        if(killedPiece !== undefined)
-        {
-            this._field[killedPiece.position.y][killedPiece.position.x].containsPiece = false
-            this._field[killedPiece.position.y][killedPiece.position.x].piece = undefined
-            killedPiece.die()
-        }
-        if(nextMove.pieceUpgraded)
-        {
-            piece._isKing = true
-        }
-
-        this._history.moves.push(nextMove)
+            let killedPiece = this.findPieceInGamefield(nextMove.killedPieceId)
+            if(killedPiece !== undefined)
+            {
+                this._field[killedPiece.position.y][killedPiece.position.x].containsPiece = false
+                this._field[killedPiece.position.y][killedPiece.position.x].piece = undefined
+                killedPiece.die()
+            }
+            if(nextMove.pieceUpgraded)
+            {
+                piece._isKing = true
+            }
+            this._history.moves.push(nextMove)
+        }while(piece?.id === this._history.revertedMoves[this._history.revertedMoves.length-1]?.pieceId)
         this.switchActivePlayer()
         return this._history.revertedMoves.length === 0
     }
-
     public undoPossible()
     {
         return this._history.moves.length !== 0
@@ -514,12 +547,21 @@ class Game {
     {
         return this._history.revertedMoves.length !== 0
     }
-
     public get gameOver()
     {
         return this._gameOver
     }
-
+    public get playerNames()
+    {
+        return this._playerNames
+    }
+    public updatePlayerName(player: string, name: string)
+    {
+        if(this._playerNames[player] !== undefined)
+        {
+            this._playerNames[player] = name
+        }
+    }
     public serialize()
     {
         let gameObj = {
@@ -528,7 +570,8 @@ class Game {
             _history: this._history,
             _currentPlayer: this._currentPlayer,
             _fieldDimensions: this._fieldDimensions,
-            _gameOver: this._gameOver
+            _gameOver: this._gameOver,
+            _playerNames: this._playerNames
         }
 
 

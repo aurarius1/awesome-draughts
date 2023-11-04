@@ -18,6 +18,10 @@ export default defineComponent({
     color: {
       type: String,
       default: "base"
+    },
+    active: {
+      type: Boolean,
+      default: false
     }
   },
   data(){
@@ -27,9 +31,8 @@ export default defineComponent({
   },
   computed: {
     btnHoveredStyle(): StyleValue{
-      if(!this.btnHovered)
-        return;
-
+      if(!this.btnHovered && !this.active)
+        return {};
 
       return {
         cursor: "pointer",
@@ -50,7 +53,7 @@ export default defineComponent({
 <font-awesome-icon
     @mouseover="btnHovered=true"
     @mouseleave="btnHovered=false"
-    :icon="this.icon"
+    :icon="icon"
     :style="btnHoveredStyle"
 />
 </template>

@@ -29,7 +29,7 @@
         "./src/draughts/*"
       ]
     },
-    "types": ["./src/types.d.ts", "vuetify"]
+    "types": ["./src/types.d.ts", "vuetify/types"]
   },
   "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue", "**/*.ts"],
   "references": [{ "path": "./tsconfig.node.json" }]

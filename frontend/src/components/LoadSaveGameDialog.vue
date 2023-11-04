@@ -161,40 +161,28 @@ export default defineComponent({
 
       </v-card-actions>
       <v-card-actions v-else>
-        <v-tooltip
-            :text="$t('load_dialog.tooltips.load_local')"
-        >
-          <template v-slot:activator="{ props }">
-
-            <v-font-awesome-btn
-                v-bind="props"
-                :btn-color="getColor()"
-                btn-variant="outlined"
-                @click="loadLocal()"
-                :icon="['fas', 'fa-upload']"
-                icon-text-spacing="me-2"
-                size="lg"
-                :text="$t('load_dialog.load')"
-            />
-          </template>
-
-        </v-tooltip>
-        <v-tooltip
-            :text="$t('load_dialog.tooltips.load_remote')"
-        >
-          <template v-slot:activator="{ props }">
-            <v-font-awesome-btn
-                v-bind="props"
-                :btn-color="getColor()"
-                btn-variant="elevated"
-                @click="loadRemote()"
-                :icon="['fas', 'fa-cloud-download-alt']"
-                icon-text-spacing="me-2"
-                size="lg"
-                :text="$t('load_dialog.load')"
-            />
-          </template>
-        </v-tooltip>
+        <v-font-awesome-btn
+            :btn-color="getColor()"
+            btn-variant="outlined"
+            @click="loadLocal()"
+            :icon="['fas', 'fa-upload']"
+            icon-text-spacing="me-2"
+            size="lg"
+            :text="$t('load_dialog.load')"
+            :tooltip-text="$t('load_dialog.tooltips.load_local')"
+            tooltip-location="bottom"
+        />
+        <v-font-awesome-btn
+            :btn-color="getColor()"
+            btn-variant="elevated"
+            @click="loadRemote()"
+            :icon="['fas', 'fa-cloud-download-alt']"
+            icon-text-spacing="me-2"
+            size="lg"
+            :text="$t('load_dialog.load')"
+            :tooltip-text="$t('load_dialog.tooltips.load_remote')"
+            tooltip-location="bottom"
+        />
       </v-card-actions>
     </v-card>
   </v-dialog>

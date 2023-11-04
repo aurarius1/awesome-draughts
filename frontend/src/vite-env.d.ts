@@ -9,5 +9,6 @@ declare module 'vue'{
     }
 }
 
+export type Anchor = "bottom" | "top" | "left" | "right"
 
 

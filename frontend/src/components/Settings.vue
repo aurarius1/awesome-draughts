@@ -14,6 +14,11 @@ export default defineComponent({
     ColorSelector,
     ColorSwatch
   },
+  emits: {
+    closeSettings(){
+
+    }
+  },
   setup()
   {
     const colorStore = useColorStore()
@@ -100,21 +105,40 @@ export default defineComponent({
     getThemeStore()
     {
       return this.themeStore
+    },
+    leaveSettings()
+    {
+      if(this.inGame)
+      {
+        this.$emit('closeSettings')
+      }
+      else
+      {
+        this.$router.push('/')
+      }
     }
   },
-  beforeMount()
-  {
+  props: {
+    colSize: {
+      type: String,
+      default: "4"
+    },
+    inGame: {
+      type: Boolean,
+      default: false,
+    }
   }
 })
 </script>
 
 <template>
-  <v-container>
+  <v-container
+  >
     <v-row
       justify="center"
     >
       <v-col
-        cols="4"
+        :cols="colSize"
       >
         <v-card>
           <v-card-text>
@@ -141,7 +165,7 @@ export default defineComponent({
         justify="center"
     >
       <v-col
-          cols="4"
+          :cols="colSize"
       >
         <v-card>
           <v-card-text>
@@ -170,7 +194,7 @@ export default defineComponent({
         justify="center"
     >
       <v-col
-          cols="4"
+          :cols="colSize"
       >
         <v-card>
           <v-card-title>
@@ -213,12 +237,12 @@ export default defineComponent({
         justify="center"
     >
       <v-col
-          cols="3"
+          :cols="colSize"
           class="ml-exit-btn"
       >
         <v-btn
           :color="getColorStore().currentColor.accent1"
-          @click="$router.push('/')"
+          @click="leaveSettings()"
         >
           {{ $t("exit_settings") }}
         </v-btn>
