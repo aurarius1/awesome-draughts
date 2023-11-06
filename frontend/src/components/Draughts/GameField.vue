@@ -43,23 +43,34 @@ export default defineComponent({
     playerNames(payload: PlayerNames)
     {
       return payload.white !== "" && payload.black !== ""
+    },
+    dimensions(dimensionsInPx: number, borderThickness: number)
+    {
+      return dimensionsInPx > 0 && borderThickness > 0;
     }
   },
   created(){
     this.$emitter.on('piece-selected', (piece: number) => {
-
       if(this.isOnKillStreak)
       {
         return
       }
-
       this.currentlySelectedPiece = piece
       this.$emitter.emit("highlight-field", this.gameState.getFieldsToHighlight(piece));
     })
+
+
     this.$emitter.on('player-name-changed', (player: string, name: string) => {
       this.gameState.updatePlayerName(player, name)
       this.$emit('playerNames', this.gameState.playerNames)
     })
+
+    this.$emitter.on('draw', () => {
+      const gameStore = useGameStore()
+      gameStore.clear();
+    })
+
+    this.$emit('dimensions', this.dimensionsInPx, this.borderThickness)
 
   },
   watch: {
@@ -80,12 +91,19 @@ export default defineComponent({
         default:
           return
       }
-      this.$router.push('/')
+      this.$router.replace('/')
     },
     undoRequest(newVal)
     {
       if(!newVal){
         return
+      }
+
+      if(this.isOnKillStreak)
+      {
+        this.toast.warning(this.$t('toasts.warning.undo_on_killstreak'))
+        this.$emit("undoServed", this.gameState.activePlayer)
+        return;
       }
 
       this.toast.info(this.$t('toasts.info.undo_successful'));
@@ -113,17 +131,12 @@ export default defineComponent({
     }
   },
   props: {
-    cardHeight: {
-      type: String,
-      default: "1030px"
-    },
-    height: {
+    cardDimensions: {
       type: Number,
-      default: 960
-    },
-    width: {
-      type: Number,
-      default: 960,
+      required: true,
+      validator (value: number){
+        return value > 0 && value <= 100
+      }
     },
     fieldDimensions: {
       type: Number,
@@ -154,20 +167,61 @@ export default defineComponent({
   {
     const gameStore = useGameStore()
     gameStore.startNewGame(this.fieldDimensions)
+
     this.$emit('undoPossible', this.gameState.undoPossible())
     this.$emit('redoPossible', this.gameState.redoPossible())
     this.$emit('playerSwitched', this.gameState.activePlayer)
     this.$emit('playerNames', this.gameState.playerNames)
   },
   computed: {
-    computedStyle(): StyleValue{
+    dimensionsInPx(){
+      let dim= 0;
+      let scale = this.cardDimensions/100;
+
+      if(document.documentElement.clientHeight <= document.documentElement.clientWidth)
+      {
+        dim = Math.floor(document.documentElement.clientHeight*scale)
+      }
+      else
+      {
+        dim = Math.floor(document.documentElement.clientWidth*scale*(2/3))
+      }
+      dim = dim - dim%this.fieldDimensions
+      console.log(dim)
+      return dim
+    },
+    gameFieldStyle(): StyleValue{
       return {
-        height: `${this.height}px`,
-        width: `${this.width}px`,
+        height: `${this.dimensionsInPx}px`,
+        width: `${this.dimensionsInPx}px`,
         aspectRatio: '1/1',
         boxSizing: 'border-box',
         borderRadius: "4px",
         boxShadow: '0px 0px 32px 2px rgba(54,54,54,1)'
+      }
+    },
+    cardStyle(): StyleValue{
+      return {
+        height: `${this.dimensionsInPx+this.borderThickness}px`,
+        display: 'flex',
+        alignContent: 'center',
+        alignItems: 'center',
+        verticalAlign: 'center',
+        aspectRatio: '1/1',
+      }
+    },
+    borderThickness() {
+      return Math.floor(this.dimensionsInPx / (this.fieldDimensions*10))*2;
+    },
+    gameFieldRowStyle(): StyleValue{
+      return {
+        height: `${this.dimensionsInPx/10}px`
+      }
+    },
+    squareStyle(): StyleValue{
+      return {
+        height: `${this.dimensionsInPx/10}px`,
+        width: `${this.dimensionsInPx/10}px`
       }
     },
     gameField(){
@@ -179,6 +233,7 @@ export default defineComponent({
       {
         gameStore.startNewGame(this.fieldDimensions)
         this.$emit('playerNames', this.gameState.playerNames)
+        this.$emit('dimensions', this.dimensionsInPx)
       }
       return gameStore.currentGame
     }
@@ -260,18 +315,15 @@ export default defineComponent({
 <template>
   <v-card
     class=" ml-game-card"
-    :height="cardHeight"
-    max-width="1030px"
     elevation="6"
     :color="getColor('lighten3')"
+    :style="cardStyle"
   >
-
     <v-container
-        :style="computedStyle"
-        class="ms-4 me-4 mt-4 mb-2 "
+        :style="gameFieldStyle"
     >
       <v-row
-          :style="`height: ${Math.floor(height/10)}px`"
+          :style="gameFieldRowStyle"
           no-gutters
           v-for="row in gameField"
       >
@@ -279,8 +331,7 @@ export default defineComponent({
             v-for="col in row"
         >
           <game-square
-              :width="`${Math.floor(width/10)}px`"
-              :height="`${Math.floor(height/10)}px`"
+              :style="squareStyle"
               :position="col.position"
               @move-selected-to="movePiece"
 
@@ -317,6 +368,7 @@ export default defineComponent({
   user-select: none;
   cursor: pointer;
   line-height: 0;
+  max-width: 100% !important;
 }
 .v-col{
   flex-grow: unset;

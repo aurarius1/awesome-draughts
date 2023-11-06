@@ -1,0 +1,21 @@
+.ml-dialog-title-btn-group{
+  display: flex;
+  justify-content: end;
+}
+
+.ml-dialog-actions{
+  display: flex;
+  justify-content: right;
+  &.evenly{
+    justify-content: space-evenly !important;
+  }
+  &.center{
+    justify-content: center !important;
+  }
+
+}
+
+.ml-dialog-text{
+  text-align: center;
+  text-justify: inter-word;
+}

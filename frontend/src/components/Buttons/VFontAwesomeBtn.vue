@@ -2,7 +2,7 @@
 import {defineComponent, PropType} from 'vue'
 import {Anchor} from "@/vite-env"
 
-type FaSizes = '2xs' | 'xs' | 'sm' | 'lg' | 'xl' | '2xl' | '1x' | '2x' | '3x' | '4x' | '5x' | '6x' | '7x' | '8x' | '9x' | '10x'
+export type FaSizes = '2xs' | 'xs' | 'sm' | 'lg' | 'xl' | '2xl' | '1x' | '2x' | '3x' | '4x' | '5x' | '6x' | '7x' | '8x' | '9x' | '10x'
 type VBtnVariant = 'text' | 'flat' | 'elevated' | 'tonal' | 'outlined' | 'plain'
 
 export default defineComponent({
@@ -20,12 +20,20 @@ export default defineComponent({
       type: Boolean,
       default: false
     },
-    size: {
+    iconSize: {
       type: String as PropType<FaSizes>,
       validator (value: FaSizes){
         return ['lg', 'xs', 'sm', '1x', '2x', '3x', '4x', '5x', '6x', '7x', '8x', '9x', '10x'].includes(value)
       },
-      default: 'sm'
+      default: undefined
+    },
+    btnSize: {
+      type: String,
+      validator(value: string)
+      {
+        return ['x-small', 'small', 'default', 'large', 'x-large'].includes(value)
+      },
+      default: 'default'
     },
     btnColor: {
       type: String,
@@ -69,6 +77,7 @@ export default defineComponent({
         :disabled="disabled"
         :color="btnColor"
         :variant="btnVariant"
+        :size="btnSize"
     >
       <v-tooltip
           v-if="tooltipText !== ''"
@@ -79,7 +88,7 @@ export default defineComponent({
       <font-awesome-icon
           v-if="icon.length !== 0"
           :icon="icon"
-          :size="size"
+          :size="iconSize"
           :class="iconTextSpacing"
           :color="iconColor"
       />

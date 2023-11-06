@@ -1,15 +1,20 @@
 <script lang="ts">
 import {useColorStore} from "@/store";
-import LoadSaveGameDialog from "@/components/LoadSaveGameDialog.vue";
+import LoadSaveGameDialog from "@/components/Dialog/LoadSaveGameDialog.vue";
+import gameField from "@/components/Draughts/GameField.vue";
+import GameSettingsDialog from "@/components/GameSettings/GameSettingsDialog.vue";
 export default defineComponent({
   name: "TitleScreen",
-  components: {LoadSaveGameDialog},
+  components: {GameSettingsDialog, LoadSaveGameDialog},
   setup()
   {
     const colorStore = useColorStore();
     return { getColorStore: colorStore }
   },
   computed: {
+    gameField() {
+      return gameField
+    },
     selectedColor() {
       return this.getColorStore.currentColor;
     }
@@ -17,7 +22,8 @@ export default defineComponent({
   data()
   {
     return {
-      loadDialogVisible: false
+      loadDialogVisible: false,
+      gameSettingsDialogVisible: false,
     }
   },
   methods: {
@@ -29,8 +35,13 @@ export default defineComponent({
   <load-save-game-dialog
       :visible="loadDialogVisible"
       @update-visible="(newValue) => loadDialogVisible = newValue"
-
   />
+
+  <game-settings-dialog
+      :visible="gameSettingsDialogVisible"
+      @close-me="gameSettingsDialogVisible=false"
+  />
+
 
   <v-container>
 
@@ -51,7 +62,7 @@ export default defineComponent({
                 :block="true"
                 size="x-large"
                 :color="selectedColor.base"
-                @click="$router.push('game')"
+                @click="gameSettingsDialogVisible=true"
             >
               {{ $t('start_game') }}
             </v-btn>
@@ -75,7 +86,7 @@ export default defineComponent({
                 :block="true"
                 size="x-large"
                 :color="selectedColor.base"
-                @click="$router.push('/settings')"
+                @click="$router.replace('/settings')"
             >
               {{ $t('settings') }}
             </v-btn>

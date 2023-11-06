@@ -114,7 +114,7 @@ export default defineComponent({
       }
       else
       {
-        this.$router.push('/')
+        this.$router.replace('/')
       }
     }
   },

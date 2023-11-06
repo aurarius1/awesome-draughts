@@ -3,24 +3,37 @@ import GameField from "@/components/Draughts/GameField.vue";
 import {FontAwesomeIcon} from "@fortawesome/vue-fontawesome";
 import {StyleValue} from "vue";
 import {LeaveTypes} from '@/globals.ts'
-import FontAwesomeBtn from "@/components/FontAwesomeBtn.vue";
-import VFontAwesomeBtn from "@/components/VFontAwesomeBtn.vue";
+import FontAwesomeBtn from "@/components/Buttons/FontAwesomeBtn.vue";
+import VFontAwesomeBtn from "@/components/Buttons/VFontAwesomeBtn.vue";
 import Settings from "@/components/Settings.vue";
 import {PlayerNames} from "@/draughts";
-import NameSelection from "@/components/NameSelection/NameSelection.vue";
+import NameSelection from "@/components/GameSettings/NameSelection.vue";
 import Moves from "@/components/Draughts/Moves.vue";
+import GameSettings from "@/components/GameSettings/GameSettings.vue";
+import EndGameDialog from "@/components/Dialog/EndGameDialog.vue";
+import SaveGameDialog from "@/components/Dialog/SaveGameDialog.vue";
+import GameInfo from "@/components/GameInfo.vue";
 
 export default defineComponent({
   name: "Game.vue",
-  components: {Moves, NameSelection, Settings, VFontAwesomeBtn, FontAwesomeBtn, FontAwesomeIcon, GameField},
+  components: {GameInfo, SaveGameDialog, EndGameDialog, GameSettings, Moves, NameSelection, Settings, VFontAwesomeBtn, FontAwesomeBtn, FontAwesomeIcon, GameField},
   setup()
   {
     const colorStore = useColorStore();
     const toast = useToast();
     return {getColorStore: colorStore, toast}
   },
-  data() :{[key: string]: string | boolean | LeaveTypes | PlayerNames}
-  {
+  created(){
+    this.$emitter.on("draw", () => {
+
+
+
+      this.endGameDialogVisible=true
+      this.endGameDialogText = "draw"
+      this.endGameDialogTextLocalization = true
+    })
+  },
+  data() {
     return{
       currentPlayer: "",
       playerWantsToLeave: false,
@@ -31,7 +44,12 @@ export default defineComponent({
       redoPossible: false,
       settingsVisible: false,
       gameSettingsVisible: false,
-      playerNames: {}
+      playerNames: {} as PlayerNames,
+      endGameDialogVisible: false,
+      endGameDialogText: "",
+      dimensions: 0,
+      borderThickness: 0,
+      endGameDialogTextLocalization: false,
     }
   },
   methods: {
@@ -67,22 +85,30 @@ export default defineComponent({
       return this.playerNames[player]
     },
     gameOver(winner: string) {
-
-      this.toast.success(this.$t(`player.wins`, {name: this.getPlayerName(winner)}))
-      this.$router.push("/")
+      this.endGameDialogText = this.$t(`player.wins`, {name: this.getPlayerName(winner)})
+      this.endGameDialogVisible=true;
     },
     setPlayerNames(playerNames: PlayerNames){
+
       this.playerNames = {
         ...playerNames
       }
+    },
+    setDimensions(dimensions: number, borderThickness: number)
+    {
+      this.dimensions = dimensions
+      this.borderThickness = borderThickness
     }
   },
   computed:
   {
     infoCardContainerStyle(): StyleValue{
       return {
-        height: "992px",
-        width: "600px",
+        height: `${this.dimensions+this.borderThickness}px`,
+
+
+        minWidth: "300px",
+        aspectRatio: '1/2',
         backgroundColor: this.getColor('lighten3'),
         borderRadius: "4px"
 
@@ -94,81 +120,25 @@ export default defineComponent({
 </script>
 
 <template>
-  <v-dialog
-    v-model="playerWantsToLeave"
-    width="500"
-  >
-    <v-card
-      class="ml-save-dialog"
-    >
-      <v-card-title>
-        <v-row>
-          <v-col
-            cols="11"
-          >
-            {{ $t('exit_dialog.title')}}
-          </v-col>
-          <v-col>
-            <font-awesome-btn
-                :icon="['fas', 'fa-close']"
-                @click="playerWantsToLeave=false"
-            />
-          </v-col>
-        </v-row>
-
-      </v-card-title>
-      <v-card-text
-        class="ml-save-dialog-text"
-      >
-        {{ $t('exit_dialog.description') }}
-      </v-card-text>
-      <v-card-actions
-        class="ml-save-dialog-actions"
-      >
-        <v-font-awesome-btn
-            :btn-color="getColor()"
-            btn-variant="outlined"
-            @click="leaveAndSaveLocal()"
-            :icon="['fas', 'fa-download']"
-            size="lg"
-            :text="$t('exit_dialog.save')"
-            icon-text-spacing="me-2"
-            :tooltip-text="$t('exit_dialog.tooltips.save_local')"
-            tooltip-location="bottom"
-        />
-        <v-font-awesome-btn
-            :btn-color="getColor()"
-            btn-variant="elevated"
-            @click="leaveAndSaveRemote()"
-            :icon="['fas', 'fa-cloud-upload-alt']"
-            size="lg" 
-            :text="$t('exit_dialog.save')"
-            icon-text-spacing="me-2"
-            :tooltip-text="$t('exit_dialog.tooltips.save_remote')"
-            tooltip-location="bottom"
-        />
-        <v-font-awesome-btn
-            :btn-color="getColor()"
-            btn-variant="plain"
-            @click="leaveGame()"
-            :icon="['fas', 'fa-sign-out-alt']"
-            size="lg"
-            :text="$t('exit_dialog.exit')"
-            icon-text-spacing="me-2"
-            :tooltip-text="$t('exit_dialog.tooltips.exit')"
-            tooltip-location="bottom"
-        />
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
-
+  <save-game-dialog
+    :visible="playerWantsToLeave"
+    @close-me="playerWantsToLeave=false"
+    @exit="leaveGame()"
+    @save-local="leaveAndSaveLocal()"
+    @save-remote="leaveAndSaveRemote()"
+  />
+  <end-game-dialog
+    :visible="endGameDialogVisible"
+    :text="endGameDialogText"
+    :localize-text="endGameDialogTextLocalization"
+  />
 
   <div
     class="ml-game-container"
   >
     <game-field
       :leave="exitType"
-      card-height="992px"
+      :card-dimensions="80"
       @player-switched="setCurrentPlayer"
       @undo-served="undoServed"
       @redo-served="redoServed"
@@ -178,128 +148,23 @@ export default defineComponent({
       @player-names="setPlayerNames"
       :undo-request="undoRequest"
       :redo-request="redoRequest"
+      @dimensions="setDimensions"
     />
     <div
       class="ml-game-info-card-container ml-12"
       :style="infoCardContainerStyle"
     >
-      <v-card
-          class="ml-game-info-card"
-      >
-        <v-card-title
-            class="ml-game-info-title"
-        >
-         <v-row>
-           <v-col
-               cols="10"
-           >
-             {{ $t(`player.${currentPlayer}`, {name: getPlayerName()}) }}
-           </v-col>
-           <v-col>
-             <font-awesome-btn
-                :icon="['fas', 'fa-edit']"
-                color="lighten1"
-                :active="gameSettingsVisible"
-                @click="() => {gameSettingsVisible=!gameSettingsVisible; settingsVisible=false}"
-             />
-           </v-col>
-           <v-col>
-             <font-awesome-btn
-                 :icon="['fas', 'fa-gears']"
-                 color="lighten1"
-                 :active="settingsVisible"
-                 @click="() => {settingsVisible = !settingsVisible; gameSettingsVisible=false}"
-
-             />
-           </v-col>
-         </v-row>
-        </v-card-title>
-        <v-card-text
-            class="ml-game-info-card-content"
-        >
-          <settings
-            col-size="12"
-            v-if="settingsVisible"
-            :in-game="true"
-            @close-settings="settingsVisible=false"
-          />
-          <name-selection
-              v-else-if="gameSettingsVisible"
-              v-bind:default-names="playerNames"
-              @leave-game-settings="gameSettingsVisible=false"
-          />
-          <moves
-            v-else
-          />
-
-
-        </v-card-text>
-        <v-card-actions
-            class="ml-game-info-card-actions"
-        >
-
-          <v-container
-              class="container"
-          >
-            <v-row>
-              <v-col
-                  class="ml-game-info-card-actions-column"
-              >
-                <v-font-awesome-btn
-                  @click="undoRequest=true"
-                  :disabled="undoRequest || !undoPossible"
-                  :icon="['fas', 'fa-undo']"
-                  size="lg"
-                  :icon-color="getColor()"
-                  :text="$t('undo')"
-                />
-              </v-col>
-              <v-col
-                  class="ml-game-info-card-actions-column"
-              >
-                <v-font-awesome-btn
-                    @click="redoRequest=true"
-                    :disabled="redoRequest || !redoPossible"
-                    :icon="['fas', 'fa-redo']"
-                    size="lg"
-                    :icon-color="getColor()"
-                    :text="$t('redo')"
-                />
-
-              </v-col>
-
-            </v-row>
-            <v-row
-                align-content="center"
-                justify="center"
-            >
-              <v-col
-                  class="ml-game-info-card-actions-column"
-              >
-                <v-font-awesome-btn
-                    :icon="['fas', 'fa-handshake']"
-                    size="lg"
-                    :icon-color="getColor()"
-                    :text="$t('draw')"
-                />
-              </v-col>
-              <v-col
-                  class="ml-game-info-card-actions-column"
-              >
-
-                <v-font-awesome-btn
-                    @click="playerWantsToLeave=true"
-                    :icon="['fas', 'sign-out-alt']"
-                    size="lg"
-                    :text="$t('leave_game')"
-                />
-              </v-col>
-            </v-row>
-          </v-container>
-
-
-        </v-card-actions>
-      </v-card>
+      <game-info
+        @leave-request="playerWantsToLeave=true"
+        v-bind:player-names="playerNames"
+        :current-player="currentPlayer"
+        @undo-request="undoRequest=true"
+        @redo-request="redoRequest=true"
+        :undo-possible="undoRequest || !undoPossible"
+        :redo-possible="redoRequest || !redoPossible"
+        :dimensions-in-px="dimensions"
+        :border-thickness="borderThickness"
+      />
     </div>
   </div>
 </template>
@@ -311,9 +176,20 @@ export default defineComponent({
   display: flex;
   height: calc(100vh - 56px);
   align-items: center;
-  top: 56px;
+  align-content: center;
+  vertical-align: center;
   justify-content: center;
   overflow-y: hidden;
+
+  .ml-game-info-card-container{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    align-content: center;
+    vertical-align: center;
+
+  }
+
 }
 
 
@@ -328,40 +204,7 @@ export default defineComponent({
   }
 }
 
-.ml-game-info-card-container{
-  display: flex;
-  justify-content: center;
-  align-content: center;
-  .ml-game-info-card{
-    margin: 16px;
-    width: 568px;
-    box-shadow: 0px 0px 32px 2px rgba(54,54,54,1);
-    .ml-game-info-title{
-      display: flex;
-      justify-content: center;
-    }
-    .ml-game-info-card-content{
-      height: 780px;
-      width: 100%;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
 
-      vertical-align: center;
-      align-content: center;
-      align-items: center;
-    }
-    .ml-game-info-card-actions{
-      .ml-game-info-card-actions-column{
-        display: flex;
-        justify-content: center;
-      }
-    }
-
-
-  }
-
-}
 
 
 </style>

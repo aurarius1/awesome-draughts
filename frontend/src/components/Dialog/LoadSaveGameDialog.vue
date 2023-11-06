@@ -1,8 +1,8 @@
 <script lang="ts">
 import {defineComponent, StyleValue} from 'vue'
 import {useGameStore} from "@/store";
-import FontAwesomeBtn from "@/components/FontAwesomeBtn.vue";
-import VFontAwesomeBtn from "@/components/VFontAwesomeBtn.vue";
+import FontAwesomeBtn from "@/components/Buttons/FontAwesomeBtn.vue";
+import VFontAwesomeBtn from "@/components/Buttons/VFontAwesomeBtn.vue";
 
 export default defineComponent({
   name: "LoadSaveGameDialog",
@@ -36,7 +36,7 @@ export default defineComponent({
           else
           {
             this.toast.success(this.$t('toasts.success.gamestate_valid'))
-            this.$router.push("/game")
+            this.$router.replace("/game")
           }
         })
       }
@@ -87,6 +87,7 @@ export default defineComponent({
   <v-dialog
       width="500"
       v-model="visible"
+      :persistent="true"
   >
     <v-card>
       <v-card-title>
@@ -96,23 +97,27 @@ export default defineComponent({
           >
             {{ $t('load_dialog.title')}}
           </v-col>
-          <v-spacer v-if="!loadFromFile && !loadFromServer"/>
-          <v-col  v-else>
+          <v-col
+            cols="2"
+            class="ml-dialog-title-btn-group"
+          >
             <v-tooltip
-              :text="$t('load_dialog.tooltips.back_btn')"
-              location="left"
+                v-if="loadFromFile"
+                :text="$t('load_dialog.tooltips.back_btn')"
+                location="left"
             >
               <template v-slot:activator="{ props }">
                 <font-awesome-btn
+                    class="me-4"
                     v-bind="props"
                     :icon="['fas', 'fa-arrow-left']"
                     @click="goBack()"
                 />
               </template>
             </v-tooltip>
-          </v-col>
-          <v-col>
+
             <font-awesome-btn
+
                 :icon="['fas', 'fa-close']"
                 @click="updateVisible()"
             />
@@ -151,23 +156,20 @@ export default defineComponent({
       </v-card-text>
       <v-card-text v-else-if="loadFromServer">
       </v-card-text>
-      <v-card-text class="ml-save-dialog-text" v-else>
+      <v-card-text class="ml-dialog-text" v-else>
         {{ $t("load_dialog.description") }}
       </v-card-text>
-      <v-card-actions v-if="loadFromServer">
-
-      </v-card-actions>
-      <v-card-actions v-else-if="loadFromFile">
-
-      </v-card-actions>
-      <v-card-actions v-else>
+      <v-card-actions
+          v-if="!loadFromFile && !loadFromServer"
+          class="ml-dialog-actions evenly"
+      >
         <v-font-awesome-btn
             :btn-color="getColor()"
             btn-variant="outlined"
             @click="loadLocal()"
             :icon="['fas', 'fa-upload']"
             icon-text-spacing="me-2"
-            size="lg"
+            iconSize="lg"
             :text="$t('load_dialog.load')"
             :tooltip-text="$t('load_dialog.tooltips.load_local')"
             tooltip-location="bottom"
@@ -178,24 +180,22 @@ export default defineComponent({
             @click="loadRemote()"
             :icon="['fas', 'fa-cloud-download-alt']"
             icon-text-spacing="me-2"
-            size="lg"
+            iconSize="lg"
             :text="$t('load_dialog.load')"
             :tooltip-text="$t('load_dialog.tooltips.load_remote')"
             tooltip-location="bottom"
         />
+      </v-card-actions>
+      <v-card-actions v-else-if="loadFromServer">
+
       </v-card-actions>
     </v-card>
   </v-dialog>
 </template>
 
 <style scoped lang="scss">
-.v-card-actions{
-  display: flex;
-  justify-content: space-evenly;
-}
-.ml-save-dialog-text{
-  text-align: justify;
-  text-justify: inter-word;
-}
+@import '@/scss/ml-dialog';
+
+
 
 </style>

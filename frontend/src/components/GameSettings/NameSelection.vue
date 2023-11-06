@@ -1,13 +1,15 @@
 <script lang="ts">
 import {defineComponent, PropType} from 'vue'
 import {PlayerNames} from "@/draughts";
-import SelectionRow from "@/components/NameSelection/SelectionRow.vue";
+import SelectionRow from "@/components/GameSettings/SelectionRow.vue";
 
 export default defineComponent({
   name: "NameSelection",
   components: {SelectionRow},
   emits: {
-    leaveGameSettings(){}
+    playerNameChanged(playerType: string, playerName: string){
+      return playerType === "white" || playerType === "black";
+    }
   },
   setup()
   {
@@ -43,27 +45,20 @@ export default defineComponent({
     player="white"
     :name="this.defaultNames.white"
     class="ml-name-selection"
+    @player-name-changed="(playerType: string, playerName: string) => this.$emit('playerNameChanged', playerType, playerName)"
   />
   <selection-row
     player="black"
     :name="this.defaultNames.black"
     class="ml-name-selection"
+    @player-name-changed="(playerType: string, playerName: string) => this.$emit('playerNameChanged', playerType, playerName)"
   />
-  <v-btn
-      @click="$emit('leaveGameSettings')"
-      :color="getColorStore().currentColor.accent1"
-      class="ml-leave-game-settings"
-  >
-    {{ $t("exit_game_settings") }}
-  </v-btn>
+
 </template>
 
 <style scoped lang="scss">
 .ml-name-selection{
   width: 100%;
 }
-.ml-leave-game-settings
-{
-  margin-top: 12px;
-}
+
 </style>

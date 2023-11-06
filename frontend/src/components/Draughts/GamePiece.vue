@@ -17,7 +17,7 @@ export default defineComponent({
       return payload
     },
     invalidSelect(){
-
+      return true;
     }
   },
   props: {
@@ -130,7 +130,7 @@ export default defineComponent({
 .ml-piece{
   width: 75%;
   height: 75%;
-  border-radius: 40px;
+  border-radius: 100%;
   .king {
     width: 100%;
     height: 100%;

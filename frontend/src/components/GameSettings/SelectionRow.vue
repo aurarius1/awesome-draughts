@@ -9,6 +9,11 @@ export default defineComponent({
       this._name = newName
     }
   },
+  emits: {
+    playerNameChanged(playerType: string, playerName: string){
+      return playerType === "white" || playerType === "black";
+    }
+  },
   setup()
   {
     const colorStore = useColorStore();
@@ -66,7 +71,7 @@ export default defineComponent({
     <v-text-field
         v-model="_name"
         :hide-details="true"
-        @update:model-value="this.$emitter.emit('player-name-changed', player, _name)"
+        @update:model-value="this.$emit('playerNameChanged', player, _name)"
     />
   </div>
 </div>

@@ -14,7 +14,8 @@
   "player": {
     "white": "WHITE: {name}",
     "black": "BLACK: {name}",
-    "wins": "Player {name} wins"
+    "wins": "\uD83D\uDC51\uD83D\uDC51\uD83D\uDC51Player {name} wins\uD83D\uDC51\uD83D\uDC51\uD83D\uDC51",
+    "draw": "Draw"
   },
   "undo": "UNDO",
   "redo": "REDO",
@@ -41,12 +42,20 @@
     },
     "load": "Load",
     "upload_gamestate": "Upload your '.aw' file..."
-
+  },
+  "game_settings_dialog": {
+    "title": "Game Settings",
+    "start_game": "Start game"
+  },
+  "end_game_dialog": {
+    "title": "Game ended",
+    "go_home": "Back to title screen"
   },
   "toasts": {
     "warning":{
       "invalid_move": "This move is not valid :(",
-      "not_your_turn": "It's not your turn to play, be patient :)"
+      "not_your_turn": "It's not your turn to play, be patient :)",
+      "undo_on_killstreak": "Finish your kill streak before requesting an undo!"
     },
     "info": {
       "undo_successful": "Undo of last move was successful",

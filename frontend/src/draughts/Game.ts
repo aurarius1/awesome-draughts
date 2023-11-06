@@ -499,7 +499,7 @@ class Game {
                 piece._isKing = false
             }
             this._history.revertedMoves.push(lastMove)
-        }while(piece?.id === this._history.moves[this._history.moves.length-1].pieceId)
+        }while(piece?.id === this._history.moves[this._history.moves.length-1]?.pieceId)
 
         this.switchActivePlayer()
         return this._history.moves.length === 0
@@ -561,6 +561,9 @@ class Game {
         {
             this._playerNames[player] = name
         }
+    }
+    public draw(){
+        this._gameOver = true
     }
     public serialize()
     {

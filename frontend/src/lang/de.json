@@ -14,7 +14,8 @@
   "player": {
     "white": "WEIẞ: {name}",
     "black": "SCHWARZ: {name}",
-    "wins": "Spieler {name} gewinnt"
+    "wins": "\uD83D\uDC51\uD83D\uDC51\uD83D\uDC51Spieler {name} gewinnt\uD83D\uDC51\uD83D\uDC51\uD83D\uDC51",
+    "draw": "Untenschieden"
   },
   "undo": "UNDO",
   "redo": "REDO",
@@ -43,10 +44,19 @@
     "upload_gamestate": "'.aw' Datei hochladen..."
 
   },
+  "game_settings_dialog": {
+    "title": "Spieleinstellungen",
+    "start_game": "Starte Spiel"
+  },
+  "end_game_dialog": {
+    "title": "Das Spiel ist vorbei",
+    "go_home": "Zurück zum Startbildschirm"
+  },
   "toasts": {
     "warning": {
       "invalid_move": "Dieser Zug ist nicht valide :(",
-      "not_your_turn": "Sei geduldig, du bist noch nicht an der Reihe :)"
+      "not_your_turn": "Sei geduldig, du bist noch nicht an der Reihe :)",
+      "undo_on_killstreak": "Beende deine Kill Streak, bevor du ein Rückgängigmachen anforderst!"
     },
     "info": {
       "undo_successful": "Letzter Zug erfolgreich rückgängig gemacht",

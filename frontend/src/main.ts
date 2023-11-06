@@ -13,7 +13,7 @@ import * as components from 'vuetify/components'
 import * as directives from 'vuetify/directives'
 
 
-import {createRouter, createWebHistory} from "vue-router";
+import {createRouter, createWebHashHistory, createWebHistory} from "vue-router";
 import { TinyEmitter } from 'tiny-emitter';
 import {i18n} from "@/lang";
 
@@ -47,7 +47,9 @@ import {
     faHandshake,
     faCrown,
     faGears,
-    faEdit
+    faEdit,
+    faPlay,
+    faHouse,
 } from "@fortawesome/free-solid-svg-icons";
 
 import Toast, {PluginOptions} from "vue-toastification";
@@ -60,7 +62,8 @@ library.add(faCheckCircle,
     faPaperclip, faArrowLeft, faUndo,
     faRedo, faCloudUploadAlt, faDownload,
     faCloudDownloadAlt, faUpload,faHandshake,
-    faCrown, faGears, faEdit
+    faCrown, faGears, faEdit, faPlay,faHouse
+
 )
 
 const app = createApp(App)
