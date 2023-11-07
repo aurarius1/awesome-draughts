@@ -1,8 +1,8 @@
 ﻿namespace backend
 {
-    public class GameFull : Exception
+    public class ThisShouldNotHappenException : Exception
     {
-        public GameFull(string message): base(message) {
+        public ThisShouldNotHappenException(): base("THIS SHOULD NOT HAPPEN") {
         }
     }
 }

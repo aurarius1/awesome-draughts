@@ -1,4 +1,6 @@
 using backend;
+using backend.Commands;
+using backend.Game;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -8,7 +10,8 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddSingleton<IClientCache, ClientCache>();
+builder.Services.AddSingleton<IGameCache, GameCache>();
+builder.Services.AddSingleton<ICommandFactory, CommandFactory>();
 
 
 var app = builder.Build();
