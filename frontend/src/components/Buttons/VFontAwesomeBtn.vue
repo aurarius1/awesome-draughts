@@ -22,7 +22,8 @@ export default defineComponent({
     },
     iconSize: {
       type: String as PropType<FaSizes>,
-      validator (value: FaSizes){
+      validator (value: FaSizes)
+      {
         return ['lg', 'xs', 'sm', '1x', '2x', '3x', '4x', '5x', '6x', '7x', '8x', '9x', '10x'].includes(value)
       },
       default: undefined
@@ -61,12 +62,16 @@ export default defineComponent({
       type: String,
       default: ""
     },
-    tooltipLocation:{
+    tooltipLocation: {
       type: String as PropType<Anchor>,
       default: "right",
-      validator(value: string){
+      validator(value: string) {
         return ["bottom", "top", "left", "right"].includes(value)
       }
+    },
+    btnRounded: {
+      type: String,
+      default: "0"
     }
   }
 })
@@ -78,6 +83,7 @@ export default defineComponent({
         :color="btnColor"
         :variant="btnVariant"
         :size="btnSize"
+        :rounded="btnRounded"
     >
       <v-tooltip
           v-if="tooltipText !== ''"

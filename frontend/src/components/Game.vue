@@ -9,14 +9,15 @@ import Settings from "@/components/Settings.vue";
 import {PlayerNames} from "@/draughts";
 import NameSelection from "@/components/GameSettings/NameSelection.vue";
 import Moves from "@/components/Draughts/Moves.vue";
-import GameSettings from "@/components/GameSettings/GameSettings.vue";
+import LocalGameSettings from "@/components/GameSettings/LocalGameSettings.vue";
 import EndGameDialog from "@/components/Dialog/EndGameDialog.vue";
 import SaveGameDialog from "@/components/Dialog/SaveGameDialog.vue";
 import GameInfo from "@/components/GameInfo.vue";
+import {useGameStore} from "@/store";
 
 export default defineComponent({
   name: "Game.vue",
-  components: {GameInfo, SaveGameDialog, EndGameDialog, GameSettings, Moves, NameSelection, Settings, VFontAwesomeBtn, FontAwesomeBtn, FontAwesomeIcon, GameField},
+  components: {GameInfo, SaveGameDialog, EndGameDialog, LocalGameSettings, Moves, NameSelection, Settings, VFontAwesomeBtn, FontAwesomeBtn, FontAwesomeIcon, GameField},
   setup()
   {
     const colorStore = useColorStore();
@@ -24,10 +25,8 @@ export default defineComponent({
     return {getColorStore: colorStore, toast}
   },
   created(){
+
     this.$emitter.on("draw", () => {
-
-
-
       this.endGameDialogVisible=true
       this.endGameDialogText = "draw"
       this.endGameDialogTextLocalization = true
@@ -35,7 +34,6 @@ export default defineComponent({
   },
   data() {
     return{
-      currentPlayer: "",
       playerWantsToLeave: false,
       exitType: LeaveTypes.noLeave,
       undoRequest: false,
@@ -44,7 +42,6 @@ export default defineComponent({
       redoPossible: false,
       settingsVisible: false,
       gameSettingsVisible: false,
-      playerNames: {} as PlayerNames,
       endGameDialogVisible: false,
       endGameDialogText: "",
       dimensions: 0,
@@ -65,34 +62,22 @@ export default defineComponent({
     getColor(color: string = 'lighten1'){
         return this.getColorStore.currentColor[color]
     },
-    setCurrentPlayer(player: string) {
-      this.currentPlayer = player
-    },
-    undoServed(player: string) {
+    undoServed() {
       this.undoRequest = false
-      this.setCurrentPlayer(player)
     },
-    redoServed(player: string) {
+    redoServed() {
       this.redoRequest = false
-      this.setCurrentPlayer(player)
     },
-    getPlayerName(player: string = "") {
-
-      if(player === "")
-      {
+    getPlayerName: function (player: string = "") {
+      const gameStore = useGameStore();
+      if (player === "") {
         player = this.currentPlayer
       }
-      return this.playerNames[player]
+      return gameStore.currentGame.getPlayerName(player);
     },
     gameOver(winner: string) {
       this.endGameDialogText = this.$t(`player.wins`, {name: this.getPlayerName(winner)})
       this.endGameDialogVisible=true;
-    },
-    setPlayerNames(playerNames: PlayerNames){
-
-      this.playerNames = {
-        ...playerNames
-      }
     },
     setDimensions(dimensions: number, borderThickness: number)
     {
@@ -105,15 +90,17 @@ export default defineComponent({
     infoCardContainerStyle(): StyleValue{
       return {
         height: `${this.dimensions+this.borderThickness}px`,
-
-
         minWidth: "300px",
         aspectRatio: '1/2',
         backgroundColor: this.getColor('lighten3'),
         borderRadius: "4px"
-
       }
+    },
+    currentPlayer() {
+      const gameStore = useGameStore();
+      return gameStore.currentGame.activePlayer
     }
+
 
   }
 })
@@ -139,13 +126,11 @@ export default defineComponent({
     <game-field
       :leave="exitType"
       :card-dimensions="80"
-      @player-switched="setCurrentPlayer"
       @undo-served="undoServed"
       @redo-served="redoServed"
       @undo-possible="(possible: boolean) => {undoPossible=possible}"
       @redo-possible="(possible: boolean) => {redoPossible=possible}"
       @game-over="gameOver"
-      @player-names="setPlayerNames"
       :undo-request="undoRequest"
       :redo-request="redoRequest"
       @dimensions="setDimensions"
@@ -156,8 +141,6 @@ export default defineComponent({
     >
       <game-info
         @leave-request="playerWantsToLeave=true"
-        v-bind:player-names="playerNames"
-        :current-player="currentPlayer"
         @undo-request="undoRequest=true"
         @redo-request="redoRequest=true"
         :undo-possible="undoRequest || !undoPossible"

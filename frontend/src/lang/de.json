@@ -42,11 +42,13 @@
     },
     "load": "Laden",
     "upload_gamestate": "'.aw' Datei hochladen..."
-
   },
   "game_settings_dialog": {
     "title": "Spieleinstellungen",
-    "start_game": "Starte Spiel"
+    "start_game": "Starte Spiel",
+    "local": "Lokal",
+    "remote": "Spiele mit Freund"
+
   },
   "end_game_dialog": {
     "title": "Das Spiel ist vorbei",

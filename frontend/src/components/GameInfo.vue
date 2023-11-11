@@ -4,13 +4,14 @@ import VFontAwesomeBtn from "@/components/Buttons/VFontAwesomeBtn.vue";
 import Moves from "@/components/Draughts/Moves.vue";
 import Settings from "@/components/Settings.vue";
 import FontAwesomeBtn from "@/components/Buttons/FontAwesomeBtn.vue";
-import GameSettings from "@/components/GameSettings/GameSettings.vue";
+import LocalGameSettings from "@/components/GameSettings/LocalGameSettings.vue";
 import {PlayerNames} from "@/draughts";
 import {heightBreakpoints} from "@/globals.ts";
+import {useGameStore} from "@/store";
 
 export default defineComponent({
   name: "GameInfo",
-  components: {GameSettings, FontAwesomeBtn, Settings, Moves, VFontAwesomeBtn},
+  components: {LocalGameSettings, FontAwesomeBtn, Settings, Moves, VFontAwesomeBtn},
   emits: {
     leaveRequest(){
       return true
@@ -28,14 +29,6 @@ export default defineComponent({
     return {colorStore}
   },
   props: {
-    playerNames: {
-      type: Object as PropType<PlayerNames>,
-      required: true
-    },
-    currentPlayer: {
-      type: String,
-      required: true
-    },
     undoPossible: {
       type: Boolean,
       required: true
@@ -76,6 +69,18 @@ export default defineComponent({
         height: `${this.dimensionsInPx*heightBreakpoints()}px`,
       }
     },
+    activePlayerName(){
+      const gameStore = useGameStore()
+      return gameStore.currentGame.getCurrentPlayerName()
+    },
+    activePlayer(){
+      const gameStore = useGameStore()
+      return gameStore.currentGame.activePlayer
+    },
+    playerNames() {
+      const gameStore = useGameStore()
+      return gameStore.currentGame.playerNames
+    },
     currentBreakpoint(){
       return this.$vuetify.display.name;
     }
@@ -99,7 +104,7 @@ export default defineComponent({
             sm="6"
             class="text-sm-body-1"
         >
-          {{ this.$t(`player.${currentPlayer}`, {name: playerNames[currentPlayer]}) }}
+          {{ $t(`player.${activePlayer}`, {name: activePlayerName}) }}
         </v-col>
         <v-col
           class="ml-dialog-title-btn-group"
@@ -132,7 +137,7 @@ export default defineComponent({
           :in-game="true"
           @close-settings="settingsVisible=false"
       />
-      <game-settings
+      <local-game-settings
           v-else-if="gameSettingsVisible"
           @leave-game-settings="gameSettingsVisible=false"
           v-bind:player-names="playerNames"
@@ -162,7 +167,7 @@ export default defineComponent({
                 :icon="['fas', 'fa-undo']"
                 icon-size="lg"
                 :icon-color="getColor()"
-                :text="this.$t('undo')"
+                :text="$t('undo')"
             />
           </v-col>
           <v-col

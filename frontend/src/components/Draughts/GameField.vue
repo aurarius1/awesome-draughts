@@ -6,6 +6,8 @@ import Game, {positionEqual, Position, PlayerNames} from "@/draughts";
 import {PropType, StyleValue} from "vue";
 import {useGameStore} from "@/store";
 import {LeaveTypes} from "@/globals.ts"
+import { socketState, socket } from "@/draughts";
+import {useWebSocket} from "@vueuse/core";
 
 export default defineComponent({
   name: "GameField",
@@ -30,11 +32,11 @@ export default defineComponent({
     {
       return true
     },
-    undoServed(payload: string){
-      return payload === "white" || payload === "black"
+    undoServed(){
+      return true
     },
-    redoServed(payload: string)  {
-      return payload === "white" || payload === "black"
+    redoServed()  {
+      return true
     },
     gameOver(payload: string)
     {
@@ -62,7 +64,6 @@ export default defineComponent({
 
     this.$emitter.on('player-name-changed', (player: string, name: string) => {
       this.gameState.updatePlayerName(player, name)
-      this.$emit('playerNames', this.gameState.playerNames)
     })
 
     this.$emitter.on('draw', () => {
@@ -76,22 +77,27 @@ export default defineComponent({
   watch: {
     leave(newVal)
     {
-      const gameStore = useGameStore();
-      switch(newVal)
-      {
-        case LeaveTypes.saveLocal:
-          gameStore.endAndSave(false)
-          break
-        case LeaveTypes.saveRemote:
-          gameStore.endAndSave(true)
-          break
-        case LeaveTypes.exit:
-          gameStore.clear()
-          break
-        default:
-          return
-      }
-      this.$router.replace('/')
+      this.$router.replace('/').then(() => {
+        const gameStore = useGameStore();
+        gameStore.closeWS();
+        switch(newVal)
+        {
+          case LeaveTypes.saveLocal:
+            gameStore.endAndSave(false)
+            break
+          case LeaveTypes.saveRemote:
+            gameStore.endAndSave(true)
+            break
+          case LeaveTypes.exit:
+            gameStore.clear()
+            break
+          default:
+            return
+        }
+
+      })
+
+
     },
     undoRequest(newVal)
     {
@@ -102,7 +108,7 @@ export default defineComponent({
       if(this.isOnKillStreak)
       {
         this.toast.warning(this.$t('toasts.warning.undo_on_killstreak'))
-        this.$emit("undoServed", this.gameState.activePlayer)
+        this.$emit("undoServed")
         return;
       }
 
@@ -112,7 +118,7 @@ export default defineComponent({
         this.$emit('undoPossible', false)
       }
       this.$emit('redoPossible', true)
-      this.$emit("undoServed", this.gameState.activePlayer)
+      this.$emit("undoServed")
 
     },
     redoRequest(newVal)
@@ -127,7 +133,7 @@ export default defineComponent({
       }
       this.$emit('undoPossible', true)
 
-      this.$emit("redoServed", this.gameState.activePlayer)
+      this.$emit("redoServed")
     }
   },
   props: {
@@ -165,8 +171,6 @@ export default defineComponent({
   },
   beforeMount()
   {
-    const gameStore = useGameStore()
-    gameStore.startNewGame(this.fieldDimensions)
 
     this.$emit('undoPossible', this.gameState.undoPossible())
     this.$emit('redoPossible', this.gameState.redoPossible())
@@ -232,7 +236,6 @@ export default defineComponent({
       if(gameStore.currentGame.fieldDimensions === -1)
       {
         gameStore.startNewGame(this.fieldDimensions)
-        this.$emit('playerNames', this.gameState.playerNames)
         this.$emit('dimensions', this.dimensionsInPx)
       }
       return gameStore.currentGame

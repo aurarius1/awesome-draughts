@@ -1,8 +1,5 @@
 ﻿using System.Net.WebSockets;
 using Microsoft.AspNetCore.Mvc;
-using System.Linq;
-using System.Text.Json;
-using System.Collections.Concurrent;
 using backend.Game;
 using backend.Commands;
 
@@ -35,8 +32,12 @@ namespace backend.Controllers
             }
         }
 
+        [Route("/loadGame")]
+        public async Task Get2()
+        {
+            System.Diagnostics.Debug.WriteLine("LOAD GAME");
 
-
+        }
 
         private async Task Echo(WebSocket webSocket, bool initialConnection)        
         {

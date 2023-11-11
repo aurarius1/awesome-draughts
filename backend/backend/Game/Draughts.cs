@@ -1,4 +1,5 @@
 ﻿using System.Net.WebSockets;
+using System.Text.Json;
 using backend.Commands;
 using backend.Models;
 
@@ -11,9 +12,6 @@ namespace backend.Game
 
         private Client _player1;
         private Client? _player2 = null;
-
-
-
 
         public Draughts(string id, Client player1, bool singlePlayer = false)
         {
@@ -34,7 +32,27 @@ namespace backend.Game
 
         public string GetGameState()
         {
-            return _id;
+            return JsonSerializer.Serialize(new
+            {
+                _id = _id,
+                playerNames = new
+                {
+                    white = _player1.Color == "white" ? _player1.Name : _player2.Name,
+                    black = _player1.Color == "white" ? _player2.Name : _player1.Name,
+                },
+                field = "",
+                history = new
+                {
+                    moves = "",
+                    revertedMoves = ""
+                },
+                pieces = new
+                {
+                    white = "",
+                    black = ""
+                },
+                currentPlayer = "",
+            });
         }
 
 

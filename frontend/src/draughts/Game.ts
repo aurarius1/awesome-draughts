@@ -1,4 +1,7 @@
 import {isPlayableField} from "./Helper"
+import {useWebSocket} from "@vueuse/core";
+import {socketState} from "@draughts/socket.ts";
+import {de} from "vuetify/locale";
 
 export {Piece, Game}
 export type {Position, History, PieceColors, GameState, GameField}
@@ -101,13 +104,10 @@ class Piece  {
     {
         this._position = newPosition
     }
-
-
-
 }
 
 class Game {
-    private readonly _gameId: number
+    private _gameId: string = ""
     private _field: GameField
     private _pieces: Pieces
     private _history: History
@@ -119,14 +119,17 @@ class Game {
         "black": "Bob"
     }
 
-    constructor({fieldDimensions = -1, serialized = ""} = {}){
+    private _isLocalGame: boolean = true
+    private _ownColor: string  = ""
+    private _cid: string= ""
+
+    constructor({fieldDimensions = -1, serialized = "", refresh=true} = {}){
         if(fieldDimensions !== -1)
         {
             this._history = {
                 moves: [],
                 revertedMoves: [],
             }
-            this._gameId = Date.now()
             this._field = []
             this._pieces = {
                 white: {},
@@ -205,10 +208,13 @@ class Game {
                 "black": "Bob",
                 "white": "Alice"
             }
+
+            this._cid = deserializedGame._cid
+            this._ownColor = deserializedGame._ownColor
+            this._isLocalGame = deserializedGame._isLocalGame
         }
         else
         {
-            this._gameId = -1
             this._fieldDimensions = -1
             this._field = []
             this._pieces = {
@@ -224,6 +230,10 @@ class Game {
 
 
     }
+
+
+
+
     private initalizeFieldWithoutPieces()
     {
         let field: GameField = []
@@ -283,10 +293,8 @@ class Game {
                     this._field[deletingY][deletingX].containsPiece = false;
                     this._field[deletingY][deletingX].piece?.die()
                     this._field[deletingY][deletingX].piece = undefined;
-
                     break;
                 }
-
             }
         }else{
             let xDiff = newPosition.x - piece.position.x;
@@ -469,6 +477,7 @@ class Game {
     }
     public undoMove()
     {
+
         let lastMove: Move|undefined = undefined
         let piece: Piece|undefined = undefined;
         do{
@@ -557,13 +566,43 @@ class Game {
     }
     public updatePlayerName(player: string, name: string)
     {
-        if(this._playerNames[player] !== undefined)
-        {
-            this._playerNames[player] = name
-        }
+        console.log("UPDATE NAME: ", player, name);
+        this._playerNames[player] = name
     }
+    public getPlayerName(player: string)
+    {
+        return this._playerNames[player];
+    }
+    public getCurrentPlayerName()
+    {
+        return this._playerNames[this._currentPlayer];
+    }
+
+    public changePlayerName(player: string, name: string)
+    {
+        this._playerNames[player] = name;
+    }
+
+    public setRemote(ownColor: "black"|"white", name: string)
+    {
+        this._ownColor = ownColor
+        this._isLocalGame = false;
+    }
+
+    public setGameParameter(gid: string, cid: string)
+    {
+        this._gameId = gid;
+        this._cid = cid;
+    }
+
     public draw(){
         this._gameOver = true
+    }
+
+
+    public get ownColor()
+    {
+        return this._ownColor
     }
     public serialize()
     {
@@ -571,15 +610,14 @@ class Game {
             _gameId: this._gameId,
             _pieces: this._pieces,
             _history: this._history,
+            _ownColor: this._ownColor,
+            _cid: this._cid,
+            _isLocalGame: this._isLocalGame,
             _currentPlayer: this._currentPlayer,
             _fieldDimensions: this._fieldDimensions,
             _gameOver: this._gameOver,
             _playerNames: this._playerNames
         }
-
-
-
-
 
         return JSON.stringify(
             gameObj

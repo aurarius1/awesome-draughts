@@ -12,6 +12,12 @@
   &.center{
     justify-content: center !important;
   }
+  &.end{
+    justify-content: end !important;
+  }
+  &.start {
+    justify-content: start !important;
+  }
 
 }
 

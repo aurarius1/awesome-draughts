@@ -13,7 +13,14 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddSingleton<IGameCache, GameCache>();
 builder.Services.AddSingleton<ICommandFactory, CommandFactory>();
 
-
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(name: "OK",
+                      policy =>
+                      {
+                          policy.WithOrigins("*");
+                      });
+});
 var app = builder.Build();
 
 
@@ -27,7 +34,7 @@ app.UseWebSockets(webSocketOptions);
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
-
+app.UseCors("OK");
 app.MapControllers();
 
 app.Run();

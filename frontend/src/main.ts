@@ -50,11 +50,15 @@ import {
     faEdit,
     faPlay,
     faHouse,
+    faClipboard,
+    faSave
 } from "@fortawesome/free-solid-svg-icons";
 
 import Toast, {PluginOptions} from "vue-toastification";
 // Import the CSS or use your own!
 import "vue-toastification/dist/index.css";
+import WaitingForOponent from "@/components/WaitingForOponent.vue";
+import JoinGame from "@/JoinGame.vue";
 
 library.add(faCheckCircle,
     faLanguage, faHome, fasSun,
@@ -62,12 +66,51 @@ library.add(faCheckCircle,
     faPaperclip, faArrowLeft, faUndo,
     faRedo, faCloudUploadAlt, faDownload,
     faCloudDownloadAlt, faUpload,faHandshake,
-    faCrown, faGears, faEdit, faPlay,faHouse
+    faCrown, faGears, faEdit, faPlay,faHouse,
+    faClipboard, faSave
 
 )
 
 const app = createApp(App)
-app.use( createPinia())
+const pinia = createPinia();
+
+export const router = createRouter({
+    history: createWebHistory(),
+    routes: [
+        {
+            path: "/",
+            name: "Title Screen",
+            component: TitleScreen
+        },
+        {
+            path: "/settings",
+            name: "Settings",
+            component: Settings
+        },
+        {
+            path: "/game",
+            name: "Game",
+            component: Game
+        },
+        {
+            path: "/waiting",
+            name: "waiting",
+            component: WaitingForOponent,
+        },
+        {
+            path: "/join/:gid",
+            name: "join",
+            component: JoinGame,
+            props: true
+        }
+    ]
+})
+pinia.use(({ store }) => {
+    store.$router = markRaw(router)
+})
+
+app.use( pinia)
+
 app.config.globalProperties.$emitter = new TinyEmitter()
 app.component('font-awesome-icon', FontAwesomeIcon)
 
@@ -90,26 +133,7 @@ const vuetify = createVuetify({
 })
 app.use(vuetify)
 
-const router = createRouter({
-    history: createWebHistory(),
-    routes: [
-        {
-            path: "/",
-            name: "Title Screen",
-            component: TitleScreen
-        },
-        {
-            path: "/settings",
-            name: "Settings",
-            component: Settings
-        },
-        {
-            path: "/game",
-            name: "Game",
-            component: Game
-        }
-    ]
-})
+
 app.use(router)
 
 

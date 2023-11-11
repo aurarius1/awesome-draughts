@@ -12,6 +12,9 @@ export default defineComponent({
   emits: {
     playerNameChanged(playerType: string, playerName: string){
       return playerType === "white" || playerType === "black";
+    },
+    switchPlayer(){
+      return true;
     }
   },
   setup()
@@ -30,25 +33,49 @@ export default defineComponent({
     name: {
       type: String,
       default: "Eve",
+    },
+    remote: {
+      type: Boolean,
+      default: false,
     }
   },
   data() {
     return{
-      _name: this.name
+      _name: this.name,
+      hover: false,
     }
   },
   computed: {
     playerStyle(): StyleValue{
-      return {
-        color: this.getColorStore().currentColor["base"],
-        fontWeight: 'bold'
+      let color = this.getColorStore().currentColor["base"];
+      if(this.remote && this.hover)
+      {
+        color = this.getColorStore().currentColor["lighten2"]
       }
-    }
+
+      return {
+        color: color,
+        fontWeight: 'bold',
+        cursor: this.remote ? 'pointer' : "unset",
+      }
+    },
+
+
   },
   methods: {
     getColorStore()
     {
       return this.colorStore;
+    },
+    switchPlayerType()
+    {
+      if(this.remote)
+      {
+        console.log("SWITCHING");
+        this.$emit('switchPlayer');
+        console.log(this.player);
+      }
+
     }
   }
 })
@@ -61,6 +88,9 @@ export default defineComponent({
   <p
     :style="playerStyle"
     class="text-subtitle-1"
+    @mouseover="hover=true"
+    @mouseleave="hover=false"
+    @click="switchPlayerType()"
   >
     {{ this.$t(`player.${player}`) }}
   </p>

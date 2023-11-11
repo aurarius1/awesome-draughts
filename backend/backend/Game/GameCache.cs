@@ -57,7 +57,8 @@ namespace backend.Game
             var response = new Response(ResponseTypes.JoinOk,
                 new ResponseParam(ResponseKeys.GID, gameId),
                 new ResponseParam(ResponseKeys.CID, clientId),
-                new ResponseParam(ResponseKeys.COLOR, color)
+                new ResponseParam(ResponseKeys.COLOR, color),
+                new ResponseParam(ResponseKeys.NAME, name)
             );
             _ = socket.sendMessage(response.ResponseMessage);
             return true;

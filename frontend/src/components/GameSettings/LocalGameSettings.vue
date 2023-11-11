@@ -2,10 +2,11 @@
 import {defineComponent, renderList} from 'vue'
 import NameSelection from "@/components/GameSettings/NameSelection.vue";
 import {PlayerNames} from "@/draughts";
-import {PropType} from "vue/dist/vue";
+import {PropType} from "vue";
+import {useGameStore} from "@/store";
 
 export default defineComponent({
-  name: "GameSettings",
+  name: "LocalGameSettings",
   emits: {
     leaveGameSettings(){return true;}
   },
@@ -13,8 +14,9 @@ export default defineComponent({
     startNewGame(startGame){
       if(startGame)
       {
-        this.$emitter.emit('player-name-changed', "white", this._playerNames.white)
-        this.$emitter.emit('player-name-changed', "black", this._playerNames.black)
+        const gameStore = useGameStore();
+        gameStore.startNewGame(10, this._playerNames)
+        this.$router.replace('game')
       }
     },
     playerNames(newValue){
@@ -58,17 +60,8 @@ export default defineComponent({
       return this.colorStore
     },
     changePlayerName(playerType: string, playerName: string){
-      if(this._playerNames === undefined)
-      {
-        this._playerNames = {}
-      }
-      this._playerNames[playerType] = playerName
-
-      if(!this.isGameDialog)
-      {
-        this.$emitter.emit('player-name-changed', playerType, playerName)
-      }
-
+      const gameStore = useGameStore()
+      gameStore.currentGame.changePlayerName(playerType, playerName);
     }
   }
 })

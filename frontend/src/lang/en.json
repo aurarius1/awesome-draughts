@@ -45,7 +45,9 @@
   },
   "game_settings_dialog": {
     "title": "Game Settings",
-    "start_game": "Start game"
+    "start_game": "Start game",
+    "local": "Local",
+    "remote": "Play with friend"
   },
   "end_game_dialog": {
     "title": "Game ended",

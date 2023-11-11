@@ -18,26 +18,34 @@ namespace backend.Commands
         CID = 1,
         GAME_STATE = 2, 
         COLOR = 3,
+        NAME = 4,
     }
 
     public struct ResponseParam
     {
         private static string[] responseKeyStrings = new string[]
         {
-            "gid", "cid", "game_state", "color"
+            "gid", "cid", "gameState", "color", "name",
         };
-
+        public ResponseKeys ResponseType; 
         public string Key { get; set;  }
         public string Value { get; set;  }
 
         public ResponseParam(ResponseKeys key, string value)
         {
+            ResponseType = key;
             Key = responseKeyStrings[(int)key];
             Value = value;
         }
 
         public string Format()
         {
+            if(ResponseType == ResponseKeys.GAME_STATE)
+            {
+                return $"\"{Key}\": {Value}";
+            }
+
+
             return $"\"{Key}\": \"{Value}\"";
         }
     }
