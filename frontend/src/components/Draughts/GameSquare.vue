@@ -4,6 +4,7 @@ import colors from 'vuetify/lib/util/colors'
 import GamePiece from "@/components/Draughts/GamePiece.vue";
 import {isPlayableField, positionEqual} from "@/draughts";
 import {Position} from "@draughts/Game.ts";
+import {useGameStore} from "@/store";
 
 export default defineComponent({
   name: "GameSquare",
@@ -21,16 +22,17 @@ export default defineComponent({
   },
   created()
   {
+    /*
+      TODO TEST IF NEEDED
     this.$emitter.on('highlight-field', (fields: Array<Position>) => {
-      this.highlight = false;
+      this._highlight = false;
       let searchResult = fields.find((field) => {
         return field.x === this.position?.x && field.y === this.position?.y
       })
       if(searchResult){
-          this.highlight = true;
+          this._highlight = true;
       }
-    })
-
+    })*/
   },
   props: {
     color: {
@@ -53,7 +55,7 @@ export default defineComponent({
   data()
   {
     return {
-      highlight: false,
+      _highlight: false,
       pieceSelected: false,
     }
   },
@@ -66,6 +68,12 @@ export default defineComponent({
         aspectRatio: '1/1'
       }
     },
+    highlight() {
+      const gameStore = useGameStore();
+      return gameStore._currentApiGame?._validMoves.find((field) => {
+        return field.x === this.position?.x && field.y === this.position?.y
+      })
+    }
   },
   methods: {
     getTileColor()

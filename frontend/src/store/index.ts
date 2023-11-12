@@ -162,9 +162,8 @@ export const useGameStore = defineStore('gameStore',{
                     this.$router.replace("/game");
                     break;
                 case "MOVES":
-                    console.log("HALLO FROM MOVES", state);
                     this._currentApiGame?.addValidMoves(state.moves);
-                    this.$emitter.emit("highlight-field", state.moves);
+                    //this.$emitter.emit("highlight-field", state.moves);
                     break;
 
             }
