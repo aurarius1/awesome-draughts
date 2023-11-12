@@ -48,6 +48,8 @@ namespace backend.Game
         private List<List<Field>> _field = new();
         private Pieces _pieces = new();
 
+        private List<Position> _nextMoves = new();
+
         public Draughts(string id, Client player1, bool singlePlayer = false)
         {
             _id = id;
@@ -137,7 +139,8 @@ namespace backend.Game
         public bool GetMoves(int pieceId, out List<Position> positions, out string errorMessage)
         {
             Piece? piece;
-            positions = new();
+            _nextMoves.Clear();
+            positions = _nextMoves;
             errorMessage = "ok";
             bool success = true;
             if (_currentPlayer == "white")
@@ -202,7 +205,7 @@ namespace backend.Game
                         if (piece?.color == "black" && (moveOperation == MoveOperations.LeftBottom || moveOperation == MoveOperations.RightBottom))
                             break;
                     }
-                    positions.Add(pos);
+                    _nextMoves.Add(pos);
                 }
                 if (!success)
                     break;
