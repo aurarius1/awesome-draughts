@@ -73,7 +73,7 @@ export default defineComponent({
       if (player === "") {
         player = this.currentPlayer
       }
-      return gameStore.currentGame.getPlayerName(player);
+      return gameStore._currentApiGame?._playerNames[player];
     },
     gameOver(winner: string) {
       this.endGameDialogText = this.$t(`player.wins`, {name: this.getPlayerName(winner)})
@@ -98,7 +98,7 @@ export default defineComponent({
     },
     currentPlayer() {
       const gameStore = useGameStore();
-      return gameStore.currentGame.activePlayer
+      return gameStore._currentApiGame?._currentPlayer
     }
 
 

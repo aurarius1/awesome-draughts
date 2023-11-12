@@ -55,7 +55,7 @@ export default defineComponent({
       >
         <v-font-awesome-btn
             :icon="['fas', 'fa-save']"
-            :text="$t('join')"
+            :text="this.$t('join')"
             :icon-color="getColor('base')"
             @click="joinGame()"
         />

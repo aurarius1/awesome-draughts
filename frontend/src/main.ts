@@ -58,7 +58,7 @@ import Toast, {PluginOptions} from "vue-toastification";
 // Import the CSS or use your own!
 import "vue-toastification/dist/index.css";
 import WaitingForOponent from "@/components/WaitingForOponent.vue";
-import JoinGame from "@/JoinGame.vue";
+import JoinGame from "@/components/JoinGame.vue";
 
 library.add(faCheckCircle,
     faLanguage, faHome, fasSun,
@@ -105,13 +105,16 @@ export const router = createRouter({
         }
     ]
 })
+let emitter = new TinyEmitter();
+
 pinia.use(({ store }) => {
-    store.$router = markRaw(router)
+    store.$router = markRaw(router);
+    store.$emitter = markRaw(emitter)
 })
 
 app.use( pinia)
 
-app.config.globalProperties.$emitter = new TinyEmitter()
+app.config.globalProperties.$emitter = emitter
 app.component('font-awesome-icon', FontAwesomeIcon)
 
 app.use(i18n)

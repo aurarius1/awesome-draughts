@@ -20,7 +20,7 @@ export default defineComponent({
   computed: {
     gid(){
       const gameStore = useGameStore();
-      return gameStore.currentGame.gameId
+      return gameStore._currentApiGame._gameId
     },
     url(){
       // TODO THIS SHOULD NOT BE HARDCODED

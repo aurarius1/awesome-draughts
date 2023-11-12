@@ -53,8 +53,8 @@ export type PlayerNames = {
 }
 
 class Piece  {
-    readonly _id: number
-    readonly _color: PieceColors
+    _id: number
+    _color: PieceColors
 
     _position: Position
     _isKing: boolean
@@ -106,13 +106,129 @@ class Piece  {
     }
 }
 
+type ApiPiece = {
+    id: number,
+    isKing: boolean,
+    isAlive: boolean,
+    color: 'white'|'black',
+    position: Position
+}
+
+type ApiField = {
+    position: Position,
+    containsPiece: boolean,
+    piece: ApiPiece|null
+}
+
+type ApiGameField = Array<Array<ApiField>>
+
+type ApiPieces = {
+    white: Array<ApiPiece>
+    black: Array<ApiPiece>
+}
+
+export interface ApiGame {
+    _gameId: string
+    _field: ApiGameField
+    _pieces: ApiPieces
+    _history: string
+    _currentPlayer: 'white' | 'black'
+    _fieldDimensions: number
+    _playerNames: PlayerNames
+}
+
+export class ServerGame implements ApiGame
+{
+    public _gameId: string = ""
+    public _field: ApiGameField
+    public _pieces: ApiPieces
+    public _history: History
+    public _currentPlayer: 'white' | 'black'
+    public _fieldDimensions: number
+    public _gameOver: boolean = false
+    public _playerNames: PlayerNames = {
+        "white": "Alice",
+        "black": "Bob"
+    }
+
+    public _isLocalGame: boolean = true
+    public _ownColor: string  = ""
+    public _cid: string= ""
+
+
+    public _validMoves: Array<Position> = []
+
+    constructor(
+        {
+            fieldDimensions = -1,
+            playerName = "",
+            ownColor = "",
+            isLocalGame = true,
+            gameState = undefined,
+            gid = "",
+            cid = ""
+
+        } = {}
+    ) {
+
+        if(gameState !== undefined)
+        {
+            this.loadGameState(gameState);
+            return;
+        }
+
+        if(fieldDimensions !== -1)
+        {
+            this._fieldDimensions = fieldDimensions;
+        }
+        this._isLocalGame = isLocalGame;
+        this._ownColor = ownColor;
+        this._playerNames[ownColor] = playerName;
+        this._gameId = gid
+        this._cid = cid
+    }
+
+    public loadGameState(state: ApiGame)
+    {
+        if(state === undefined)
+            return;
+
+        this._field = state._field
+        this._pieces = state._pieces
+        this._currentPlayer = state._currentPlayer
+        this._fieldDimensions = state._fieldDimensions
+        this._playerNames = state._playerNames
+    }
+
+    public setGameParameter(gid: string, cid: string)
+    {
+        this._cid = cid
+        this._gameId = gid
+    }
+
+    public addValidMoves(validMoves: Array<Position>)
+    {
+        this._validMoves = validMoves;
+    }
+
+    private findPieceInGamefield(pieceId: number): ApiPiece|undefined
+    {
+        return this._pieces[this._currentPlayer][pieceId]
+    }
+
+    public getPositionOfPiece(pieceId: number)
+    {
+        return this.findPieceInGamefield(pieceId)?.position;
+    }
+}
+
 class Game {
     private _gameId: string = ""
     private _field: GameField
     private _pieces: Pieces
     private _history: History
     private _currentPlayer: 'white' | 'black'
-    private readonly _fieldDimensions: number
+    private _fieldDimensions: number
     private _gameOver: boolean = false
     private _playerNames: PlayerNames = {
         "white": "Alice",
@@ -230,7 +346,6 @@ class Game {
 
 
     }
-
 
 
 

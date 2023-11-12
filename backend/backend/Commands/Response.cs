@@ -1,4 +1,6 @@
 ﻿using System.Drawing;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using backend.Models;
 
 namespace backend.Commands
@@ -10,6 +12,8 @@ namespace backend.Commands
         InitOk,
         JoinOk,
         GameStarted,
+        InvalidMovesRequest, 
+        MovesOk
     }
 
     public enum ResponseKeys
@@ -19,28 +23,40 @@ namespace backend.Commands
         GAME_STATE = 2, 
         COLOR = 3,
         NAME = 4,
+        ERROR_MESSAGE = 5,
+        MOVES = 6
     }
 
     public struct ResponseParam
     {
         private static string[] responseKeyStrings = new string[]
         {
-            "gid", "cid", "gameState", "color", "name",
+            "gid", "cid", "gameState", "color", "name", "errorMessage", "moves"
         };
         public ResponseKeys ResponseType; 
         public string Key { get; set;  }
-        public string Value { get; set;  }
+        public string Value { get; set; } = "";
 
-        public ResponseParam(ResponseKeys key, string value)
+        public ResponseParam(ResponseKeys key)
         {
             ResponseType = key;
             Key = responseKeyStrings[(int)key];
+        }
+
+        public ResponseParam(ResponseKeys key, string value) : this(key)
+        {       
             Value = value;
         }
 
+        public ResponseParam(ResponseKeys key, object value) : this(key)
+        {
+            Value = JsonSerializer.Serialize(value);
+        }
+
+
         public string Format()
         {
-            if(ResponseType == ResponseKeys.GAME_STATE)
+            if(ResponseType == ResponseKeys.GAME_STATE || ResponseType == ResponseKeys.MOVES)
             {
                 return $"\"{Key}\": {Value}";
             }
@@ -66,6 +82,9 @@ namespace backend.Commands
                     break;
                 case ResponseTypes.GameStarted:
                     ResponseMessage = String.Format(ResponseMessage, "\"state\": \"GAME STARTED\"{0}");
+                    break;
+                case ResponseTypes.MovesOk:
+                    ResponseMessage = String.Format(ResponseMessage, "\"state\": \"MOVES\"{0}");
                     break;
                 case ResponseTypes.InvalidArguments:
                     ResponseMessage = String.Format(ResponseMessage, "\"state\": \"INVALID ARGUMENTS\"");

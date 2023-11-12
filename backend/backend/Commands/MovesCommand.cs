@@ -3,7 +3,10 @@ using System.Net.WebSockets;
 
 namespace backend.Commands
 {
-    public class JoinCommand : ICommand
+
+    // moves --> getFieldsToHighlight
+    // move --> doMove
+    public class MovesCommand : ICommand
     {
 
         private readonly IGameCache _cache;
@@ -24,22 +27,23 @@ namespace backend.Commands
         }
 
         private readonly string _gameId;
-        private string _name;
+        private int _pieceId;
 
-        public JoinCommand(WebSocket socket, IGameCache gameCache, params string[] arguments)
+        public MovesCommand(WebSocket socket, IGameCache gameCache, params string[] arguments)
         {
             this._CommandValid = true;
-            this._CommandType = typeof(JoinCommand);
+            this._CommandType = typeof(MovesCommand);
 
             if(arguments.Length != 2)
             {
                 _CommandValid = false;
+                return;
             }
-            
             this._gameId = arguments[0];
-            this._name = arguments[1];
+            _CommandValid = int.TryParse(arguments[1], out _pieceId);
             this._cache = gameCache;
             this._webSocket = socket;
+
         }
         public Response HandleCommand()
         {
@@ -47,11 +51,23 @@ namespace backend.Commands
             {
                 return new Response(ResponseTypes.InvalidArguments);
             }
-            if (!this._cache.AddSecondPlayer(this._gameId, this._webSocket, this._name))
+
+            Draughts? game = this._cache.Get(this._gameId);
+
+
+            List<Position> validMoves;
+            string errorMessage;
+
+            if(!game.GetMoves(this._pieceId, out validMoves, out errorMessage ))
             {
-                return new Response(ResponseTypes.InvalidArguments);
+                return new Response(ResponseTypes.InvalidMovesRequest, 
+                            new ResponseParam(ResponseKeys.ERROR_MESSAGE, errorMessage)
+                );
             }
-            return new Response(ResponseTypes.GameStarted, new ResponseParam(ResponseKeys.GAME_STATE, this._cache.Get(this._gameId).GetGameState()));
+
+            return new Response(ResponseTypes.MovesOk,
+                new ResponseParam(ResponseKeys.MOVES, validMoves)
+            );
         }
     }
 }

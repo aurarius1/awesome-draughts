@@ -8,6 +8,7 @@ import {useGameStore} from "@/store";
 import {LeaveTypes} from "@/globals.ts"
 import { socketState, socket } from "@/draughts";
 import {useWebSocket} from "@vueuse/core";
+import {ServerGame} from "@draughts/Game.ts";
 
 export default defineComponent({
   name: "GameField",
@@ -58,12 +59,15 @@ export default defineComponent({
         return
       }
       this.currentlySelectedPiece = piece
-      this.$emitter.emit("highlight-field", this.gameState.getFieldsToHighlight(piece));
+
+      this.gameStore.getValidMoves(piece);
+
+      //
     })
 
 
     this.$emitter.on('player-name-changed', (player: string, name: string) => {
-      this.gameState.updatePlayerName(player, name)
+      //this.gameState.updatePlayerName(player, name)
     })
 
     this.$emitter.on('draw', () => {
@@ -113,7 +117,7 @@ export default defineComponent({
       }
 
       this.toast.info(this.$t('toasts.info.undo_successful'));
-      if(this.gameState.undoMove())
+      //if(this.gameState.undoMove())
       {
         this.$emit('undoPossible', false)
       }
@@ -127,7 +131,7 @@ export default defineComponent({
         return
       }
       this.toast.info(this.$t('toasts.info.redo_successful'));
-      if(this.gameState.redoMove())
+      //if(this.gameState.redoMove())
       {
         this.$emit('redoPossible', false)
       }
@@ -172,10 +176,10 @@ export default defineComponent({
   beforeMount()
   {
 
-    this.$emit('undoPossible', this.gameState.undoPossible())
-    this.$emit('redoPossible', this.gameState.redoPossible())
-    this.$emit('playerSwitched', this.gameState.activePlayer)
-    this.$emit('playerNames', this.gameState.playerNames)
+//this.$emit('undoPossible', this.gameState.undoPossible())
+    //this.$emit('redoPossible', this.gameState.redoPossible())
+    //this.$emit('playerSwitched', this.gameState.activePlayer)
+    //this.$emit('playerNames', this.gameState.playerNames)
   },
   computed: {
     dimensionsInPx(){
@@ -228,23 +232,22 @@ export default defineComponent({
         width: `${this.dimensionsInPx/10}px`
       }
     },
-    gameField(){
-      return this.gameState.field
+    gameStore(){
+      return useGameStore();
     },
-    gameState(): Game{
+    gameField(){
+      return this.gameState?._field
+    },
+    gameState() {
       const gameStore = useGameStore()
-      if(gameStore.currentGame.fieldDimensions === -1)
-      {
-        gameStore.startNewGame(this.fieldDimensions)
-        this.$emit('dimensions', this.dimensionsInPx)
-      }
       return gameStore.currentGame
     }
   },
   methods: {
     movePiece(targetPosition: Position, isHighlighted: Boolean)
     {
-      let selectedPiecePosition = this.gameState.getPositionOfPiece(this.currentlySelectedPiece)
+
+      let selectedPiecePosition = this.gameStore._currentApiGame?.getPositionOfPiece(this.currentlySelectedPiece)
       if(selectedPiecePosition === undefined || positionEqual(selectedPiecePosition, targetPosition))
       {
         return
@@ -262,6 +265,7 @@ export default defineComponent({
         }
         return
       }
+      /*
       this.$emitter.emit('highlight-field', [])
       let killStreakPossible = this.gameState.movePiece(this.currentlySelectedPiece, targetPosition)
       if(killStreakPossible.length !== 0)
@@ -297,6 +301,8 @@ export default defineComponent({
       this.$emit('undoPossible', true)
       this.$emit('redoPossible', false)
       this.$emit('playerSwitched', this.gameState.activePlayer ?? "");
+      */
+
     },
     invalidSelect()
     {
@@ -345,7 +351,7 @@ export default defineComponent({
                 :color="col.piece?.color"
                 :piece-id="col.piece?.id"
                 :piece-position="col.piece?.position"
-                :active-player="gameState.activePlayer"
+                :active-player="gameState?._currentPlayer"
                 :is-king="col.piece?.isKing"
                 :selected-piece="currentlySelectedPiece"
                 @invalid-select="invalidSelect()"

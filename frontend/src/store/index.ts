@@ -8,6 +8,7 @@ import fileDownload from 'js-file-download'
 
 import {ca} from "vuetify/locale";
 import {Exception} from "sass";
+import {ApiGame, ServerGame} from "@draughts/Game.ts";
 
 export const useColorStore = defineStore('colorStore',{
     state: () =>  {
@@ -69,6 +70,7 @@ export const useThemeStore = defineStore('themeStore',{
 type test = {
     _currentGame: RemovableRef<Game>,
     _savedGames: RemovableRef<Array<number>>,
+    _currentApiGame: ServerGame | undefined,
     ws: any
 }
 function serializeGameState(value: Game): string
@@ -92,36 +94,40 @@ export const useGameStore = defineStore('gameStore',{
         return {
             _currentGame: useLocalStorage("currentGame", new Game({fieldDimensions: -1}), { deep: true, listenToStorageChanges: true, serializer: serializer}),
             _savedGames: useLocalStorage("savedGames", []),
+            _currentApiGame: undefined,
             ws: undefined
         }
     },
     actions: {
         startNewGame(dimensions: number, playerNames: PlayerNames = {"white": "Alice", "black": "Bob"}){
-            console.log("fotze", this._currentGame?.fieldDimensions)
-            console.log("LECK MICH FETT");
             this._currentGame = new Game({fieldDimensions: dimensions})
             this._currentGame.updatePlayerName("white", playerNames.white);
             this._currentGame.updatePlayerName("black", playerNames.black);
 
         },
-        startNewRemoteGame(dimensions: number, player: "white"|"black", name: string){
-            this._currentGame = new Game({fieldDimensions: dimensions})
-            this._currentGame.setRemote(player, name)
-            this._currentGame.updatePlayerName(player, name)
-            this.startWebSocket("init;"+name+";"+player)
+        startNewRemoteGame(dimensions: number, color: "white"|"black", name: string){
+            this._currentApiGame = new ServerGame({
+                fieldDimensions: dimensions,
+                playerName: name,
+                ownColor: color
+            })
+            this.startWebSocket("init;"+name+";"+color)
         },
-        joinRemoteGame(dimensions: number, player: "white"|"black", name: string, gid: string, cid: string){
-            this._currentGame = new Game({fieldDimensions: dimensions})
-            this._currentGame.setRemote(player, name)
-            this._currentGame.updatePlayerName(player, name)
-            this._currentGame.setGameParameter(gid, cid);
+        joinRemoteGame(dimensions: number, color: "white"|"black", name: string, gid: string, cid: string){
+            this._currentApiGame = new ServerGame({
+                fieldDimensions: dimensions,
+                playerName: name,
+                ownColor: color,
+                gid: gid,
+                cid: cid,
+            })
         },
         joinGame(gid: string, name: string){
             this.startWebSocket("join;"+gid+";" + name)
         },
         startWebSocket(command: string){
             // TODO THIS SHOULD NOT BE HARDCODED
-            const url = "wss://localhost:32770/ws";
+            const url = "wss://localhost:32768/ws";
             this.ws = new WebSocket(url)
             this.ws.onopen = () => {
                 this.ws?.send(command);
@@ -130,22 +136,45 @@ export const useGameStore = defineStore('gameStore',{
         },
         parseSocketMessage(msg: any)
         {
+            console.log(msg);
             let state = JSON.parse(msg.data);
+
             switch(state.state)
             {
                 case "INIT":
-                    this._currentGame.setGameParameter(state.gid, state.cid);
+                    if(this._currentApiGame === undefined)
+                    {
+                        // TODO ERROR NOTIFICATIONS
+                        return;
+                    }
+                    this._currentApiGame.setGameParameter(state.gid, state.cid);
                     break;
                 case "JOIN":
                     this.joinRemoteGame(10, state.color, state.name, state.gid, state.cid)
                     break
                 case "GAME STARTED":
-                    let otherColor = this._currentGame.ownColor === "white" ? "black" : "white";
-                    this._currentGame.updatePlayerName(otherColor, state.gameState.playerNames[otherColor]);
+                    if(this._currentApiGame === undefined)
+                    {
+                        // TODO ERROR NOTIFICATIONS
+                        return;
+                    }
+                    this._currentApiGame.loadGameState(state.gameState);
                     this.$router.replace("/game");
                     break;
+                case "MOVES":
+                    console.log("HALLO FROM MOVES", state);
+                    this._currentApiGame?.addValidMoves(state.moves);
+                    this.$emitter.emit("highlight-field", state.moves);
+                    break;
+
             }
         },
+        getValidMoves(pieceId: number)
+        {
+            this.ws?.send(`moves;${this._currentApiGame?._gameId};${pieceId}`)
+        },
+
+
         closeWS()
         {
             switch(this.ws.readyState)
@@ -190,8 +219,8 @@ export const useGameStore = defineStore('gameStore',{
 
     },
     getters: {
-        currentGame: (state): Game => {
-            return state._currentGame
-        }
+        currentGame: (state) => {
+            return state._currentApiGame
+        },
     }
 })

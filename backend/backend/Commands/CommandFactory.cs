@@ -29,6 +29,8 @@ namespace backend.Commands
                     return new InitCommand(socket, this._gameCache, commands.Skip(1).ToArray());
                 case "join":
                     return new JoinCommand(socket, this._gameCache, commands.Skip(1).ToArray());
+                case "moves":
+                    return new MovesCommand(socket, this._gameCache, commands.Skip(1).ToArray());
                 default:
                     return new UnknownCommand();
             }

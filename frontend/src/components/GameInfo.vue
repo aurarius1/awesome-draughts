@@ -71,15 +71,15 @@ export default defineComponent({
     },
     activePlayerName(){
       const gameStore = useGameStore()
-      return gameStore.currentGame.getCurrentPlayerName()
+      return gameStore._currentApiGame?._playerNames[gameStore._currentApiGame?._currentPlayer];
     },
     activePlayer(){
       const gameStore = useGameStore()
-      return gameStore.currentGame.activePlayer
+      return gameStore._currentApiGame?._currentPlayer
     },
     playerNames() {
       const gameStore = useGameStore()
-      return gameStore.currentGame.playerNames
+      return gameStore._currentApiGame?._playerNames
     },
     currentBreakpoint(){
       return this.$vuetify.display.name;
