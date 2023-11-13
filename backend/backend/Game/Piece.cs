@@ -14,5 +14,11 @@
         public bool isAlive { get; set; } = true;
         public string color { get; set; }
         public Position position { get; set; }
+
+        public void Die()
+        {
+            isAlive = false;
+        }
+
     }
 }

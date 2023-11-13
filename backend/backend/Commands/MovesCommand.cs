@@ -53,11 +53,13 @@ namespace backend.Commands
             }
 
             Draughts? game = this._cache.Get(this._gameId);
-
+            if (game == null)
+            {
+                return new Response(ResponseTypes.InvalidArguments);
+            }
 
             List<Position> validMoves;
             string errorMessage;
-
             if(!game.GetMoves(this._pieceId, out validMoves, out errorMessage ))
             {
                 return new Response(ResponseTypes.InvalidMovesRequest, 

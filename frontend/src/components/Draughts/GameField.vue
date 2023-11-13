@@ -9,6 +9,7 @@ import {LeaveTypes} from "@/globals.ts"
 import { socketState, socket } from "@/draughts";
 import {useWebSocket} from "@vueuse/core";
 import {ServerGame} from "@draughts/Game.ts";
+import game from "@/components/Game.vue";
 
 export default defineComponent({
   name: "GameField",
@@ -16,9 +17,10 @@ export default defineComponent({
   setup()
   {
     const colorStore = useColorStore()
+    const gameStore = useGameStore()
     const toast = useToast()
 
-    return {getColorStore: colorStore, toast}
+    return {getColorStore: colorStore, toast, gameStore}
   },
   emits: {
     playerSwitched(payload: string)
@@ -58,7 +60,7 @@ export default defineComponent({
       {
         return
       }
-      this.currentlySelectedPiece = piece
+      this._currentlySelectedPiece = piece
 
       this.gameStore.getValidMoves(piece);
 
@@ -169,8 +171,7 @@ export default defineComponent({
   {
     return {
       _gameState: undefined as undefined|Game,
-      currentlySelectedPiece: -1,
-      isOnKillStreak: false
+      _currentlySelectedPiece: -1,
     }
   },
   beforeMount()
@@ -241,6 +242,15 @@ export default defineComponent({
     gameState() {
       const gameStore = useGameStore()
       return gameStore.currentGame
+    },
+    isOnKillStreak(){
+      const gameStore = useGameStore()
+      return gameStore._currentApiGame?.isOnKillstreak
+    },
+    currentlySelectedPiece()
+    {
+      const gameStore = useGameStore()
+      return gameStore._currentApiGame?._selectedPiece ?? -1
     }
   },
   methods: {
@@ -252,67 +262,16 @@ export default defineComponent({
       {
         return
       }
-
-      if(!isHighlighted)
-      {
-        if(this.isOnKillStreak)
-        {
-          this.toast.error(this.$t('toasts.error.on_kill_streak'))
-        }
-        else
-        {
-          this.toast.warning(this.$t('toasts.warning.invalid_move'))
-        }
-        return
-      }
-      /*
-      this.$emitter.emit('highlight-field', [])
-      let killStreakPossible = this.gameState.movePiece(this.currentlySelectedPiece, targetPosition)
-      if(killStreakPossible.length !== 0)
-      {
-        this.$emitter.emit('highlight-field', killStreakPossible)
-        this.isOnKillStreak = true
-        return;
-      }
-      else
-      {
-        this.isOnKillStreak = false
-      }
-
-
-
-      this.currentlySelectedPiece = -1
-
-      let winner = this.gameState?.isGameOver()
-
-      if(winner === this.gameState?.activePlayer)
-      {
-        const gameStore = useGameStore()
-        gameStore.clear()
-        this.$emit('gameOver', winner)
-        return;
-      }
-
-
-
-
-
-      this.gameState.switchActivePlayer();
-      this.$emit('undoPossible', true)
-      this.$emit('redoPossible', false)
-      this.$emit('playerSwitched', this.gameState.activePlayer ?? "");
-      */
-
+      this.gameStore.move(this.currentlySelectedPiece, targetPosition)
     },
     invalidSelect()
     {
       if(this.currentlySelectedPiece !== -1)
       {
         // no need to emit warning, different warning is already displayed
-
         return;
       }
-      this.toast.warning(this.$t("toasts.warning.not_your_turn"))
+
     },
     getColor(color: string = "base"){
       return this.getColorStore.currentColor[color]
@@ -354,7 +313,6 @@ export default defineComponent({
                 :active-player="gameState?._currentPlayer"
                 :is-king="col.piece?.isKing"
                 :selected-piece="currentlySelectedPiece"
-                @invalid-select="invalidSelect()"
               />
             </template>
           </game-square>

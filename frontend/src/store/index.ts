@@ -9,6 +9,7 @@ import fileDownload from 'js-file-download'
 import {ca} from "vuetify/locale";
 import {Exception} from "sass";
 import {ApiGame, ServerGame} from "@draughts/Game.ts";
+import {Position} from "@/draughts";
 
 export const useColorStore = defineStore('colorStore',{
     state: () =>  {
@@ -138,10 +139,11 @@ export const useGameStore = defineStore('gameStore',{
         {
             console.log(msg);
             let state = JSON.parse(msg.data);
-
+            const toast = useToast();
+            // TODO HANDLE ERROR STATES
             switch(state.state)
             {
-                case "INIT":
+                case "INIT_OK":
                     if(this._currentApiGame === undefined)
                     {
                         // TODO ERROR NOTIFICATIONS
@@ -149,10 +151,10 @@ export const useGameStore = defineStore('gameStore',{
                     }
                     this._currentApiGame.setGameParameter(state.gid, state.cid);
                     break;
-                case "JOIN":
+                case "JOIN_OK":
                     this.joinRemoteGame(10, state.color, state.name, state.gid, state.cid)
                     break
-                case "GAME STARTED":
+                case "GAME_STARTED":
                     if(this._currentApiGame === undefined)
                     {
                         // TODO ERROR NOTIFICATIONS
@@ -161,16 +163,58 @@ export const useGameStore = defineStore('gameStore',{
                     this._currentApiGame.loadGameState(state.gameState);
                     this.$router.replace("/game");
                     break;
-                case "MOVES":
+                case "MOVES_OK":
                     this._currentApiGame?.addValidMoves(state.moves);
                     //this.$emitter.emit("highlight-field", state.moves);
                     break;
-
+                case "MOVE_OK":
+                    this._currentApiGame?.loadGameState(state.gameState);
+                    this._currentApiGame?.addValidMoves(state.moves);
+                    this._currentApiGame?.setKillstreak(true);
+                    break;
+                case "SYNC":
+                    this._currentApiGame?.loadGameState(state.gameState);
+                    this._currentApiGame?.addValidMoves([]);
+                    this._currentApiGame?.setKillstreak(false);
+                    this._currentApiGame?.selectPiece(-1);
+                    break;
+                case "INVALID_MOVE":
+                    switch(state.errorMessage ?? "")
+                    {
+                        case "invalid_move":
+                            toast.warning(i18n.global.t('toasts.warning.invalid_move'))
+                            break
+                        case "on_kill_streak":
+                            toast.error(i18n.global.t("toasts.error.on_kill_streak"))
+                            break
+                        default:
+                            toast.warning(i18n.global.t('toasts.warning.invalid_move'))
+                            console.log("INVALID MOVE; ERROR UNKNOWN");
+                    }
             }
         },
         getValidMoves(pieceId: number)
         {
-            this.ws?.send(`moves;${this._currentApiGame?._gameId};${pieceId}`)
+            const toast = useToast();
+            if(this._currentApiGame?._currentPlayer === this._currentApiGame?._ownColor)
+            {
+                if(!this._currentApiGame?.isOnKillstreak)
+                {
+                    this._currentApiGame?.selectPiece(pieceId);
+                    this.ws?.send(`moves;${this._currentApiGame?._gameId};${pieceId}`)
+                    return true;
+                }
+                return false;
+            }
+            else
+            {
+                toast.warning(i18n.global.t("toasts.warning.not_your_turn"))
+                return false;
+            }
+        },
+        move(pieceId: number, destination: Position)
+        {
+            this.ws?.send(`move;${this._currentApiGame?._gameId};${this._currentApiGame?._cid};${pieceId};${destination.x};${destination.y}`)
         },
 
 

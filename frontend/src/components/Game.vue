@@ -42,7 +42,7 @@ export default defineComponent({
       redoPossible: false,
       settingsVisible: false,
       gameSettingsVisible: false,
-      endGameDialogVisible: false,
+      _endGameDialogVisible: false,
       endGameDialogText: "",
       dimensions: 0,
       borderThickness: 0,
@@ -77,7 +77,7 @@ export default defineComponent({
     },
     gameOver(winner: string) {
       this.endGameDialogText = this.$t(`player.wins`, {name: this.getPlayerName(winner)})
-      this.endGameDialogVisible=true;
+      this._endGameDialogVisible=true;
     },
     setDimensions(dimensions: number, borderThickness: number)
     {
@@ -99,6 +99,10 @@ export default defineComponent({
     currentPlayer() {
       const gameStore = useGameStore();
       return gameStore._currentApiGame?._currentPlayer
+    },
+    endGameDialogVisible(){
+      const gameStore = useGameStore();
+      return gameStore._currentApiGame?._gameOver ?? false
     }
 
 

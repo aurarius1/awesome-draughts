@@ -2,6 +2,7 @@ import {isPlayableField} from "./Helper"
 import {useWebSocket} from "@vueuse/core";
 import {socketState} from "@draughts/socket.ts";
 import {de} from "vuetify/locale";
+import {popScopeId} from "vue";
 
 export {Piece, Game}
 export type {Position, History, PieceColors, GameState, GameField}
@@ -127,14 +128,21 @@ type ApiPieces = {
     black: Array<ApiPiece>
 }
 
+type ApiHistory = {
+    moves: Array<Move>,
+    revertedMoves: Array<Move>
+}
+
 export interface ApiGame {
     _gameId: string
     _field: ApiGameField
     _pieces: ApiPieces
-    _history: string
+    _history: ApiHistory
     _currentPlayer: 'white' | 'black'
     _fieldDimensions: number
-    _playerNames: PlayerNames
+    _playerNames: PlayerNames,
+    _gameOver: boolean,
+    _draw: boolean
 }
 
 export class ServerGame implements ApiGame
@@ -146,6 +154,7 @@ export class ServerGame implements ApiGame
     public _currentPlayer: 'white' | 'black'
     public _fieldDimensions: number
     public _gameOver: boolean = false
+    public _draw: boolean = false
     public _playerNames: PlayerNames = {
         "white": "Alice",
         "black": "Bob"
@@ -157,6 +166,8 @@ export class ServerGame implements ApiGame
 
 
     public _validMoves: Array<Position> = []
+    public isOnKillstreak: boolean = false
+    public _selectedPiece: number = -1
 
     constructor(
         {
@@ -198,12 +209,20 @@ export class ServerGame implements ApiGame
         this._currentPlayer = state._currentPlayer
         this._fieldDimensions = state._fieldDimensions
         this._playerNames = state._playerNames
+        this._gameOver = state._gameOver
+        this._draw = state._draw
+        this._history = state._history
     }
 
     public setGameParameter(gid: string, cid: string)
     {
         this._cid = cid
         this._gameId = gid
+    }
+
+    public selectPiece(pieceId: number)
+    {
+        this._selectedPiece = pieceId;
     }
 
     public addValidMoves(validMoves: Array<Position>)
@@ -220,6 +239,12 @@ export class ServerGame implements ApiGame
     {
         return this.findPieceInGamefield(pieceId)?.position;
     }
+
+    public setKillstreak(onKillstreak: boolean)
+    {
+        this.isOnKillstreak = onKillstreak;
+    }
+
 }
 
 class Game {

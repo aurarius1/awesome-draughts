@@ -14,7 +14,8 @@
   "player": {
     "white": "WHITE: {name}",
     "black": "BLACK: {name}",
-    "wins": "\uD83D\uDC51\uD83D\uDC51\uD83D\uDC51Player {name} wins\uD83D\uDC51\uD83D\uDC51\uD83D\uDC51",
+    "wins": "\uD83D\uDC51\uD83D\uDC51\uD83D\uDC51YOU WIN!\uD83D\uDC51\uD83D\uDC51\uD83D\uDC51",
+    "loses": "You lost \uD83D\uDE14",
     "draw": "Draw"
   },
   "undo": "UNDO",

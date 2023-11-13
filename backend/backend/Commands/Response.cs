@@ -13,7 +13,10 @@ namespace backend.Commands
         JoinOk,
         GameStarted,
         InvalidMovesRequest, 
-        MovesOk
+        MovesOk,
+        InvalidMoveRequest,
+        MoveOk,
+        Sync
     }
 
     public enum ResponseKeys
@@ -24,14 +27,15 @@ namespace backend.Commands
         COLOR = 3,
         NAME = 4,
         ERROR_MESSAGE = 5,
-        MOVES = 6
+        MOVES = 6,
+        MOVE = 7,
     }
 
     public struct ResponseParam
     {
         private static string[] responseKeyStrings = new string[]
         {
-            "gid", "cid", "gameState", "color", "name", "errorMessage", "moves"
+            "gid", "cid", "gameState", "color", "name", "errorMessage", "moves", "move"
         };
         public ResponseKeys ResponseType; 
         public string Key { get; set;  }
@@ -75,23 +79,35 @@ namespace backend.Commands
             switch (type)
             {
                 case ResponseTypes.InitOk:
-                    ResponseMessage = String.Format(ResponseMessage, "\"state\": \"INIT\"{0}");
+                    ResponseMessage = String.Format(ResponseMessage, "\"state\": \"INIT_OK\"{0}");
                     break;
                 case ResponseTypes.JoinOk:
-                    ResponseMessage = String.Format(ResponseMessage, "\"state\": \"JOIN\"{0}");
+                    ResponseMessage = String.Format(ResponseMessage, "\"state\": \"JOIN_OK\"{0}");
                     break;
                 case ResponseTypes.GameStarted:
-                    ResponseMessage = String.Format(ResponseMessage, "\"state\": \"GAME STARTED\"{0}");
+                    ResponseMessage = String.Format(ResponseMessage, "\"state\": \"GAME_STARTED\"{0}");
                     break;
                 case ResponseTypes.MovesOk:
-                    ResponseMessage = String.Format(ResponseMessage, "\"state\": \"MOVES\"{0}");
+                    ResponseMessage = String.Format(ResponseMessage, "\"state\": \"MOVES_OK\"{0}");
+                    break;
+                case ResponseTypes.MoveOk:
+                    ResponseMessage = String.Format(ResponseMessage, "\"state\": \"MOVE_OK\"{0}");
+                    break;
+                case ResponseTypes.Sync:
+                    ResponseMessage = String.Format(ResponseMessage, "\"state\": \"SYNC\"{0}");
+                    break;
+                case ResponseTypes.InvalidMoveRequest:
+                    ResponseMessage = String.Format(ResponseMessage, "\"state\": \"INVALID_MOVE\"{0}");
+                    break;
+                case ResponseTypes.InvalidMovesRequest:
+                    ResponseMessage = String.Format(ResponseMessage, "\"state\": \"INVALID_REQUEST\"{0}");
                     break;
                 case ResponseTypes.InvalidArguments:
-                    ResponseMessage = String.Format(ResponseMessage, "\"state\": \"INVALID ARGUMENTS\"");
+                    ResponseMessage = String.Format(ResponseMessage, "\"state\": \"INVALID_ARGUMENTS\"");
                     break;
                 case ResponseTypes.UnknownCommand:
                 default: 
-                    ResponseMessage = String.Format(ResponseMessage, "\"state\": \"UNKNOWN COMMAND\"");
+                    ResponseMessage = String.Format(ResponseMessage, "\"state\": \"UNKNOWN_COMMAND\"");
                     break;
             }
         }

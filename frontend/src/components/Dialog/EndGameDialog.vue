@@ -2,6 +2,7 @@
 import {defineComponent} from 'vue'
 import FontAwesomeBtn from "@/components/Buttons/FontAwesomeBtn.vue";
 import VFontAwesomeBtn from "@/components/Buttons/VFontAwesomeBtn.vue";
+import {useGameStore} from "@/store";
 
 export default defineComponent({
   name: "EndGameDialog",
@@ -22,6 +23,25 @@ export default defineComponent({
     localizeText: {
       type: Boolean,
       default: false
+    }
+  },
+  computed:
+  {
+    draw(){
+      const gameStore = useGameStore();
+      return gameStore._currentApiGame?._draw ?? false;
+    },
+    endScreenMessage(){
+      const gameStore = useGameStore();
+      let currentPlayer = gameStore._currentApiGame?._currentPlayer;
+
+      if(currentPlayer === gameStore._currentApiGame?._ownColor)
+      {
+        return this.$t(`player.wins`)
+      }
+      return this.$t('player.loses')
+
+
     }
   },
   methods: {
@@ -46,6 +66,18 @@ export default defineComponent({
       <v-card-text
         class="ml-dialog-text text-h4"
       >
+        <p
+          v-if="draw"
+        >
+          DRAW
+        </p>
+        <p
+          v-else
+        >
+          {{ endScreenMessage }}
+
+        </p>
+
         {{  localizeText ? $t(text) : text }}
       </v-card-text>
       <v-card-actions

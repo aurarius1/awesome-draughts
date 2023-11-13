@@ -55,6 +55,7 @@ namespace backend.Controllers
                     ICommand command = this._commandFactory.CreateCommand(message, webSocket);
                     response = command.HandleCommand();
                 }
+
                 await webSocket.sendMessage(response.ResponseMessage);
                 receiveResult = await webSocket.receiveMessage();
             }
