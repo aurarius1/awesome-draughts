@@ -32,7 +32,7 @@ namespace backend.Commands
         public MoveCommand(WebSocket socket, IGameCache gameCache, params string[] arguments)
         {
             this._CommandValid = true;
-            this._CommandType = typeof(MovesCommand);
+            this._CommandType = typeof(MoveCommand);
 
             if(arguments.Length != 5)
             {

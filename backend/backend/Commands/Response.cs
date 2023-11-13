@@ -16,7 +16,9 @@ namespace backend.Commands
         MovesOk,
         InvalidMoveRequest,
         MoveOk,
-        Sync
+        Sync,
+        RequestSent,
+        ExitOk,
     }
 
     public enum ResponseKeys
