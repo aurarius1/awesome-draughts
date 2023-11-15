@@ -27,19 +27,20 @@ namespace backend.Commands
         }
 
         private readonly string _gameId;
-        private int _pieceId;
+        private readonly string _clientId; 
 
         public UndoCommand(WebSocket socket, IGameCache gameCache, params string[] arguments)
         {
             this._CommandValid = true;
             this._CommandType = typeof(UndoCommand);
 
-            if(arguments.Length != 1)
+            if(arguments.Length != 2)
             {
                 _CommandValid = false;
                 return;
             }
             this._gameId = arguments[0];
+            this._clientId = arguments[1];
             this._cache = gameCache;
             this._webSocket = socket;
 
@@ -50,7 +51,18 @@ namespace backend.Commands
             {
                 new Response(ResponseTypes.InvalidArguments);
             }
-            return new Response(ResponseTypes.RequestSent);
+            Draughts? game = this._cache.Get(this._gameId);
+            if (game == null)
+            {
+                return new Response(ResponseTypes.InvalidArguments);
+            }
+
+            if(!game.SetRequestParameter(PermissionRequest.Undo, _clientId))
+            {
+                return new Response(ResponseTypes.InvalidPermissionRequest);
+            }
+
+            return new Response(ResponseTypes.NoResponse);
         }
     }
 }

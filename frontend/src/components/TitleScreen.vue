@@ -1,5 +1,5 @@
 <script lang="ts">
-import {useColorStore} from "@/store";
+import {useColorStore, useGameStore} from "@/store";
 import LoadSaveGameDialog from "@/components/Dialog/LoadSaveGameDialog.vue";
 import gameField from "@/components/Draughts/GameField.vue";
 import GameSettingsDialog from "@/components/GameSettings/GameSettingsDialog.vue";
@@ -26,7 +26,9 @@ export default defineComponent({
       gameSettingsDialogVisible: false,
     }
   },
-  methods: {
+  beforeMount() {
+
+
   }
 })
 </script>
@@ -36,13 +38,10 @@ export default defineComponent({
       :visible="loadDialogVisible"
       @update-visible="(newValue) => loadDialogVisible = newValue"
   />
-
   <game-settings-dialog
       :visible="gameSettingsDialogVisible"
       @close-me="gameSettingsDialogVisible=false"
   />
-
-
   <v-container>
 
     <v-row

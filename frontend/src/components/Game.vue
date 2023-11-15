@@ -104,8 +104,6 @@ export default defineComponent({
       const gameStore = useGameStore();
       return gameStore._currentApiGame?._gameOver ?? false
     }
-
-
   }
 })
 </script>
@@ -145,10 +143,6 @@ export default defineComponent({
     >
       <game-info
         @leave-request="playerWantsToLeave=true"
-        @undo-request="undoRequest=true"
-        @redo-request="redoRequest=true"
-        :undo-possible="undoRequest || !undoPossible"
-        :redo-possible="redoRequest || !redoPossible"
         :dimensions-in-px="dimensions"
         :border-thickness="borderThickness"
       />

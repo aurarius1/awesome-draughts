@@ -142,7 +142,8 @@ export interface ApiGame {
     _fieldDimensions: number
     _playerNames: PlayerNames,
     _gameOver: boolean,
-    _draw: boolean
+    _draw: boolean,
+    _permissionRequest: 0|1|2|3|4
 }
 
 export class ServerGame implements ApiGame
@@ -168,6 +169,8 @@ export class ServerGame implements ApiGame
     public _validMoves: Array<Position> = []
     public isOnKillstreak: boolean = false
     public _selectedPiece: number = -1
+
+    public _permissionRequest: number = 0
 
     constructor(
         {
@@ -212,6 +215,7 @@ export class ServerGame implements ApiGame
         this._gameOver = state._gameOver
         this._draw = state._draw
         this._history = state._history
+        this._permissionRequest = state._permissionRequest
     }
 
     public setGameParameter(gid: string, cid: string)
@@ -245,6 +249,15 @@ export class ServerGame implements ApiGame
         this.isOnKillstreak = onKillstreak;
     }
 
+    public setPermissionRequest(request: 0 | 1| 2 | 3 | 4)
+    {
+        this._permissionRequest = request
+    }
+
+    public setOwnColor(color: string)
+    {
+        this._ownColor = color;
+    }
 }
 
 class Game {

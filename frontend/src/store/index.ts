@@ -72,6 +72,8 @@ type test = {
     _currentGame: RemovableRef<Game>,
     _savedGames: RemovableRef<Array<number>>,
     _currentApiGame: ServerGame | undefined,
+    _clientId: RemovableRef<String>,
+    _currentGameId: RemovableRef<String>,
     ws: any
 }
 function serializeGameState(value: Game): string
@@ -96,6 +98,8 @@ export const useGameStore = defineStore('gameStore',{
             _currentGame: useLocalStorage("currentGame", new Game({fieldDimensions: -1}), { deep: true, listenToStorageChanges: true, serializer: serializer}),
             _savedGames: useLocalStorage("savedGames", []),
             _currentApiGame: undefined,
+            _clientId: useLocalStorage("clientId", ""),
+            _currentGameId: useLocalStorage("gameId", ""),
             ws: undefined
         }
     },
@@ -127,17 +131,31 @@ export const useGameStore = defineStore('gameStore',{
             this.startWebSocket("join;"+gid+";" + name)
         },
         startWebSocket(command: string){
+
+            if(command !== "")
+            {
+                this._clientId = ""
+                this._currentGameId = ""
+            }
+
             // TODO THIS SHOULD NOT BE HARDCODED
             const url = "wss://localhost:32768/ws";
             this.ws = new WebSocket(url)
             this.ws.onopen = () => {
-                this.ws?.send(command);
+                if(this._currentGameId !== "" && this._clientId !== "")
+                {
+                    this.ws?.send(`reconnect;${this._currentGameId};${this._clientId}`)
+                }
+                else
+                {
+                    this.ws?.send(command);
+                }
+
             }
             this.ws.onmessage = this.parseSocketMessage
         },
         parseSocketMessage(msg: any)
         {
-            console.log(msg);
             let state = JSON.parse(msg.data);
             const toast = useToast();
             // TODO HANDLE ERROR STATES
@@ -150,9 +168,13 @@ export const useGameStore = defineStore('gameStore',{
                         return;
                     }
                     this._currentApiGame.setGameParameter(state.gid, state.cid);
+                    this._clientId = state.cid;
+                    this._currentGameId = state.gid;
                     break;
                 case "JOIN_OK":
                     this.joinRemoteGame(10, state.color, state.name, state.gid, state.cid)
+                    this._clientId = state.cid;
+                    this._currentGameId = state.gid;
                     break
                 case "GAME_STARTED":
                     if(this._currentApiGame === undefined)
@@ -191,6 +213,20 @@ export const useGameStore = defineStore('gameStore',{
                             toast.warning(i18n.global.t('toasts.warning.invalid_move'))
                             console.log("INVALID MOVE; ERROR UNKNOWN");
                     }
+                    break
+                case "PERMISSION_REQUEST":
+                    this._currentApiGame?.setPermissionRequest(state.request)
+                    break;
+                case "PERMISSION_REQUEST_ANSWERED":
+                    toast.info(state.requestAnswer)
+                    break
+                case "RECONNECT_OK":
+                    if(this._currentApiGame === undefined)
+                    {
+                        this._currentApiGame = new ServerGame()
+                    }
+                    this._currentApiGame?.loadGameState(state.gameState);
+                    this._currentApiGame?.setOwnColor(state.color);
             }
         },
         getValidMoves(pieceId: number)
@@ -201,7 +237,7 @@ export const useGameStore = defineStore('gameStore',{
                 if(!this._currentApiGame?.isOnKillstreak)
                 {
                     this._currentApiGame?.selectPiece(pieceId);
-                    this.ws?.send(`moves;${this._currentApiGame?._gameId};${pieceId}`)
+                    this.ws?.send(`moves;${this._currentGameId};${pieceId}`)
                     return true;
                 }
                 return false;
@@ -214,22 +250,41 @@ export const useGameStore = defineStore('gameStore',{
         },
         move(pieceId: number, destination: Position)
         {
-            this.ws?.send(`move;${this._currentApiGame?._gameId};${this._currentApiGame?._cid};${pieceId};${destination.x};${destination.y}`)
+            this.ws?.send(`move;${this._currentGameId};${this._clientId};${pieceId};${destination.x};${destination.y}`)
         },
-
-
+        requestUndo()
+        {
+            this.ws?.send(`undo;${this._currentGameId};${this._clientId}`)
+        },
+        requestRedo()
+        {
+            this.ws?.send(`redo;${this._currentGameId};${this._clientId}`)
+        },
+        requestDraw()
+        {
+            this.ws?.send(`draw;${this._currentGameId};${this._clientId}`)
+        },
+        answer(accept: boolean = true)
+        {
+            this.ws?.send(`answer;${this._currentGameId};${this._clientId};${accept}`)
+        },
         closeWS()
         {
-            switch(this.ws.readyState)
+            switch(this.ws?.readyState)
             {
                 case WebSocket.OPEN:
-                    this.ws.close();
+                    this.ws?.close(1000, `${this._currentGameId};${this._clientId}`);
+                    this._currentGameId = "";
+                    this._clientId = "";
                     break;
                 case WebSocket.CLOSED:
                 case WebSocket.CLOSING:
                     console.log("WEBSOCKET ALREADY CLOSED");
+                default:
+                    console.log("LECK MICH");
 
             }
+
         },
         clear(){
             this._currentGame = new Game({fieldDimensions: -1})

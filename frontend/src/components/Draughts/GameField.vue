@@ -102,8 +102,6 @@ export default defineComponent({
         }
 
       })
-
-
     },
     undoRequest(newVal)
     {
@@ -176,11 +174,14 @@ export default defineComponent({
   },
   beforeMount()
   {
-
-//this.$emit('undoPossible', this.gameState.undoPossible())
-    //this.$emit('redoPossible', this.gameState.redoPossible())
-    //this.$emit('playerSwitched', this.gameState.activePlayer)
-    //this.$emit('playerNames', this.gameState.playerNames)
+    const gameStore = useGameStore();
+    if(gameStore._currentApiGame === undefined)
+    {
+      gameStore.startWebSocket("");
+    }
+    window.onbeforeunload = function(){
+      return "";
+    }
   },
   computed: {
     dimensionsInPx(){

@@ -19,6 +19,12 @@ namespace backend.Commands
         Sync,
         RequestSent,
         ExitOk,
+        PermissionRequest,
+        PermissionRequestAnswered,
+        InvalidPermissionRequest,
+        RECONNECT_OK,
+
+        NoResponse = int.MaxValue,
     }
 
     public enum ResponseKeys
@@ -31,13 +37,15 @@ namespace backend.Commands
         ERROR_MESSAGE = 5,
         MOVES = 6,
         MOVE = 7,
+        REQUEST = 8,
+        REQUEST_ANSWER = 9
     }
 
     public struct ResponseParam
     {
         private static string[] responseKeyStrings = new string[]
         {
-            "gid", "cid", "gameState", "color", "name", "errorMessage", "moves", "move"
+            "gid", "cid", "gameState", "color", "name", "errorMessage", "moves", "move", "request", "requestAnswer"
         };
         public ResponseKeys ResponseType; 
         public string Key { get; set;  }
@@ -75,8 +83,10 @@ namespace backend.Commands
     public class Response
     {
         public string ResponseMessage { get; set; }
+        public ResponseTypes ResponseType { get; set; }
         public Response(ResponseTypes type)
         {
+            ResponseType = type;
             ResponseMessage = "{0}";
             switch (type)
             {
@@ -107,6 +117,18 @@ namespace backend.Commands
                 case ResponseTypes.InvalidArguments:
                     ResponseMessage = String.Format(ResponseMessage, "\"state\": \"INVALID_ARGUMENTS\"");
                     break;
+                case ResponseTypes.PermissionRequest:
+                    ResponseMessage = String.Format(ResponseMessage, "\"state\": \"PERMISSION_REQUEST\"{0}");
+                    break;
+                case ResponseTypes.PermissionRequestAnswered:
+                    ResponseMessage = String.Format(ResponseMessage, "\"state\": \"PERMISSION_REQUEST_ANSWERED\"{0}");
+                    break;
+                case ResponseTypes.InvalidPermissionRequest:
+                    ResponseMessage = String.Format(ResponseMessage, "\"state\": \"INVALID_PERMISSION_REQUEST\"");
+                    break;
+                case ResponseTypes.RECONNECT_OK:
+                    ResponseMessage = String.Format(ResponseMessage, "\"state\": \"RECONNECT_OK\"{0}");
+                    break;
                 case ResponseTypes.UnknownCommand:
                 default: 
                     ResponseMessage = String.Format(ResponseMessage, "\"state\": \"UNKNOWN_COMMAND\"");
@@ -123,6 +145,7 @@ namespace backend.Commands
             }
 
             ResponseMessage = "{" + String.Format(ResponseMessage,additionalParams) + "}";
+            
         }
 
 

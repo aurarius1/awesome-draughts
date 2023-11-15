@@ -20,5 +20,10 @@
             isAlive = false;
         }
 
+        public void UnDie() 
+        { 
+            isAlive = true; 
+        }
+
     }
 }

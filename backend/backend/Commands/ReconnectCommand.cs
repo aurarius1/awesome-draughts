@@ -6,7 +6,7 @@ namespace backend.Commands
 
     // moves --> getFieldsToHighlight
     // move --> doMove
-    public class DrawCommand : ICommand
+    public class ReconnectCommand : ICommand
     {
 
         private readonly IGameCache _cache;
@@ -29,12 +29,12 @@ namespace backend.Commands
         private readonly string _gameId;
         private readonly string _clientId;
 
-        public DrawCommand(WebSocket socket, IGameCache gameCache, params string[] arguments)
+        public ReconnectCommand(WebSocket socket, IGameCache gameCache, params string[] arguments)
         {
             this._CommandValid = true;
-            this._CommandType = typeof(DrawCommand);
+            this._CommandType = typeof(ReconnectCommand);
 
-            if (arguments.Length != 2)
+            if(arguments.Length != 2)
             {
                 _CommandValid = false;
                 return;
@@ -55,12 +55,16 @@ namespace backend.Commands
             {
                 return new Response(ResponseTypes.InvalidArguments);
             }
-            if (!game.SetRequestParameter(PermissionRequest.Draw, _clientId))
+
+            if(!game.Reconnect(this._clientId, this._webSocket, out string color))
             {
-                return new Response(ResponseTypes.InvalidPermissionRequest);
+                return new Response(ResponseTypes.InvalidArguments);
             }
 
-            return new Response(ResponseTypes.NoResponse);
+            return new Response(ResponseTypes.RECONNECT_OK,
+                    new ResponseParam(ResponseKeys.GAME_STATE, game.GetGameState()),
+                    new ResponseParam(ResponseKeys.COLOR, color)
+            );
         }
     }
 }

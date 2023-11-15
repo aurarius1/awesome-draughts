@@ -26,17 +26,10 @@ export default defineComponent({
   setup()
   {
     const colorStore = useColorStore();
-    return {colorStore}
+    const gameStore = useGameStore();
+    return {colorStore, gameStore}
   },
   props: {
-    undoPossible: {
-      type: Boolean,
-      required: true
-    },
-    redoPossible:{
-      type: Boolean,
-      required: true
-    },
     dimensionsInPx: {
       type: Number,
       required: true
@@ -55,7 +48,11 @@ export default defineComponent({
   methods: {
     getColor(color: string = 'lighten1'){
       return this.colorStore.currentColor[color]
-    }
+    },
+    getGameStore()
+    {
+      return this.gameStore;
+    },
   },
   computed: {
     computedGameInfoCardStyle(): StyleValue{
@@ -70,16 +67,24 @@ export default defineComponent({
       }
     },
     activePlayerName(){
-      const gameStore = useGameStore()
+      const gameStore = this.getGameStore()
       return gameStore._currentApiGame?._playerNames[gameStore._currentApiGame?._currentPlayer];
     },
     activePlayer(){
-      const gameStore = useGameStore()
+      const gameStore = this.getGameStore()
       return gameStore._currentApiGame?._currentPlayer
     },
     playerNames() {
-      const gameStore = useGameStore()
+      const gameStore = this.getGameStore()
       return gameStore._currentApiGame?._playerNames
+    },
+    undoPossible() {
+      const gameStore = this.getGameStore()
+      return (gameStore._currentApiGame?._history?.moves?.length ?? 0) >= 2
+    },
+    redoPossible(){
+      const gameStore = this.getGameStore()
+      return (gameStore._currentApiGame?._history?.revertedMoves?.length ?? 0) >= 1
     },
     currentBreakpoint(){
       return this.$vuetify.display.name;
@@ -162,8 +167,8 @@ export default defineComponent({
               cols="6"
           >
             <v-font-awesome-btn
-                @click="$emit('undoRequest')"
-                :disabled="undoPossible"
+                @click="getGameStore().requestUndo()"
+                :disabled="!undoPossible"
                 :icon="['fas', 'fa-undo']"
                 icon-size="lg"
                 :icon-color="getColor()"
@@ -175,8 +180,8 @@ export default defineComponent({
               cols="6"
           >
             <v-font-awesome-btn
-                @click="$emit('redoRequest')"
-                :disabled="redoPossible"
+                @click="getGameStore().requestRedo()"
+                :disabled="!redoPossible"
                 :icon="['fas', 'fa-redo']"
                 icon-size="lg"
                 :icon-color="getColor()"
@@ -199,7 +204,7 @@ export default defineComponent({
                 iconSize="lg"
                 :icon-color="getColor()"
                 :text="$t('draw')"
-                @click="$emitter.emit('draw')"
+                @click="getGameStore().requestDraw()"
             />
           </v-col>
           <v-col

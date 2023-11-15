@@ -2,6 +2,7 @@
 using System.Net.WebSockets;
 using backend.Commands;
 using backend.Models;
+using Microsoft.AspNetCore.Http;
 
 namespace backend.Game
 {
@@ -10,8 +11,9 @@ namespace backend.Game
     {
         public Draughts Get(string gameId);
         public bool TryAddClient(string gameId, WebSocket socket, string name, string color, out string clientId);
-
         public bool AddSecondPlayer(string gameId, WebSocket socket, string name);
+        public void EndGame(string gameId, string clientId);
+        public void EndGame(WebSocket socket);
     }
 
     public class GameCache : IGameCache
@@ -62,6 +64,35 @@ namespace backend.Game
             );
             _ = socket.sendMessage(response.ResponseMessage);
             return true;
+        }
+
+        public void EndGame(string gameId, string clientId)
+        {
+            if(_gameCache.TryGetValue(gameId, out Draughts? game))
+            {
+                if(game.RemoveClient(clientId))
+                {
+                    _gameCache.Remove(gameId, out var _);
+                }
+            }
+        }
+
+        public void EndGame(WebSocket socket)
+        {
+            foreach(var game in _gameCache.Values)
+            {
+                if(game.ContainsPlayer(socket, out string  clientId))
+                {
+                    if(game.RemoveClient(clientId))
+                    {
+                        //_gameCache.Remove(game.GetGameId(), out var _);
+                    }
+                    return;
+                }
+
+
+            }
+            return;
         }
     }
 }

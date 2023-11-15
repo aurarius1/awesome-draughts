@@ -27,7 +27,6 @@ namespace backend.Commands
         }
 
         private readonly string _gameId;
-        private int _pieceId;
 
         public ExitCommand(WebSocket socket, IGameCache gameCache, params string[] arguments)
         {

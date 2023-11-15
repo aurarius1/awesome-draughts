@@ -18,8 +18,8 @@
     "loses": "You lost \uD83D\uDE14",
     "draw": "Draw"
   },
-  "undo": "UNDO",
-  "redo": "REDO",
+  "undo": "Undo",
+  "redo": "Redo",
   "exit_dialog": {
     "title": "To save or not to save?",
     "description": "If you want to save the game you have the option to do that on our server or locally (this will download a '.aw' file). If you do not want to keep your game state just hit 'exit' :)",
@@ -53,6 +53,14 @@
   "end_game_dialog": {
     "title": "Game ended",
     "go_home": "Back to title screen"
+  },
+  "moves": {
+    "request": "Your opponent requested {request}. Accept or deny?",
+    "draw": "a draw",
+    "redo": "a redo",
+    "undo":  "an undo",
+    "accept": "Accept",
+    "deny": "Deny"
   },
   "toasts": {
     "warning":{

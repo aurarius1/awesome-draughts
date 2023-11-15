@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using backend.Game;
 using backend.Commands;
+using Microsoft.Extensions.Localization;
 
 namespace backend.Controllers
 {
@@ -56,10 +57,25 @@ namespace backend.Controllers
                     response = command.HandleCommand();
                 }
 
-                await webSocket.sendMessage(response.ResponseMessage);
+                if(response.ResponseType != ResponseTypes.NoResponse)
+                {
+                    await webSocket.sendMessage(response.ResponseMessage);
+                }
                 receiveResult = await webSocket.receiveMessage();
             }
             System.Diagnostics.Debug.WriteLine("DISCONNECT MESSAGE");
+
+            string[] description = (receiveResult?.Item1?.CloseStatusDescription ?? "").Split(";");
+            if(description.Length == 2)
+            {
+                _gameCache.EndGame(description[0], description[1]);
+            }
+            else
+            {
+                _gameCache.EndGame(webSocket);
+            }
+            
+
             await webSocket.CloseAsync(
                 receiveResult.Item1.CloseStatus.Value,
                 receiveResult.Item1.CloseStatusDescription,

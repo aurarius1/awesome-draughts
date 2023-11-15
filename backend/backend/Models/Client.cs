@@ -9,6 +9,7 @@ namespace backend.Models
 
         public string Color { get; set; }
         public string Name { get; set;  }
+        public bool Disconnected { get; set; }
         
         public Client(string id, WebSocket socket, string name, string color)
         {
@@ -16,6 +17,7 @@ namespace backend.Models
             Socket = socket;
             Name = name; 
             Color = color;
+            Disconnected = false;
         }   
     }
 }

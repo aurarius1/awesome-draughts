@@ -1,6 +1,8 @@
 
 <script lang="ts">
 import { useTheme } from 'vuetify'
+import {useGameStore} from "@/store";
+import {useRoute} from "vue-router";
 
 export default defineComponent({
   setup()
@@ -21,7 +23,6 @@ export default defineComponent({
   },
   beforeMount()
   {
-
   }
 
 })

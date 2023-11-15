@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO.Pipelines;
 using System.Net.WebSockets;
+using System.Security.Cryptography;
 using System.Text.Json;
 using backend.Commands;
 using backend.Models;
@@ -9,11 +10,20 @@ namespace backend.Game
 {
     public enum MoveOperations
     {
-        LeftTop, 
-        RightTop, 
-        LeftBottom, 
+        LeftTop,
+        RightTop,
+        LeftBottom,
         RightBottom,
-    } 
+    }
+
+    public enum PermissionRequest 
+    {
+        Nothing = 0, 
+        Undo = 1, 
+        Redo = 2,
+        Draw = 3, 
+        Exit = 4
+    }
 
     public class Draughts
     {
@@ -34,6 +44,9 @@ namespace backend.Game
         private bool _onKillStreak = false;
 
         private History _history = new(); 
+
+        public PermissionRequest _permissionRequest = PermissionRequest.Nothing;
+        public string _permissionRequestee = "";
 
         public Draughts(string id, Client player1, bool singlePlayer = false)
         {
@@ -117,7 +130,6 @@ namespace backend.Game
             }
             return new Position { x = -1, y = -1 };
         }
-
         private bool GetMoves(Piece piece, bool checkForAdditionalKill, out string errorMessage)
         {
             _nextMoves.Clear();
@@ -181,7 +193,18 @@ namespace backend.Game
             }
             return success;
         }
-
+        private Piece? findPieceInGamefield(int pieceId)
+        {
+            Piece? piece;
+            if(!this._pieces.white.TryGetValue(pieceId, out piece))
+            {
+                if(!this._pieces.black.TryGetValue(pieceId, out piece))
+                {
+                    return null;
+                }
+            }
+            return piece;
+        }
         public bool GetMoves(int pieceId, out List<Position> positions, out string errorMessage)
         {
             Piece? piece;
@@ -207,7 +230,6 @@ namespace backend.Game
 
 
         }
-
         public bool DoMove(int pieceId, Position newPosition, out List<Position> killStreakMoves, out string errorMessage)
         {
             Piece? piece;
@@ -332,7 +354,6 @@ namespace backend.Game
                 {
                     if(!this._pieces.black.Any(piece => piece.Value.isAlive))
                     {
-                        // TODO SIGNAL END GAME
                         _gameOver = true;
                         return true;
                     }
@@ -342,7 +363,6 @@ namespace backend.Game
                 {
                     if (!this._pieces.white.Any(piece => piece.Value.isAlive))
                     {
-                        // TODO SIGNAL END GAME
                         _gameOver = true;
                         return true;
                     }
@@ -351,7 +371,165 @@ namespace backend.Game
             }
             return true;
         }
+        public bool SetRequestParameter(PermissionRequest type, string cid)
+        {
+            if(type == PermissionRequest.Undo)
+            {
+                if (this._history.moves.Count < 2)
+                    return false;
+            }
+            if (type == PermissionRequest.Redo)
+            {
+                if (this._history.revertedMoves.Count < 1)
+                    return false;
+            }
 
+            _permissionRequest = type;
+            _permissionRequestee = cid;
+
+            Response requestPermission = new Response(ResponseTypes.PermissionRequest,
+                   new ResponseParam(ResponseKeys.REQUEST, ((int)type).ToString())
+               );
+            if (_player1.Id == cid)
+            { 
+                _player2?.Socket?.sendMessage(requestPermission.ResponseMessage);
+            }
+            else
+            {
+                _player1.Socket?.sendMessage(requestPermission.ResponseMessage);
+            }
+            return true;
+        }
+        public void AnswerRequest(bool accepted, string cid)
+        {
+            string requesteeColor = _player1.Id == _permissionRequestee ? _player1.Color : (_player2?.Color ?? (_player1.Color == "white" ? "black" : "white"));
+            
+
+            if(accepted)
+            {
+                switch(_permissionRequest)
+                {
+                    case PermissionRequest.Undo:
+                        if(requesteeColor == _currentPlayer)
+                        {
+                            Undo();
+                        }
+                        Undo();
+                        break;
+                    case PermissionRequest.Redo:
+                        Redo();
+                        break;
+                    case PermissionRequest.Draw:
+                        _gameOver = true;
+                        _draw = true;
+                        break;
+                    case PermissionRequest.Exit:
+                        break;
+                }
+                _permissionRequest = PermissionRequest.Nothing;
+                _permissionRequestee = "";
+
+                Response requestAnswer = new Response(ResponseTypes.PermissionRequestAnswered,
+                    new ResponseParam(ResponseKeys.REQUEST_ANSWER, accepted.ToString())
+                    );
+                Response sync = new Response(ResponseTypes.Sync, 
+                    new ResponseParam(ResponseKeys.GAME_STATE, GetGameState())
+                    );
+                
+                if (this._player1.Id == cid)
+                {
+                    _player2?.Socket?.sendMessage(requestAnswer.ResponseMessage);
+                    _player2?.Socket?.sendMessage(sync.ResponseMessage);
+                }
+                else
+                {
+                    _player1.Socket?.sendMessage(requestAnswer.ResponseMessage);
+                    _player1.Socket?.sendMessage(sync.ResponseMessage);
+                }
+            }
+
+        }
+        public void Undo()
+        {
+            
+            Move? lastMove;
+            Piece? piece;
+            do
+            {
+                lastMove = this._history.moves.Last();
+                if (lastMove == null)
+                {
+                    return;
+                }
+                this._history.moves.Remove(lastMove);
+                piece = this.findPieceInGamefield(lastMove.pieceId);
+                if (piece == null)
+                {
+                    return;
+                }
+                this._field[piece.position.y][piece.position.x].containsPiece = false;
+                this._field[piece.position.y][piece.position.x].piece = null;
+                piece.position = lastMove.start;
+                this._field[lastMove.start.y][lastMove.start.x].containsPiece = true;
+                this._field[lastMove.start.y][lastMove.start.x].piece = piece;
+
+
+                Piece? killedPiece = this.findPieceInGamefield(lastMove.killedPieceId);
+                if (killedPiece !=null)
+                {
+                    this._field[killedPiece.position.y][killedPiece.position.x].containsPiece = true;
+                    this._field[killedPiece.position.y][killedPiece.position.x].piece = killedPiece;
+                    killedPiece.UnDie();
+                }
+                if (lastMove.pieceUpgraded)
+                {
+                    piece.isKing = false;
+                }
+                this._history.revertedMoves.Add(lastMove);
+            } while (piece?.id == this._history.moves.ElementAtOrDefault(this._history.moves.Count - 1)?.pieceId);
+
+            this._currentPlayer = this._currentPlayer == "white" ? "black" : "white";
+        }
+        public void Redo()
+        {
+            Move? nextMove;
+            Piece? piece;
+            do
+            {
+                nextMove = this._history.revertedMoves.Last();
+                if (nextMove == null)
+                {
+                    return;
+                }
+                this._history.revertedMoves.Remove(nextMove);
+                piece = this.findPieceInGamefield(nextMove.pieceId);
+                if (piece == null)
+                {
+                    return;
+                }
+                this._field[piece.position.y][piece.position.x].containsPiece = false;
+                this._field[piece.position.y][piece.position.x].piece = null;
+                piece.position = nextMove.end;
+                this._field[nextMove.end.y][nextMove.end.x].containsPiece = true;
+                this._field[nextMove.end.y][nextMove.end.x].piece = piece;
+
+
+                Piece? killedPiece = this.findPieceInGamefield(nextMove.killedPieceId);
+                if (killedPiece != null)
+                {
+                    this._field[killedPiece.position.y][killedPiece.position.x].containsPiece = false;
+                    this._field[killedPiece.position.y][killedPiece.position.x].piece = null;
+                    killedPiece.Die();
+                }
+                if (nextMove.pieceUpgraded)
+                {
+                    piece.isKing = true;
+                }
+                this._history.moves.Add(nextMove);
+            } while (piece?.id == this._history.revertedMoves.ElementAtOrDefault(this._history.revertedMoves.Count - 1)?.pieceId);
+
+            this._currentPlayer = this._currentPlayer == "white" ? "black" : "white";
+        }
         public bool GameFull()
         {
             return _player2 != null || _singlePlayer;
@@ -379,6 +557,7 @@ namespace backend.Game
                 _currentPlayer,
                 _gameOver,
                 _draw,
+                _permissionRequest = (int)_permissionRequest
             });
         }
 
@@ -395,6 +574,7 @@ namespace backend.Game
 
             _ = _player1.Socket.sendMessage(response.ResponseMessage);
         }
+
 
         public bool HasPlayer(string playerId, out string opponent)
         {
@@ -426,6 +606,67 @@ namespace backend.Game
             {
                 _player2?.Socket?.sendMessage(response.ResponseMessage);
             }
+        }
+        public bool RemoveClient(string clientId)
+        {
+            if(_player1.Id == clientId)
+            {
+                _player1.Disconnected = true;
+            }
+            else
+            {
+                if(_player2 != null)
+                    _player2.Disconnected = true;
+            }
+
+            return (_player2?.Disconnected ?? true) && _player1.Disconnected;
+        }
+        public bool Reconnect(string clientId, WebSocket socket, out string color)
+        {
+            color = "";
+            if (clientId != _player1.Id && clientId != _player2?.Id)
+            {
+               
+                return false;
+            }
+            if(clientId == _player1.Id)
+            {
+                _player1.Socket = socket;
+                _player1.Disconnected = false;
+                color = _player1.Color;
+            }
+            else
+            {
+                if(_player2 != null)
+                {
+                    _player2.Socket = socket;
+                    _player2.Disconnected = false;
+                    color = _player2.Color;
+                }
+            }
+            return true;
+        }
+        public bool ContainsPlayer(WebSocket socket, out string clientId)
+        {
+            if(_player1.Socket == socket)
+            {
+                //_player1.Disconnected = true;
+                clientId = _player1.Id;
+                return true;
+            }
+            if(_player2 != null && _player2.Socket == socket)
+            {
+                clientId = _player2.Id;
+                _player2.Disconnected = true;
+                return true;
+
+            }
+            clientId = "";
+            return false;
+        }
+        public string GetGameId()
+        {
+            return _id;
         }
     }
 }

@@ -16,10 +16,10 @@
     "black": "SCHWARZ: {name}",
     "wins": "\uD83D\uDC51\uD83D\uDC51\uD83D\uDC51DU HAST GEWONNNEN!\uD83D\uDC51\uD83D\uDC51\uD83D\uDC51",
     "loses": "Du hast verloren \uD83D\uDE14",
-    "draw": "Untenschieden"
+    "draw": "Unentschieden"
   },
-  "undo": "UNDO",
-  "redo": "REDO",
+  "undo": "Undo",
+  "redo": "Redo",
   "exit_dialog": {
     "title": "Speichern oder nicht speichern?",
     "description": "Wenn du das Spiel speichern möchten, hast du die Möglichkeit, dies auf unserem Server oder lokal zu tun (dadurch wird eine '.aw'-Datei heruntergeladen). Wenn du deinen Spielstatus nicht behalten möchten, klick einfach auf 'Beenden' :)",
@@ -54,6 +54,14 @@
   "end_game_dialog": {
     "title": "Das Spiel ist vorbei",
     "go_home": "Zurück zum Startbildschirm"
+  },
+  "moves": {
+    "request": "Dein Gegner schlägt {request} vor. Annehmen oder ablehnen?",
+    "draw": "ein unentschieden",
+    "redo": "ein redo",
+    "undo":  "ein undo",
+    "accept": "Annehmen",
+    "deny": "Ablehnen"
   },
   "toasts": {
     "warning": {

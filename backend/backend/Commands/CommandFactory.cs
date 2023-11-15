@@ -33,6 +33,18 @@ namespace backend.Commands
                     return new MovesCommand(socket, this._gameCache, commands.Skip(1).ToArray());
                 case "move":
                     return new MoveCommand(socket, this._gameCache, commands.Skip(1).ToArray());
+                case "undo":
+                    return new UndoCommand(socket, this._gameCache, commands.Skip(1).ToArray());
+                case "redo":
+                    return new RedoCommand(socket, this._gameCache, commands.Skip(1).ToArray());
+                case "draw":
+                    return new DrawCommand(socket, this._gameCache, commands.Skip(1).ToArray());
+                case "answer":
+                    return new AnswerCommand(socket, this._gameCache, commands.Skip(1).ToArray());
+                case "exit":
+                    return new ExitCommand(socket, this._gameCache, commands.Skip(1).ToArray());
+                case "reconnect":
+                    return new ReconnectCommand(socket, this._gameCache, commands.Skip(1).ToArray());
                 default:
                     return new UnknownCommand();
             }

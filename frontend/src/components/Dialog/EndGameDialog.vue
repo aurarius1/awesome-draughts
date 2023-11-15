@@ -35,6 +35,11 @@ export default defineComponent({
       const gameStore = useGameStore();
       let currentPlayer = gameStore._currentApiGame?._currentPlayer;
 
+      if(this.draw)
+      {
+        return this.$t('player.draw')
+      }
+
       if(currentPlayer === gameStore._currentApiGame?._ownColor)
       {
         return this.$t(`player.wins`)
@@ -49,6 +54,8 @@ export default defineComponent({
       return this.colorStore;
     },
     goToTitleScreen(){
+      const gameStore = useGameStore();
+      gameStore.closeWS();
       this.$router.replace('/')
     }
   }
@@ -66,19 +73,7 @@ export default defineComponent({
       <v-card-text
         class="ml-dialog-text text-h4"
       >
-        <p
-          v-if="draw"
-        >
-          DRAW
-        </p>
-        <p
-          v-else
-        >
-          {{ endScreenMessage }}
-
-        </p>
-
-        {{  localizeText ? $t(text) : text }}
+        {{ endScreenMessage }}
       </v-card-text>
       <v-card-actions
           class="ml-dialog-actions center"

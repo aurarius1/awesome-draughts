@@ -73,7 +73,6 @@ library.add(faCheckCircle,
 
 const app = createApp(App)
 const pinia = createPinia();
-
 export const router = createRouter({
     history: createWebHistory(),
     routes: [
@@ -90,7 +89,7 @@ export const router = createRouter({
         {
             path: "/game",
             name: "Game",
-            component: Game
+            component: Game,
         },
         {
             path: "/waiting",
@@ -101,10 +100,11 @@ export const router = createRouter({
             path: "/join/:gid",
             name: "join",
             component: JoinGame,
-            props: true
+            props: true,
         }
     ]
 })
+
 let emitter = new TinyEmitter();
 
 pinia.use(({ store }) => {
