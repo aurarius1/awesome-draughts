@@ -3,21 +3,90 @@ using Microsoft.AspNetCore.Mvc;
 using backend.Game;
 using backend.Commands;
 using Microsoft.Extensions.Localization;
+using backend.Models;
+using System.Text.Json;
+using System.Web.Http.Results;
 
 namespace backend.Controllers
 {
+
+    public class NotAcceptableObjectResult : ObjectResult
+    {
+        public NotAcceptableObjectResult(object? value) : base(value)
+        {
+            StatusCode = StatusCodes.Status406NotAcceptable;
+        }
+    }
+
+    public class InternalServerErrorObjectResult : ObjectResult
+    {
+        public InternalServerErrorObjectResult() : base("")
+        {
+            StatusCode = StatusCodes.Status500InternalServerError;
+        }
+    }
+
+    public class LockedObjectResult : ObjectResult
+    {
+        public LockedObjectResult(object? value) : base(value)
+        {
+            StatusCode = StatusCodes.Status423Locked;
+        }
+    }
+
     [Controller]
-    public class WebsocketController : ControllerBase
+    public class GameController : ControllerBase
     {
         public readonly IGameCache _gameCache; 
         public readonly ICommandFactory _commandFactory;
 
-        public WebsocketController(IGameCache gameCache, ICommandFactory commandFactory)
+        public GameController(IGameCache gameCache, ICommandFactory commandFactory)
         {
             _gameCache = gameCache;
             _commandFactory = commandFactory;   
         }
+        [HttpPost]
+        [Route("/loadGame")]
+        public IActionResult Get([FromBody] SavedGame savedGame)
+        {
 
+            // TODO VALIDATION
+
+            GameState state = savedGame.gameState;
+            string serializedSaveGame = JsonSerializer.Serialize(new
+            {
+                state._gameId,
+                state._fieldDimensions,
+                _playerNames = new
+                {
+                    state._playerNames.white,
+                    state._playerNames.black
+                },
+                state._history,
+                state._pieces,
+                state._currentPlayer,
+                state._gameOver,
+                state._draw,
+                state._permissionRequest
+            });
+
+            if (!serializedSaveGame.VerifyGameState(savedGame.hash))
+            {
+                return new NotAcceptableObjectResult("INVALID_SAVE_GAME_FILE");
+            }
+
+            if(!_gameCache.TryAddGame(state._gameId, new Draughts(state), out string errorMessage))
+            {
+                if(errorMessage == "")
+                    return new InternalServerErrorObjectResult();
+
+                return new LockedObjectResult(errorMessage);
+                     
+            }
+
+
+            return Ok(savedGame.gameState._gameId);
+        }
         [Route("/ws")]
         public async Task Get()
         {
@@ -31,13 +100,6 @@ namespace backend.Controllers
             {
                 HttpContext.Response.StatusCode = StatusCodes.Status400BadRequest;
             }
-        }
-
-        [Route("/loadGame")]
-        public async Task Get2()
-        {
-            System.Diagnostics.Debug.WriteLine("LOAD GAME");
-
         }
 
         private async Task Echo(WebSocket webSocket, bool initialConnection)        

@@ -10,6 +10,7 @@ import {ca} from "vuetify/locale";
 import {Exception} from "sass";
 import {ApiGame, ServerGame} from "@draughts/Game.ts";
 import {Position} from "@/draughts";
+import {LeaveTypes} from "@/globals.ts";
 
 export const useColorStore = defineStore('colorStore',{
     state: () =>  {
@@ -105,9 +106,8 @@ export const useGameStore = defineStore('gameStore',{
     },
     actions: {
         startNewGame(dimensions: number, playerNames: PlayerNames = {"white": "Alice", "black": "Bob"}){
-            this._currentGame = new Game({fieldDimensions: dimensions})
-            this._currentGame.updatePlayerName("white", playerNames.white);
-            this._currentGame.updatePlayerName("black", playerNames.black);
+            console.log("HALLO MAMA");
+            this.startWebSocket(`local;${playerNames.white};${playerNames.black}`)
 
         },
         startNewRemoteGame(dimensions: number, color: "white"|"black", name: string){
@@ -130,9 +130,15 @@ export const useGameStore = defineStore('gameStore',{
         joinGame(gid: string, name: string){
             this.startWebSocket("join;"+gid+";" + name)
         },
+        loadGame(gid: string)
+        {
+            this._currentGameId = gid;
+            this.startWebSocket(`load;${gid}`)
+            console.log("HALLLLO MARTIN", this._currentGameId);
+        },
         startWebSocket(command: string){
 
-            if(command !== "")
+            if(command !== "" && !command.startsWith("load"))
             {
                 this._clientId = ""
                 this._currentGameId = ""
@@ -142,12 +148,13 @@ export const useGameStore = defineStore('gameStore',{
             const url = "wss://localhost:32768/ws";
             this.ws = new WebSocket(url)
             this.ws.onopen = () => {
-                if(this._currentGameId !== "" && this._clientId !== "")
+                if(this._currentGameId !== "" && command === "")
                 {
                     this.ws?.send(`reconnect;${this._currentGameId};${this._clientId}`)
                 }
                 else
                 {
+                    console.log("TJAJAJ", command);
                     this.ws?.send(command);
                 }
 
@@ -194,6 +201,10 @@ export const useGameStore = defineStore('gameStore',{
                     this._currentApiGame?.addValidMoves(state.moves);
                     this._currentApiGame?.setKillstreak(true);
                     break;
+                case "LOAD_OK":
+                    console.log("HALLO");
+                    
+                    this.$router.replace("/game");
                 case "SYNC":
                     this._currentApiGame?.loadGameState(state.gameState);
                     this._currentApiGame?.addValidMoves([]);
@@ -227,12 +238,38 @@ export const useGameStore = defineStore('gameStore',{
                     }
                     this._currentApiGame?.loadGameState(state.gameState);
                     this._currentApiGame?.setOwnColor(state.color);
+                    break;
+                case "LOCAL_OK":
+                    console.log(state.gameState);
+                    this._currentApiGame = new ServerGame({
+                        fieldDimensions: state.gameState._fieldDimensions,
+                        isLocalGame: true,
+                        gid: state.gameState._gameId,
+                    })
+                    this._currentApiGame?.loadGameState(state.gameState);
+                    this._currentGameId = state.gameState._gameId;
+                    break;
+                case "DLC":
+                    toast.info(i18n.global.t('dlc'))
+                    break;
+                case "EXIT_REQUEST":
+                    this.$emitter.emit('opponentExited');
+                    break;
+                case "SAVE_DATA":
+                    fileDownload(JSON.stringify(state.gameState), `game-${this._currentGameId}.aw`)
+                case "EXIT_OK":
+                    this.closeWS();
+                    this.$router.replace("/");
+
             }
         },
-        getValidMoves(pieceId: number)
+        getValidMoves(pieceId: number, pieceColor: string)
         {
             const toast = useToast();
-            if(this._currentApiGame?._currentPlayer === this._currentApiGame?._ownColor)
+            if(
+                (this._currentApiGame?._currentPlayer === this._currentApiGame?._ownColor) ||
+                (this._currentApiGame?._isLocalGame && this._currentApiGame?._currentPlayer == pieceColor)
+            )
             {
                 if(!this._currentApiGame?.isOnKillstreak)
                 {
@@ -244,7 +281,16 @@ export const useGameStore = defineStore('gameStore',{
             }
             else
             {
-                toast.warning(i18n.global.t("toasts.warning.not_your_turn"))
+                if(this._currentApiGame?._isLocalGame)
+                {
+                    if(this._currentApiGame?._validMoves.length === 0)
+                    {
+                        toast.warning(i18n.global.t("toasts.warning.not_your_turn"))
+                    }
+                }
+                else{
+                    toast.warning(i18n.global.t("toasts.warning.not_your_turn"))
+                }
                 return false;
             }
         },
@@ -268,6 +314,10 @@ export const useGameStore = defineStore('gameStore',{
         {
             this.ws?.send(`answer;${this._currentGameId};${this._clientId};${accept}`)
         },
+        exit(leaveType: LeaveTypes)
+        {
+          this.ws?.send(`exit;${this._currentGameId};${this._clientId};${leaveType}`)
+        },
         closeWS()
         {
             switch(this.ws?.readyState)
@@ -289,31 +339,6 @@ export const useGameStore = defineStore('gameStore',{
         clear(){
             this._currentGame = new Game({fieldDimensions: -1})
         },
-        endAndSave(remote: boolean){
-            if(this._currentGame)
-            {
-                if(remote)
-                {
-                    this._savedGames.push(this._currentGame.gameId)
-                }
-                else
-                {
-                    fileDownload(serializeGameState(this._currentGame), `game-${this._currentGame.gameId}.aw`)
-                }
-                this._currentGame = new Game({fieldDimensions: -1})
-            }
-        },
-        loadGame(gameState: string)
-        {
-            try{
-                this._currentGame = deserializeGameState(gameState, false)
-                return this._currentGame.fieldDimensions !== -1;
-            }
-            catch(error: any){
-                console.log(error)
-                return false
-            }
-        }
 
     },
     getters: {

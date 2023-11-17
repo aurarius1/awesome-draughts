@@ -12,8 +12,10 @@ namespace backend.Game
         public Draughts Get(string gameId);
         public bool TryAddClient(string gameId, WebSocket socket, string name, string color, out string clientId);
         public bool AddSecondPlayer(string gameId, WebSocket socket, string name);
+        public bool CreateLocalGame(string gameId, WebSocket socket, string playerWhite, string playerBlack, out string gameState);
         public void EndGame(string gameId, string clientId);
         public void EndGame(WebSocket socket);
+        public bool TryAddGame(string gameId, Draughts game, out string errorMessage);
     }
 
     public class GameCache : IGameCache
@@ -22,13 +24,13 @@ namespace backend.Game
                 = new ConcurrentDictionary<string, Draughts>();
 
 
-        public Draughts Get(string gameId)
+        public Draughts? Get(string gameId)
         {
             if (_gameCache.TryGetValue(gameId, out var cachedGame))
             {
                 return cachedGame;
             }
-            throw new ThisShouldNotHappenException();
+            return null;
         }
 
         public bool TryAddClient(string gameId, WebSocket socket, string name, string color, out string clientId)
@@ -89,10 +91,44 @@ namespace backend.Game
                     }
                     return;
                 }
-
-
             }
             return;
+        }
+
+        public bool CreateLocalGame(string gameId, WebSocket socket, string playerWhite, string playerBlack, out string gameState)
+        {
+            gameState = "";
+            Draughts game = new Draughts(gameId, new Client("", socket, playerWhite, "white"), true);
+            game.AddClient("", socket, out var _, playerBlack);
+
+            bool added = _gameCache.TryAdd(gameId, game);
+
+            if(added)
+            {
+                gameState = game.StartGame();
+            }
+
+            return added;
+        }
+    
+        public bool TryAddGame(string gameId, Draughts game, out string errorMessage)
+        {
+            Draughts? cachedGame = this.Get(gameId);
+
+            if(cachedGame == null)
+            {
+                errorMessage = "";
+                return _gameCache.TryAdd(gameId, game);
+            }
+
+            if(cachedGame.GameFull())
+            {
+                errorMessage = "game_full";
+                return false;
+            }
+
+            errorMessage = "";
+            return true;
         }
     }
 }

@@ -1,8 +1,7 @@
 export enum LeaveTypes {
+    exit        = 0,
     saveLocal   = 1,
     saveRemote  = 2,
-    exit        = 3,
-
     noLeave     = -1
 }
 export function heightBreakpoints(){

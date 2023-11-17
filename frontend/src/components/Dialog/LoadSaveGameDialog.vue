@@ -3,6 +3,8 @@ import {defineComponent, StyleValue} from 'vue'
 import {useGameStore} from "@/store";
 import FontAwesomeBtn from "@/components/Buttons/FontAwesomeBtn.vue";
 import VFontAwesomeBtn from "@/components/Buttons/VFontAwesomeBtn.vue";
+import axios from 'axios';
+
 
 export default defineComponent({
   name: "LoadSaveGameDialog",
@@ -27,17 +29,34 @@ export default defineComponent({
         this.fileUploaded = true
         gameState[0].text().then((fileContent) => {
 
-          if(!this.gameStore.loadGame(fileContent))
-          {
-            this.toast.error(this.$t('toasts.error.gamestate_invalid'))
+          axios.post("https://localhost:32768/loadGame", fileContent, {
+            headers: {
+              // Overwrite Axios's automatically set Content-Type
+              'Content-Type': 'application/json'
+            }
+          }).then((response) => {
+            const gameStore = useGameStore()
+            gameStore.loadGame(response.data)
+
+          }).catch((error) => {
             this.fileUploaded = false
-            this.uploadedGameState = [];
-          }
-          else
-          {
-            this.toast.success(this.$t('toasts.success.gamestate_valid'))
-            this.$router.replace("/game")
-          }
+            this.uploadedGameState = []
+            if(error.response.status === 406)
+            {
+              this.toast.error(this.$t("toasts.error.game_save_invalid"))
+            }
+            else if(error.response.status === 400)
+            {
+              this.toast.error(this.$t("toasts.error.gamestate_invalid"))
+            }
+            else if(error.response.status === 423)
+            {
+              this.toast.error(this.$t("toasts.error.game_full"))
+            }
+            else {
+              this.toast.error(this.$t("toasts.error.something_went_wrong"))
+            }
+          })
         })
       }
     }

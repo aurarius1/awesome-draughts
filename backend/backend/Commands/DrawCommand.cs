@@ -55,6 +55,16 @@ namespace backend.Commands
             {
                 return new Response(ResponseTypes.InvalidArguments);
             }
+
+            if(game.IsLocalGame())
+            {
+                game.Draw();
+                return new Response(ResponseTypes.Sync,
+                    new ResponseParam(ResponseKeys.GAME_STATE, game.GetGameState())
+                );
+            }
+
+
             if (!game.SetRequestParameter(PermissionRequest.Draw, _clientId))
             {
                 return new Response(ResponseTypes.InvalidPermissionRequest);

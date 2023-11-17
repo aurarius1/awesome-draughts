@@ -2,9 +2,16 @@
 import {defineComponent} from 'vue'
 import VFontAwesomeBtn from "@/components/Buttons/VFontAwesomeBtn.vue";
 import FontAwesomeBtn from "@/components/Buttons/FontAwesomeBtn.vue";
+import {LeaveTypes} from "@/globals.ts";
+import {useGameStore} from "@/store";
 
 export default defineComponent({
   name: "SaveGameDialog",
+  computed: {
+    LeaveTypes() {
+      return LeaveTypes
+    }
+  },
   components: {FontAwesomeBtn, VFontAwesomeBtn},
   setup()
   {
@@ -13,10 +20,6 @@ export default defineComponent({
   },
   emits:{
     closeMe(){return true},
-    saveLocal(){return true},
-    saveRemote(){return true},
-    exit(){return true}
-
   },
   props: {
     visible: {
@@ -28,6 +31,11 @@ export default defineComponent({
     getColor(color: string = 'lighten1'){
       return this.colorStore.currentColor[color]
     },
+    leaveGame(leaveType: LeaveTypes)
+    {
+      const gameStore = useGameStore();
+      gameStore.exit(leaveType);
+    }
   }
 })
 </script>
@@ -68,7 +76,7 @@ export default defineComponent({
         <v-font-awesome-btn
             :btn-color="getColor()"
             btn-variant="outlined"
-            @click="$emit('saveLocal')"
+            @click="leaveGame(LeaveTypes.saveLocal)"
             :icon="['fas', 'fa-download']"
             iconSize="lg"
             :text="this.$t('exit_dialog.save')"
@@ -79,7 +87,7 @@ export default defineComponent({
         <v-font-awesome-btn
             :btn-color="getColor()"
             btn-variant="elevated"
-            @click="$emit('saveRemote')"
+            @click="leaveGame(LeaveTypes.saveRemote)"
             :icon="['fas', 'fa-cloud-upload-alt']"
             iconSize="lg"
             :text="this.$t('exit_dialog.save')"
@@ -90,7 +98,7 @@ export default defineComponent({
         <v-font-awesome-btn
             :btn-color="getColor()"
             btn-variant="plain"
-            @click="$emit('exit')"
+            @click="leaveGame(LeaveTypes.exit)"
             :icon="['fas', 'fa-sign-out-alt']"
             iconSize="lg"
             :text="this.$t('exit_dialog.exit')"
@@ -104,5 +112,5 @@ export default defineComponent({
 </template>
 
 <style scoped lang="scss">
-@import "@/scss/ml-dialog"
+@import "@/scss/ml-dialog";
 </style>

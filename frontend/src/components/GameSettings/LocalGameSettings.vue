@@ -61,7 +61,8 @@ export default defineComponent({
     },
     changePlayerName(playerType: string, playerName: string){
       const gameStore = useGameStore()
-      gameStore.currentGame.changePlayerName(playerType, playerName);
+      // TODO
+      //gameStore.currentGame.changePlayerName(playerType, playerName);
     }
   }
 })

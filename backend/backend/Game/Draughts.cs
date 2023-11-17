@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Drawing;
 using System.IO.Pipelines;
 using System.Net.WebSockets;
+using System.Runtime.Intrinsics.Arm;
 using System.Security.Cryptography;
 using System.Text.Json;
 using backend.Commands;
@@ -48,6 +50,8 @@ namespace backend.Game
         public PermissionRequest _permissionRequest = PermissionRequest.Nothing;
         public string _permissionRequestee = "";
 
+        private PlayerNames _playerNamesTemp;
+
         public Draughts(string id, Client player1, bool singlePlayer = false)
         {
             _id = id;
@@ -81,7 +85,7 @@ namespace backend.Game
                         piece = new Piece
                         {
                             color = pieceColor,
-                            id = (y * 10) + x,
+                            id = (y * _fieldDimensions) + x,
                             position = position
                         };
 
@@ -104,6 +108,69 @@ namespace backend.Game
                 }
             }
 
+        }
+        public Draughts(GameState state)
+        {
+            this._id = state._gameId;
+            this._fieldDimensions = state._fieldDimensions;
+            this._pieces = state._pieces;
+            for (int y = 0; y < this._fieldDimensions; y++)
+            {
+                this._field.Add(new());
+                for (int x = 0; x < this._fieldDimensions; x++)
+                {
+                    this._field[y].Add(new Field
+                    {
+                        position = new Position { x = x, y = y },
+                        containsPiece = false,
+                        piece = null
+                    });
+
+
+                    if (ContainsPiece(x, y, out string pieceColor))
+                    {
+                        if (pieceColor == "white" && this._field[y][x] != null)
+                        {
+                            this._field[y][x].containsPiece = this._pieces.white.TryGetValue((y * _fieldDimensions) + x, out Piece? p);
+                            this._field[y][x].piece = p;
+                        }
+                        if (pieceColor == "black" && this._field[y][x] != null)
+                        {
+                            this._field[y][x].containsPiece = this._pieces.black.TryGetValue((y * _fieldDimensions) + x, out Piece? p);
+                            this._field[y][x].piece = p;
+                        }
+                    }
+                }
+            }
+
+
+            this._history = state._history;
+            this._currentPlayer = state._currentPlayer;
+
+            this._playerNamesTemp = state._playerNames;
+
+            this._singlePlayer = true;
+        }
+        private bool ContainsPiece(int x, int y, out string pieceColor)
+        {
+            for(int i = 0; i < this._pieces.white.Count; i++)
+            {
+                if(this._pieces.white.TryGetValue((y * _fieldDimensions) + x, out Piece? piece))
+                {
+                    pieceColor = "white";
+                    return piece.isAlive;
+                }
+            }
+            for (int i = 0; i < this._pieces.black.Count; i++)
+            {
+                if (this._pieces.black.TryGetValue((y * _fieldDimensions) + x, out Piece? piece))
+                {
+                    pieceColor = "black";
+                    return piece.isAlive;
+                }
+            }
+            pieceColor = "";
+            return false;
         }
         private Position evaluatePosition(Position? t, int offset, MoveOperations operation)
         {
@@ -407,21 +474,20 @@ namespace backend.Game
 
             if(accepted)
             {
-                switch(_permissionRequest)
+                switch(this._permissionRequest)
                 {
                     case PermissionRequest.Undo:
-                        if(requesteeColor == _currentPlayer)
+                        if(requesteeColor == this._currentPlayer)
                         {
-                            Undo();
+                            this.Undo();
                         }
-                        Undo();
+                        this.Undo();
                         break;
                     case PermissionRequest.Redo:
-                        Redo();
+                        this.Redo();
                         break;
                     case PermissionRequest.Draw:
-                        _gameOver = true;
-                        _draw = true;
+                        this.Draw();
                         break;
                     case PermissionRequest.Exit:
                         break;
@@ -530,18 +596,47 @@ namespace backend.Game
 
             this._currentPlayer = this._currentPlayer == "white" ? "black" : "white";
         }
+        public void Draw()
+        {
+            _gameOver = true;
+            _draw = true;
+        }
         public bool GameFull()
         {
             return _player2 != null || _singlePlayer;
         }
-
         public string StartGame()
         {
             return GetGameState();
         }
-
-        public string GetGameState()
+        public string GetGameState(bool hashGame=false, string clientId = "")
         {
+            if(hashGame)
+            {
+                var gameState = new
+                {
+                    _gameId = _id+clientId,
+                    _fieldDimensions,
+                    _playerNames = new
+                    {
+                        white = _player1.Color == "white" ? _player1.Name : _player2.Name,
+                        black = _player1.Color == "white" ? _player2.Name : _player1.Name,
+                    },
+                    _history,
+                    _pieces,
+                    _currentPlayer,
+                    _gameOver,
+                    _draw,
+                    _permissionRequest = (int)_permissionRequest
+                };
+
+                return JsonSerializer.Serialize(new
+                {
+                    gameState,
+                    hash = JsonSerializer.Serialize(gameState).HashGameState()
+                });
+            }
+
             return JsonSerializer.Serialize(new
             {
                 _gameId = _id,
@@ -560,8 +655,6 @@ namespace backend.Game
                 _permissionRequest = (int)_permissionRequest
             });
         }
-
-
         public void AddClient(string id, WebSocket socket, out string color, string name = "Bob")
         {
      
@@ -574,8 +667,6 @@ namespace backend.Game
 
             _ = _player1.Socket.sendMessage(response.ResponseMessage);
         }
-
-
         public bool HasPlayer(string playerId, out string opponent)
         {
             if(_player1.Id == playerId)
@@ -609,6 +700,12 @@ namespace backend.Game
         }
         public bool RemoveClient(string clientId)
         {
+            if(this._singlePlayer)
+            {
+                return true;
+            }
+
+
             if(_player1.Id == clientId)
             {
                 _player1.Disconnected = true;
@@ -666,7 +763,41 @@ namespace backend.Game
         }
         public string GetGameId()
         {
-            return _id;
+            return this._id;
         }
+        public bool IsLocalGame()
+        {
+            return this._singlePlayer;
+        }
+        public void SendExitRequest(string clientId)
+        {
+            Response response = new Response(ResponseTypes.ExitRequest);
+
+            if(clientId == _player1.Id)
+            {
+                if (_player2 == null)
+                    return;
+                if(!_player2.Disconnected)
+                {
+                    _player2.Socket?.sendMessage(response.ResponseMessage);
+                }
+                
+            }
+            else
+            {
+                if(!_player1.Disconnected)
+                {
+                    _player1.Socket?.sendMessage(response.ResponseMessage);
+                }
+            }
+            this.RemoveClient(clientId);
+        }
+        public void AddSocketToLoadedGame(WebSocket socket)
+        {
+            this._player1 = new Client("", socket, this._playerNamesTemp.white, "white");
+            this._player2 = new Client("", socket, this._playerNamesTemp.black, "black");
+        }
+       
+        
     }
 }

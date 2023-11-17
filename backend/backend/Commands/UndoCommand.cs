@@ -57,6 +57,16 @@ namespace backend.Commands
                 return new Response(ResponseTypes.InvalidArguments);
             }
 
+            if (game.IsLocalGame())
+            {
+
+                game.Undo();
+
+                return new Response(ResponseTypes.Sync, 
+                    new ResponseParam(ResponseKeys.GAME_STATE, game.GetGameState())
+                );
+            }
+
             if(!game.SetRequestParameter(PermissionRequest.Undo, _clientId))
             {
                 return new Response(ResponseTypes.InvalidPermissionRequest);

@@ -1,4 +1,6 @@
 ﻿using System.Net.WebSockets;
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
 
 namespace backend
@@ -30,5 +32,28 @@ namespace backend
             } while (!(receiveResult?.EndOfMessage ?? true));
             return Tuple.Create(receiveResult, bufferBuffer);
         }
+
+        public static string HashGameState(this string gameState)
+        {
+            // CODE TAKEN FROM MICROSOFT DOCUMENTATION: 
+            // https://learn.microsoft.com/en-us/dotnet/api/system.security.cryptography.hashalgorithm.computehash?view=net-7.0
+
+            using HashAlgorithm algorithm = SHA512.Create();
+            byte[] hashedBytes = algorithm.ComputeHash(Encoding.UTF8.GetBytes(gameState));
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < hashedBytes.Length; i++)
+            {
+                sb.Append(hashedBytes[i].ToString("x2"));
+            }
+            return sb.ToString();
+        }
+
+        public static bool VerifyGameState(this string gameState, string hash)
+        {
+            string newHash = gameState.HashGameState();
+            
+            return newHash.ToLower().Equals(hash.ToLower());
+        }
+
     }
 }

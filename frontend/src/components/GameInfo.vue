@@ -80,7 +80,7 @@ export default defineComponent({
     },
     undoPossible() {
       const gameStore = this.getGameStore()
-      return (gameStore._currentApiGame?._history?.moves?.length ?? 0) >= 2
+      return (gameStore._currentApiGame?._history?.moves?.length ?? 0) >= (gameStore._currentApiGame?._isLocalGame ? 1 : 2)
     },
     redoPossible(){
       const gameStore = this.getGameStore()

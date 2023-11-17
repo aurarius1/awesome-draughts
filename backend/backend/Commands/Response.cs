@@ -22,7 +22,12 @@ namespace backend.Commands
         PermissionRequest,
         PermissionRequestAnswered,
         InvalidPermissionRequest,
-        RECONNECT_OK,
+        ReconnectOk,
+        LocalOk,
+        SaveData,
+        DLC,
+        ExitRequest,
+        LoadOk,
 
         NoResponse = int.MaxValue,
     }
@@ -115,7 +120,7 @@ namespace backend.Commands
                     ResponseMessage = String.Format(ResponseMessage, "\"state\": \"INVALID_REQUEST\"{0}");
                     break;
                 case ResponseTypes.InvalidArguments:
-                    ResponseMessage = String.Format(ResponseMessage, "\"state\": \"INVALID_ARGUMENTS\"");
+                    ResponseMessage = "{" +  String.Format(ResponseMessage, "\"state\": \"INVALID_ARGUMENTS\"") + "}";
                     break;
                 case ResponseTypes.PermissionRequest:
                     ResponseMessage = String.Format(ResponseMessage, "\"state\": \"PERMISSION_REQUEST\"{0}");
@@ -124,14 +129,32 @@ namespace backend.Commands
                     ResponseMessage = String.Format(ResponseMessage, "\"state\": \"PERMISSION_REQUEST_ANSWERED\"{0}");
                     break;
                 case ResponseTypes.InvalidPermissionRequest:
-                    ResponseMessage = String.Format(ResponseMessage, "\"state\": \"INVALID_PERMISSION_REQUEST\"");
+                    ResponseMessage = "{" +  String.Format(ResponseMessage, "\"state\": \"INVALID_PERMISSION_REQUEST\"") + "}";
                     break;
-                case ResponseTypes.RECONNECT_OK:
+                case ResponseTypes.ReconnectOk:
                     ResponseMessage = String.Format(ResponseMessage, "\"state\": \"RECONNECT_OK\"{0}");
+                    break;
+                case ResponseTypes.LocalOk:
+                    ResponseMessage = String.Format(ResponseMessage, "\"state\": \"LOCAL_OK\"{0}");
+                    break;
+                case ResponseTypes.SaveData:
+                    ResponseMessage = String.Format(ResponseMessage, "\"state\": \"SAVE_DATA\"{0}");
+                    break;
+                case ResponseTypes.DLC:
+                    ResponseMessage = "{" +  String.Format(ResponseMessage, "\"state\": \"DLC\"") + "}";
+                    break;
+                case ResponseTypes.ExitOk:
+                    ResponseMessage = "{" +  String.Format(ResponseMessage, "\"state\": \"EXIT_OK\"") + "}";
+                    break;
+                case ResponseTypes.ExitRequest:
+                    ResponseMessage = "{" + String.Format(ResponseMessage, "\"state\": \"EXIT_REQUEST\"") + "}";
+                    break;
+                case ResponseTypes.LoadOk:
+                    ResponseMessage = String.Format(ResponseMessage, "\"state\": \"LOAD_OK\"{0}");
                     break;
                 case ResponseTypes.UnknownCommand:
                 default: 
-                    ResponseMessage = String.Format(ResponseMessage, "\"state\": \"UNKNOWN_COMMAND\"");
+                    ResponseMessage = "{" +  String.Format(ResponseMessage, "\"state\": \"UNKNOWN_COMMAND\"") + "}"; 
                     break;
             }
         }

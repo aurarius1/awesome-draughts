@@ -45,6 +45,10 @@ namespace backend.Commands
                     return new ExitCommand(socket, this._gameCache, commands.Skip(1).ToArray());
                 case "reconnect":
                     return new ReconnectCommand(socket, this._gameCache, commands.Skip(1).ToArray());
+                case "local":
+                    return new LocalCommand(socket, this._gameCache, commands.Skip(1).ToArray());
+                case "load":
+                    return new LoadCommand(socket, this._gameCache, commands.Skip(1).ToArray());
                 default:
                     return new UnknownCommand();
             }

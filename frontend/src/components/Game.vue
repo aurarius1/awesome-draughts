@@ -31,6 +31,11 @@ export default defineComponent({
       this.endGameDialogText = "draw"
       this.endGameDialogTextLocalization = true
     })
+
+
+    this.$emitter.on("opponentExited", () => {
+      this.playerWantsToLeave = true;
+    });
   },
   data() {
     return{
@@ -112,9 +117,7 @@ export default defineComponent({
   <save-game-dialog
     :visible="playerWantsToLeave"
     @close-me="playerWantsToLeave=false"
-    @exit="leaveGame()"
-    @save-local="leaveAndSaveLocal()"
-    @save-remote="leaveAndSaveRemote()"
+
   />
   <end-game-dialog
     :visible="endGameDialogVisible"

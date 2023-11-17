@@ -81,28 +81,6 @@ export default defineComponent({
 
   },
   watch: {
-    leave(newVal)
-    {
-      this.$router.replace('/').then(() => {
-        const gameStore = useGameStore();
-        gameStore.closeWS();
-        switch(newVal)
-        {
-          case LeaveTypes.saveLocal:
-            gameStore.endAndSave(false)
-            break
-          case LeaveTypes.saveRemote:
-            gameStore.endAndSave(true)
-            break
-          case LeaveTypes.exit:
-            gameStore.clear()
-            break
-          default:
-            return
-        }
-
-      })
-    },
     undoRequest(newVal)
     {
       if(!newVal){
@@ -175,7 +153,7 @@ export default defineComponent({
   beforeMount()
   {
     const gameStore = useGameStore();
-    if(gameStore._currentApiGame === undefined)
+    if(gameStore._currentApiGame === undefined && gameStore._currentGameId !== "")
     {
       gameStore.startWebSocket("");
     }

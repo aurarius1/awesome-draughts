@@ -83,15 +83,7 @@ export default defineComponent({
   {
     selectPiece()
     {
-      this.gameStore.getValidMoves(this.pieceId);
-
-     /* if(this.activePlayer === this.color)
-      {
-        this.$emitter.emit('piece-selected', this.pieceId);
-      }
-      else {
-        this.$emit("invalidSelect")
-      }*/
+      this.gameStore.getValidMoves(this.pieceId, this.color);
     },
     getColor(type: string = "base")
     {

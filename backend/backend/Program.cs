@@ -19,6 +19,7 @@ builder.Services.AddCors(options =>
                       policy =>
                       {
                           policy.WithOrigins("*");
+                          policy.WithHeaders("*");
                       });
 });
 var app = builder.Build();
