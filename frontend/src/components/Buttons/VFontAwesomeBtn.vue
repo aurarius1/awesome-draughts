@@ -95,10 +95,10 @@ export default defineComponent({
           v-if="icon.length !== 0"
           :icon="icon"
           :size="iconSize"
-          :class="iconTextSpacing"
+          :class="text.length !== 0 ? iconTextSpacing : ''"
           :color="iconColor"
       />
-      {{ text }}
+      <p v-if="text.length !== 0"> {{ text }}</p>
     </v-btn>
 </template>
 

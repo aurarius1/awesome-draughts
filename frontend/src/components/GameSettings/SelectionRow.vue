@@ -1,14 +1,11 @@
 <script lang="ts">
 import {defineComponent, StyleValue} from 'vue'
 import {PlayerNames} from "@/draughts";
+import NameField from "@/components/TextFields/NameField.vue";
 
 export default defineComponent({
   name: "SelectionRow",
-  watch: {
-    name(newName){
-      this._name = newName
-    }
-  },
+  components: {NameField},
   emits: {
     playerNameChanged(playerType: string, playerName: string){
       return playerType === "white" || playerType === "black";
@@ -41,7 +38,6 @@ export default defineComponent({
   },
   data() {
     return{
-      _name: this.name,
       hover: false,
     }
   },
@@ -92,17 +88,17 @@ export default defineComponent({
     @mouseleave="hover=false"
     @click="switchPlayerType()"
   >
-    {{ this.$t(`player.${player}`) }}
+    {{ $t(`player.${player}`) }}
   </p>
 
   <div
       class="ml-name-selection-field"
   >
-    <v-text-field
-        v-model="_name"
-        :hide-details="true"
-        @update:model-value="this.$emit('playerNameChanged', player, _name)"
+    <name-field
+        :name="name"
+        @updated="(value: string) => $emit('playerNameChanged', player, value)"
     />
+
   </div>
 </div>
 </template>

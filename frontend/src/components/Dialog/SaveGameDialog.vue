@@ -54,7 +54,7 @@ export default defineComponent({
           <v-col
               cols="11"
           >
-            {{ this.$t('exit_dialog.title')}}
+            {{ $t('exit_dialog.title')}}
           </v-col>
           <v-col>
             <font-awesome-btn
@@ -68,7 +68,7 @@ export default defineComponent({
       <v-card-text
           class="ml-save-dialog-text"
       >
-        {{ this.$t('exit_dialog.description') }}
+        {{ $t('exit_dialog.description') }}
       </v-card-text>
       <v-card-actions
           class="ml-dialog-actions evenly"
@@ -79,9 +79,9 @@ export default defineComponent({
             @click="leaveGame(LeaveTypes.saveLocal)"
             :icon="['fas', 'fa-download']"
             iconSize="lg"
-            :text="this.$t('exit_dialog.save')"
+            :text="$t('exit_dialog.save')"
             icon-text-spacing="me-2"
-            :tooltip-text="this.$t('exit_dialog.tooltips.save_local')"
+            :tooltip-text="$t('exit_dialog.tooltips.save_local')"
             tooltip-location="bottom"
         />
         <v-font-awesome-btn
@@ -90,9 +90,9 @@ export default defineComponent({
             @click="leaveGame(LeaveTypes.saveRemote)"
             :icon="['fas', 'fa-cloud-upload-alt']"
             iconSize="lg"
-            :text="this.$t('exit_dialog.save')"
+            :text="$t('exit_dialog.save')"
             icon-text-spacing="me-2"
-            :tooltip-text="this.$t('exit_dialog.tooltips.save_remote')"
+            :tooltip-text="$t('exit_dialog.tooltips.save_remote')"
             tooltip-location="bottom"
         />
         <v-font-awesome-btn
@@ -101,9 +101,9 @@ export default defineComponent({
             @click="leaveGame(LeaveTypes.exit)"
             :icon="['fas', 'fa-sign-out-alt']"
             iconSize="lg"
-            :text="this.$t('exit_dialog.exit')"
+            :text="$t('exit_dialog.exit')"
             icon-text-spacing="me-2"
-            :tooltip-text="this.$t('exit_dialog.tooltips.exit')"
+            :tooltip-text="$t('exit_dialog.tooltips.exit')"
             tooltip-location="bottom"
         />
       </v-card-actions>

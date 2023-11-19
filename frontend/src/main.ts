@@ -35,6 +35,7 @@ import {
     faHome,
     faSun as fasSun,
     faSignOutAlt,
+    faSignInAlt,
     faClose,
     faPaperclip,
     faArrowLeft,
@@ -51,7 +52,9 @@ import {
     faPlay,
     faHouse,
     faClipboard,
-    faSave
+    faSave,
+    faCheckCircle,
+    faXmarkCircle
 } from "@fortawesome/free-solid-svg-icons";
 
 import Toast, {PluginOptions} from "vue-toastification";
@@ -67,7 +70,7 @@ library.add(faCheckCircle,
     faRedo, faCloudUploadAlt, faDownload,
     faCloudDownloadAlt, faUpload,faHandshake,
     faCrown, faGears, faEdit, faPlay,faHouse,
-    faClipboard, faSave
+    faClipboard, faSave, faSignInAlt,faXmarkCircle, faCheckCircle
 
 )
 

@@ -4,6 +4,17 @@ export enum LeaveTypes {
     saveRemote  = 2,
     noLeave     = -1
 }
+
+export enum PermissionRequest
+{
+    Nothing = 0,
+    Undo = 1,
+    Redo = 2,
+    Draw = 3,
+    Exit = 4
+}
+
+
 export function heightBreakpoints(){
     let currentHeight = document.documentElement.clientHeight;
     if(currentHeight >= 2160)

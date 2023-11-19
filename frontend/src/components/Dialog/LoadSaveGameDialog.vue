@@ -1,5 +1,5 @@
 <script lang="ts">
-import {defineComponent, StyleValue} from 'vue'
+import {defineComponent} from 'vue'
 import {useGameStore} from "@/store";
 import FontAwesomeBtn from "@/components/Buttons/FontAwesomeBtn.vue";
 import VFontAwesomeBtn from "@/components/Buttons/VFontAwesomeBtn.vue";
@@ -31,12 +31,10 @@ export default defineComponent({
 
           axios.post("https://localhost:32768/loadGame", fileContent, {
             headers: {
-              // Overwrite Axios's automatically set Content-Type
               'Content-Type': 'application/json'
             }
           }).then((response) => {
-            const gameStore = useGameStore()
-            gameStore.loadGame(response.data)
+            this.getGameStore().loadGame(response.data)
 
           }).catch((error) => {
             this.fileUploaded = false
@@ -64,7 +62,6 @@ export default defineComponent({
   data() {
     return {
       loadFromFile: false,
-      loadFromServer: false,
       fileUploaded: false,
       uploadedGameState: [] as Array<File>
     }
@@ -72,11 +69,13 @@ export default defineComponent({
   methods: {
     getColor(color: string = "base"){
       return this.getColorStore.currentColor[color]
-
+    },
+    getGameStore()
+    {
+      return this.gameStore;
     },
     updateVisible() {
       this.loadFromFile = false
-      this.loadFromServer = false
       this.fileUploaded = false
       this.$emit('updateVisible', false)
     },
@@ -86,14 +85,23 @@ export default defineComponent({
     },
     loadRemote()
     {
-      // TODO
-      this.loadFromServer = true
-      this.toast.warning("HALLO :)")
+      axios.get("https://localhost:32768/loadRemoteGame", {params: {gameId: "-1"}}).then((response) => {
+        this.toast.success(this.$t('toasts.success.ctf_flag',{ctf: "LosCTF{D3S1GN_P4773RNS_1S_C00L}"}))
+      }).catch((error) => {
+        if(error.response.status === 402)
+        {
+          this.toast.info(this.$t('toasts.info.dlc'))
+        }
+        else
+        {
+          this.toast.error(this.$t('toasts.error.something_went_wrong'))
+        }
+      })
+
     },
     goBack()
     {
       this.loadFromFile = false
-      this.loadFromServer = false
       this.fileUploaded = false
     },
 
@@ -173,13 +181,11 @@ export default defineComponent({
           </template>
         </v-file-input>
       </v-card-text>
-      <v-card-text v-else-if="loadFromServer">
-      </v-card-text>
       <v-card-text class="ml-dialog-text" v-else>
         {{ $t("load_dialog.description") }}
       </v-card-text>
       <v-card-actions
-          v-if="!loadFromFile && !loadFromServer"
+          v-if="!loadFromFile"
           class="ml-dialog-actions evenly"
       >
         <v-font-awesome-btn

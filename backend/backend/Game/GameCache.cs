@@ -15,7 +15,7 @@ namespace backend.Game
         public bool CreateLocalGame(string gameId, WebSocket socket, string playerWhite, string playerBlack, out string gameState);
         public void EndGame(string gameId, string clientId);
         public void EndGame(WebSocket socket);
-        public bool TryAddGame(string gameId, Draughts game, out string errorMessage);
+        public bool TryAddGame(GameState state, out string gameId);
     }
 
     public class GameCache : IGameCache
@@ -49,7 +49,7 @@ namespace backend.Game
             Draughts? game; 
             if(!_gameCache.TryGetValue(gameId, out game))
             {
-                throw new ThisShouldNotHappenException();
+                return false;
             }
 
             if(game.GameFull())
@@ -111,23 +111,24 @@ namespace backend.Game
             return added;
         }
     
-        public bool TryAddGame(string gameId, Draughts game, out string errorMessage)
+        public bool TryAddGame(GameState state, out string gameId)
         {
-            Draughts? cachedGame = this.Get(gameId);
+            Draughts? cachedGame = this.Get(state._gameId);
+            gameId = "";
 
-            if(cachedGame == null)
+            if (cachedGame == null)
             {
-                errorMessage = "";
-                return _gameCache.TryAdd(gameId, game);
+                gameId = state._gameId;
+                return _gameCache.TryAdd(state._gameId, new Draughts(state));
             }
 
             if(cachedGame.GameFull())
             {
-                errorMessage = "game_full";
-                return false;
+                gameId = Guid.NewGuid().ToString();
+                state._gameId = gameId;
+                return _gameCache.TryAdd(gameId, new Draughts(state));
+  
             }
-
-            errorMessage = "";
             return true;
         }
     }

@@ -2,10 +2,11 @@
 import {defineComponent} from 'vue'
 import {useGameStore} from "@/store";
 import VFontAwesomeBtn from "@/components/Buttons/VFontAwesomeBtn.vue";
+import NameField from "@/components/TextFields/NameField.vue";
 
 export default defineComponent({
   name: "JoinGame",
-  components: {VFontAwesomeBtn},
+  components: {NameField, VFontAwesomeBtn},
   setup(){
     const colorStore = useColorStore()
     return {colorStore}
@@ -24,6 +25,10 @@ export default defineComponent({
   methods: {
     joinGame()
     {
+      if(this.name.length <= 0)
+        return;
+
+
       const gameStore = useGameStore();
       gameStore.joinGame(this.gid, this.name);
     },
@@ -36,34 +41,39 @@ export default defineComponent({
 </script>
 
 <template>
-<div
-    class="ml-join-container"
->
+
   <v-container
-    width="30vw"
+    class="ml-join-container"
   >
-    <v-row>
-      <v-col>
-        <v-text-field
-            v-model="name"
+    <v-card
+        width="30vw"
+        class="ml-join-card"
+    >
+      <v-card-title
+          class="mb-2"
+      >
+        {{ $t('join_game.title') }}
+      </v-card-title>
+      <v-card-text>
+        <name-field
+          :name="name"
+          @updated="(value: string) => {console.log(value); name=value}"
         />
-      </v-col>
-    </v-row>
-    <v-row>
-      <v-col
-        class="ml-dialog-actions center"
+      </v-card-text>
+      <v-card-actions
+        class="justify-center"
       >
         <v-font-awesome-btn
-            :icon="['fas', 'fa-save']"
-            :text="this.$t('join')"
+            :icon="['fas', 'fa-sign-in-alt']"
+            :text="$t('join_game.join')"
             :icon-color="getColor('base')"
             @click="joinGame()"
         />
-      </v-col>
-    </v-row>
+      </v-card-actions>
+    </v-card>
 
   </v-container>
-</div>
+
 </template>
 
 <style scoped lang="scss">
@@ -75,5 +85,9 @@ export default defineComponent({
   margin-top: 60px;
   display: flex;
   justify-content: center;
+  .ml-join-card{
+    text-align: center;
+  }
 }
+
 </style>

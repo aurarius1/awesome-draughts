@@ -62,6 +62,23 @@
     "accept": "Accept",
     "deny": "Deny"
   },
+  "waiting_for_opponent": {
+    "waiting": "Waiting for opponent \uD83E\uDD3C\u200D♂\uFE0F",
+    "description": "Copy the url below and send it to a friend to play with them! :)",
+    "leave": "Your friends abandoned you? Stop waiting now!"
+  },
+  "join_game": {
+    "title": "Please enter your name",
+    "join": "Join"
+  },
+  "validator": {
+    "enter_name": "A name must be entered"
+  },
+  "game_settings": {
+    "save": "Save",
+    "exit": "Exit"
+  },
+  "waiting_for_response": "Wait until your opponent accepts your request.",
   "toasts": {
     "warning":{
       "invalid_move": "This move is not valid :(",
@@ -70,14 +87,23 @@
     },
     "info": {
       "undo_successful": "Undo of last move was successful",
-      "redo_successful": "Redo of last undo was successful"
+      "redo_successful": "Redo of last undo was successful",
+      "copied": "Copied to clipboard",
+      "dlc": "This feature is only available with the DLC. Consider buying it if you want to use it.",
+      "request_accepted": "Your request has been accepted!",
+      "request_denied": "Your request has been denied!"
     },
     "error": {
       "gamestate_invalid": "Your uploaded game state was invalid. Please supply a valid '.aw' file :)",
-      "on_kill_streak": "You're currently on a kill streak, you need to finish it before doing other moves! :)"
+      "on_kill_streak": "You're currently on a kill streak, you need to finish it before doing other moves! :)",
+      "something_went_wrong": "Something went wrong",
+      "game_save_invalid": "Your save state couldn't be validated.",
+      "game_full": "This game is already full, please start a new one.",
+      "game_aborted": "Your opponent aborted the game."
     },
     "success": {
-      "gamestate_valid": "Your provided game state was loaded successful"
+      "gamestate_valid": "Your provided game state was loaded successful",
+      "ctf_flag": "This should not be possible. You are amazing, be quick, here's the flag: {ctf}"
     }
   }
 }

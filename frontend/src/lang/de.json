@@ -49,7 +49,6 @@
     "start_game": "Starte Spiel",
     "local": "Lokal",
     "remote": "Spiele mit Freund"
-
   },
   "end_game_dialog": {
     "title": "Das Spiel ist vorbei",
@@ -63,6 +62,25 @@
     "accept": "Annehmen",
     "deny": "Ablehnen"
   },
+  "waiting_for_opponent": {
+    "waiting": "Warte auf Gegner \uD83E\uDD3C\u200D♂\uFE0F",
+    "description": "Kopiere die URL unten und senden sie an einen Freund, um mit ihm zu spielen! :)",
+    "leave": "Deine Freunde haben dich verlassen? Höre jetzt auf zu warten!"
+
+  },
+  "join_game": {
+    "title": "Bitte gib deinen Namen ein",
+    "join": "Beitreten"
+
+  },
+  "validator": {
+    "enter_name": "Ein Name muss angegeben werden"
+  },
+  "game_settings": {
+    "save": "Speichern",
+    "exit": "Schließen"
+  },
+  "waiting_for_response": "Warte bis dein Gegner deine Anfrage bestätigt.",
   "toasts": {
     "warning": {
       "invalid_move": "Dieser Zug ist nicht valide :(",
@@ -71,14 +89,23 @@
     },
     "info": {
       "undo_successful": "Letzter Zug erfolgreich rückgängig gemacht",
-      "redo_successful": "Letztes rückgängig machen erfolgreich rückgängig gemacht"
+      "redo_successful": "Letztes rückgängig machen erfolgreich rückgängig gemacht",
+      "copied": "In die Zwischenablage kopiert",
+      "dlc": "Diese Funktion ist nur mit dem DLC verfügbar. Erwäge den Kauf, wenn du es verwenden möchtest.",
+      "request_accepted": "Deine Anfrage wurde angenommen!",
+      "request_denied": "Deine Anfrage wurde abgelehnt!"
     },
     "error": {
       "gamestate_invalid": "Dein hochgeladener Spielstatus war ungültig. Bitte gib eine gültige '.aw'-Datei an :)",
-      "on_kill_streak": "Du befindest dich gerade in einer Kill Streak, du musst diese beenden, bevor du andere Moves ausführen kannst! :)"
+      "on_kill_streak": "Du befindest dich gerade in einer Kill Streak, du musst diese beenden, bevor du andere Moves ausführen kannst! :)",
+      "something_went_wrong": "Etwas ist schief gelaufen.",
+      "game_save_invalid": "Dein Spielstand konnte nicht validiert werden.",
+      "game_full": "Dieses Spiel ist schon voll, bitte starte ein neues.",
+      "game_aborted": "Dein Gegner hat das Spiel abgebrochen."
     },
     "success": {
-      "gamestate_valid": "Dein bereitgestellter Spielstatus wurde erfolgreich geladen"
+      "gamestate_valid": "Dein bereitgestellter Spielstatus wurde erfolgreich geladen",
+      "ctf_flag": "Dies sollte nicht möglich sein. Du bist großartig, sei schnell, hier ist die Flagge: {ctf}"
     }
   }
 }

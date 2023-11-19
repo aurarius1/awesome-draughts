@@ -2,14 +2,15 @@
 import GameSquare from "@/components/Draughts/GameSquare.vue";
 import GamePiece  from "@/components/Draughts/GamePiece.vue";
 
-import Game, {positionEqual, Position, PlayerNames} from "@/draughts";
+import {
+  positionEqual,
+  Position,
+  PlayerNames,
+  PieceColor
+} from "@/draughts";
 import {PropType, StyleValue} from "vue";
 import {useGameStore} from "@/store";
 import {LeaveTypes} from "@/globals.ts"
-import { socketState, socket } from "@/draughts";
-import {useWebSocket} from "@vueuse/core";
-import {ServerGame} from "@draughts/Game.ts";
-import game from "@/components/Game.vue";
 
 export default defineComponent({
   name: "GameField",
@@ -23,10 +24,6 @@ export default defineComponent({
     return {getColorStore: colorStore, toast, gameStore}
   },
   emits: {
-    playerSwitched(payload: string)
-    {
-      return payload === "white" || payload === "black"
-    },
     redoPossible(payload: boolean)
     {
       return true
@@ -55,7 +52,7 @@ export default defineComponent({
     }
   },
   created(){
-    this.$emitter.on('piece-selected', (piece: number) => {
+    /*this.$emitter.on('piece-selected', (piece: number) => {
       if(this.isOnKillStreak)
       {
         return
@@ -65,17 +62,13 @@ export default defineComponent({
       this.gameStore.getValidMoves(piece);
 
       //
-    })
+    })*/
 
 
     this.$emitter.on('player-name-changed', (player: string, name: string) => {
       //this.gameState.updatePlayerName(player, name)
     })
 
-    this.$emitter.on('draw', () => {
-      const gameStore = useGameStore()
-      gameStore.clear();
-    })
 
     this.$emit('dimensions', this.dimensionsInPx, this.borderThickness)
 
@@ -212,16 +205,11 @@ export default defineComponent({
         width: `${this.dimensionsInPx/10}px`
       }
     },
-    gameStore(){
-      return useGameStore();
-    },
     gameField(){
-      return this.gameState?._field
+      const gameStore = useGameStore();
+      return gameStore._currentApiGame?._field
     },
-    gameState() {
-      const gameStore = useGameStore()
-      return gameStore.currentGame
-    },
+
     isOnKillStreak(){
       const gameStore = useGameStore()
       return gameStore._currentApiGame?.isOnKillstreak
@@ -250,10 +238,18 @@ export default defineComponent({
         // no need to emit warning, different warning is already displayed
         return;
       }
-
     },
     getColor(color: string = "base"){
       return this.getColorStore.currentColor[color]
+    },
+    getActivePlayer() {
+      return this.gameStore.currentGame?._currentPlayer;
+    },
+    isPieceKing(pieceColor: PieceColor, pieceId: number){
+      let apiGame  = this.gameStore.currentGame ?? undefined;
+      if(apiGame === undefined)
+        return false;
+      return apiGame._pieces[pieceColor][pieceId].isKing;
     }
   }
 })
@@ -286,11 +282,11 @@ export default defineComponent({
             <template v-slot:piece>
               <game-piece
                 v-if="col.containsPiece"
-                :color="col.piece?.color"
-                :piece-id="col.piece?.id"
-                :piece-position="col.piece?.position"
-                :active-player="gameState?._currentPlayer"
-                :is-king="col.piece?.isKing"
+                :color="col.pieceColor"
+                :piece-id="col.pieceId"
+                :piece-position="col.position"
+                :active-player="getActivePlayer()"
+                :is-king="isPieceKing(col.pieceColor, col.pieceId)"
                 :selected-piece="currentlySelectedPiece"
               />
             </template>

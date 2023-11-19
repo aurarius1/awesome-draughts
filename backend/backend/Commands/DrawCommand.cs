@@ -70,7 +70,7 @@ namespace backend.Commands
                 return new Response(ResponseTypes.InvalidPermissionRequest);
             }
 
-            return new Response(ResponseTypes.NoResponse);
+            return new Response(ResponseTypes.RequestSent);
         }
     }
 }

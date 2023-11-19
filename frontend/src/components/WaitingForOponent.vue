@@ -20,7 +20,7 @@ export default defineComponent({
   computed: {
     gid(){
       const gameStore = useGameStore();
-      return gameStore._currentApiGame._gameId
+      return gameStore._currentGameId;
     },
     url(){
       // TODO THIS SHOULD NOT BE HARDCODED
@@ -35,6 +35,11 @@ export default defineComponent({
       navigator.clipboard.writeText(this.url).then(() => {
         this.toast.info(this.$t('toasts.info.copied'))
       })
+    },
+    leaveGame(){
+      const gameStore = useGameStore();
+      gameStore.closeWS();
+      this.$router.replace("/");
     }
   }
 })
@@ -48,21 +53,23 @@ export default defineComponent({
       width="30vw"
       class="ml-waiting-card"
     >
-      <v-card-title>
-        {{ $t('waiting') }}
+      <v-card-title
+        class="mb-2"
+      >
+        {{ $t('waiting_for_opponent.waiting') }}
+        <v-progress-linear
+            :indeterminate="true"
+            :color="getColor('lighten1')"
+            :absolute="true"
+        />
       </v-card-title>
       <v-card-text>
 
-        <v-progress-circular
-          :indeterminate="true"
-          :color="this.getColor('lighten1')"
-          size="80"
-          width="7"
-        />
-      </v-card-text>
-      <v-card-text>
-
-        {{ $t("description")}}
+        <h3
+            class="mb-2"
+        >
+          {{ $t("waiting_for_opponent.description")}}
+        </h3>
 
         <v-text-field
           v-model="url"
@@ -84,9 +91,10 @@ export default defineComponent({
         class="ml-dialog-actions center"
       >
         <v-font-awesome-btn
-            :text="$t('leave')"
-            :icon="['fas', 'fa-exit']"
-
+            :text="$t('waiting_for_opponent.leave')"
+            :icon="['fas', 'fa-sign-out-alt']"
+            :icon-color="getColor('base')"
+            @click="leaveGame()"
         />
       </v-card-actions>
     </v-card>

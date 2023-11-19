@@ -49,7 +49,7 @@ namespace backend.Commands
             }
             if (!this._cache.AddSecondPlayer(this._gameId, this._webSocket, this._name))
             {
-                return new Response(ResponseTypes.InvalidArguments);
+                return new Response(ResponseTypes.GameAborted);
             }
             return new Response(ResponseTypes.GameStarted, new ResponseParam(ResponseKeys.GAME_STATE, this._cache.Get(this._gameId).GetGameState()));
         }

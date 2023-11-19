@@ -1,20 +1,28 @@
 <script lang="ts">
 import {defineComponent, renderList} from 'vue'
-import NameSelection from "@/components/GameSettings/NameSelection.vue";
 import {PlayerNames} from "@/draughts";
 import {PropType} from "vue";
 import SelectionRow from "@/components/GameSettings/SelectionRow.vue";
 import {useGameStore} from "@/store";
-
+// TODO MAYBE MERGE WITH LOCAL GAME SETTINGS
 export default defineComponent({
   name: "RemoteGameSettings",
   emits: {
-    leaveGameSettings(){return true;}
+    leaveGameSettings(){return true;},
+    startNotPossible(){return true;}
   },
   watch: {
     startNewGame(startGame){
       if(startGame)
       {
+
+        if(this._playerNames[this.player].length <= 0)
+        {
+          this.$emit("startNotPossible");
+          return;
+        }
+
+
         const gameStore = useGameStore();
         gameStore.startNewRemoteGame(10, this.player, this._playerNames[this.player]);
         console.log(this._playerNames);
@@ -31,7 +39,7 @@ export default defineComponent({
     const colorStore = useColorStore()
     return {colorStore}
   },
-  components: {SelectionRow, NameSelection},
+  components: {SelectionRow},
   props: {
     playerNames: {
       type: Object as PropType<PlayerNames>,
@@ -56,12 +64,32 @@ export default defineComponent({
     }
   },
   computed: {
+    playerColor(){
+      if(this.isGameDialog)
+        return this.player;
+      const gameStore = useGameStore();
+      return gameStore.currentGame?._ownColor ?? "white";
+
+    }
   },
   methods: {
     renderList,
     getColorStore()
     {
       return this.colorStore
+    },
+    switchPlayer()
+    {
+      if(!this.isGameDialog)
+      {
+        return;
+      }
+      this.player = (this.player == 'white' ? 'black' : 'white')
+    },
+    saveGameSettings(){
+      const gameStore = useGameStore();
+      gameStore.renamePlayer(this._playerNames[this.playerColor])
+      this.$emit('leaveGameSettings')
     },
   }
 })
@@ -71,26 +99,44 @@ export default defineComponent({
 
   <selection-row
       :remote="true"
-      :player="player"
-      :name="this._playerNames[player]"
+      :player="playerColor"
+      :name="_playerNames[playerColor]"
       class="ml-name-selection"
-      @switch-player="player = (player == 'white' ? 'black' : 'white')"
-      @player-name-changed="(_, newName) => this._playerNames[player] = newName"
+      @switch-player="switchPlayer()"
+      @player-name-changed="(_, newName) => {_playerNames[playerColor] = newName}"
   />
 
-  <v-btn
-      v-if="!isGameDialog"
-      @click="$emit('leaveGameSettings')"
-      :color="getColorStore().currentColor.accent1"
-      class="ml-leave-game-settings"
+  <div
+      class="ml-settings-actions"
   >
-    {{ this.$t("exit_game_settings") }}
-  </v-btn>
+    <v-btn
+        v-if="!isGameDialog"
+        @click="$emit('leaveGameSettings')"
+        :color="getColorStore().currentColor.accent1"
+        class="ml-leave-game-settings"
+    >
+      {{ $t("game_settings.exit") }}
+    </v-btn>
+    <v-btn
+        v-if="!isGameDialog"
+        :color="getColorStore().currentColor.accent1"
+        class="ml-leave-game-settings"
+        @click="saveGameSettings()"
+    >
+      {{ $t("game_settings.save") }}
+    </v-btn>
+  </div>
 </template>
 
 <style scoped lang="scss">
 .ml-leave-game-settings
 {
   margin-top: 12px;
+}
+
+.ml-settings-actions{
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
 }
 </style>

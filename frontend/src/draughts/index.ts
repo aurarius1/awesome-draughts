@@ -1,5 +1,7 @@
-import {Game, Piece, Position, PlayerNames} from './Game.ts'
+import {Position, PlayerNames, PieceColor} from './Game.ts'
 import {isPlayableField, positionEqual} from "@draughts/Helper.ts";
-export default Game
-export {isPlayableField, positionEqual, Piece}
-export type {Position, PlayerNames}
+
+
+
+export {isPlayableField, positionEqual}
+export type {Position, PlayerNames, PieceColor}

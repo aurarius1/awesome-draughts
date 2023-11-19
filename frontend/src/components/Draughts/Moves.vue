@@ -2,14 +2,18 @@
 import {defineComponent} from 'vue'
 import AcceptOrDenyCommand from "@/components/Draughts/AcceptOrDenyCommand.vue";
 import {useGameStore} from "@/store";
+import {PermissionRequest} from "@/globals.ts";
 
 export default defineComponent({
   name: "Moves",
   components: {AcceptOrDenyCommand},
   computed:{
-    permissionRequested(){
+    PermissionRequest() {
+      return PermissionRequest
+    },
+    permissionRequested(): PermissionRequest{
       const gameStore = useGameStore();
-      return gameStore._currentApiGame?._permissionRequest ?? 0;
+      return gameStore.currentGame?._permissionRequest ?? PermissionRequest.Nothing
     }
   }
 })
@@ -20,8 +24,8 @@ export default defineComponent({
   style="height: 100%;"
 >
   <accept-or-deny-command
-    v-if="permissionRequested !== 0 && permissionRequested !== 4"
-    :request="permissionRequested"
+    v-if="permissionRequested !== PermissionRequest.Nothing && permissionRequested !== PermissionRequest.Exit"
+    v-bind:request="permissionRequested"
   />
 </div>
 

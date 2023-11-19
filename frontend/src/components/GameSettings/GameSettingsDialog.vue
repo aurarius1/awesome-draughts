@@ -32,7 +32,8 @@ export default defineComponent({
     getColorStore(){
       return this.colorStore;
     }
-  }
+  },
+
 
 })
 </script>
@@ -52,7 +53,7 @@ export default defineComponent({
           <v-col
             cols="11"
           >
-            {{ this.$t('game_settings_dialog.title')}}
+            {{ $t('game_settings_dialog.title')}}
           </v-col>
           <v-col
             cols="1"
@@ -74,7 +75,7 @@ export default defineComponent({
                 :btn-color="getColorStore().currentColor.lighten1"
                 :icon="['fas', 'fa-play']"
                 :text="$t('game_settings_dialog.local')"
-                :btn-variant="local ? 'elevated' : ''"
+                :btn-variant="local ? 'elevated' : undefined"
                 btn-rounded="lg"
                 @click="local=true;"
 
@@ -83,7 +84,7 @@ export default defineComponent({
                 :btn-color="getColorStore().currentColor.lighten1"
                 :icon="['fas', 'fa-play']"
                 :text="$t('game_settings_dialog.remote')"
-                :btn-variant="!local ? 'elevated' : ''"
+                :btn-variant="!local ? 'elevated' : undefined"
                 btn-rounded="lg"
                 @click="local=false;"
             />
@@ -94,19 +95,13 @@ export default defineComponent({
       <v-card-text>
         <local-game-settings
             :start-new-game="startGame"
-            v-bind:player-names=" {
-              'white': 'Alice',
-              'black': 'Bob'
-            }"
             v-if="local"
+            @start-not-possible="() => startGame=false"
         />
         <remote-game-settings
             :start-new-game="startGame"
-            v-bind:player-names=" {
-              'white': 'Alice',
-              'black': 'Bob'
-            }"
             v-else
+            @start-not-possible="() => startGame=false"
         />
       </v-card-text>
       <v-card-actions

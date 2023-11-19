@@ -57,7 +57,7 @@ namespace backend.Commands
             {
                 return new Response(ResponseTypes.InvalidArguments);
             }
-
+            // TODO NOT YOUR TURN RESPONSE
             List<Position> validMoves;
             string errorMessage;
             if(!game.GetMoves(this._pieceId, out validMoves, out errorMessage ))

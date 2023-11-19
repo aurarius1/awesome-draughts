@@ -28,7 +28,7 @@ namespace backend.Commands
         DLC,
         ExitRequest,
         LoadOk,
-
+        GameAborted,
         NoResponse = int.MaxValue,
     }
 
@@ -151,6 +151,12 @@ namespace backend.Commands
                     break;
                 case ResponseTypes.LoadOk:
                     ResponseMessage = String.Format(ResponseMessage, "\"state\": \"LOAD_OK\"{0}");
+                    break;
+                case ResponseTypes.RequestSent:
+                    ResponseMessage = "{" + String.Format(ResponseMessage, "\"state\": \"REQUEST_SENT\"") + "}";
+                    break;
+                case ResponseTypes.GameAborted:
+                    ResponseMessage = "{" + String.Format(ResponseMessage, "\"state\": \"ABORTED\"") + "}";
                     break;
                 case ResponseTypes.UnknownCommand:
                 default: 

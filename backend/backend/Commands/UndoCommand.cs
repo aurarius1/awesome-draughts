@@ -62,6 +62,7 @@ namespace backend.Commands
 
                 game.Undo();
 
+
                 return new Response(ResponseTypes.Sync, 
                     new ResponseParam(ResponseKeys.GAME_STATE, game.GetGameState())
                 );
@@ -72,7 +73,7 @@ namespace backend.Commands
                 return new Response(ResponseTypes.InvalidPermissionRequest);
             }
 
-            return new Response(ResponseTypes.NoResponse);
+            return new Response(ResponseTypes.RequestSent);
         }
     }
 }

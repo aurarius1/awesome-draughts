@@ -1,32 +1,32 @@
 <script lang="ts">
-import {defineComponent} from 'vue'
+import {defineComponent, PropType} from 'vue'
 import VFontAwesomeBtn from "@/components/Buttons/VFontAwesomeBtn.vue";
 import {useGameStore} from "@/store";
+import {PermissionRequest} from "@/globals.ts";
+import colors from 'vuetify/lib/util/colors'
 
 export default defineComponent({
   name: "AcceptOrDenyCommand",
   components: {VFontAwesomeBtn},
   props: {
     request: {
-      type: String,
-      default: 0,
-      validator(value: String) {
-        return value === "0" || value === "1" || value === "2" || value === "3" || value === "4";
-      }
+      type: Number as PropType<PermissionRequest>,
+      default: PermissionRequest.Nothing,
     }
   },
   computed: {
     requestQuestion(){
       let param = ""
+      console.log(this.request);
       switch(this.request)
       {
-        case "1":
+        case PermissionRequest.Undo:
           param = this.$t('moves.undo')
           break
-        case "2":
+        case PermissionRequest.Redo:
           param = this.$t('moves.redo')
           break
-        case "3":
+        case PermissionRequest.Draw:
           param = this.$t('moves.draw')
           break
         default:
@@ -38,6 +38,9 @@ export default defineComponent({
   },
   methods:
   {
+    colors(){
+      return colors;
+    },
     answerRequest(accept:boolean = true)
     {
       const gameStore = useGameStore();
@@ -53,14 +56,26 @@ export default defineComponent({
     <v-card-text>
       {{ requestQuestion }}
     </v-card-text>
-    <v-card-actions>
+    <v-card-actions
+      class="justify-space-between"
+    >
       <v-font-awesome-btn
+          :icon="['fas', 'fa-check-circle']"
           :text="$t('moves.accept')"
+          icon-size="lg"
+          :btn-color="colors().green.base"
           @click="answerRequest(true)"
+          btn-variant="elevated"
+          btn-rounded="2"
       />
       <v-font-awesome-btn
+          :icon="['fas', 'fa-xmark-circle']"
           :text="$t('moves.deny')"
+          icon-size="lg"
+          :btn-color="colors().red.base"
+          btn-variant="elevated"
           @click="answerRequest(false)"
+          btn-rounded="2"
         />
     </v-card-actions>
   </v-card>

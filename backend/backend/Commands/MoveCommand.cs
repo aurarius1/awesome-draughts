@@ -74,13 +74,10 @@ namespace backend.Commands
             {
                 return new Response(ResponseTypes.InvalidArguments);
             }
-
-            string opponent = "";
-            if(!game.HasPlayer(this._clientId, out opponent))
+            if(!game.GameFull())
             {
                 return new Response(ResponseTypes.InvalidArguments);
             }
-
             List<Position> killStreakMoves;
             string errorMessage;
 
@@ -90,25 +87,20 @@ namespace backend.Commands
                             new ResponseParam(ResponseKeys.ERROR_MESSAGE, errorMessage)
                 );
             }
-            if(opponent != "")
-            {
-                game.SendSync(opponent);
-            }
-
+            game.SendOpponentMessage(this._clientId, ResponseTypes.Sync);
+          
             if (killStreakMoves.Count > 0)
             {
                 return new Response(ResponseTypes.MoveOk,
                     new ResponseParam(ResponseKeys.GAME_STATE, game.GetGameState()),
                     new ResponseParam(ResponseKeys.MOVES, killStreakMoves)
                 );
-
             }
             else
             {
                 return new Response(ResponseTypes.Sync, 
                     new ResponseParam(ResponseKeys.GAME_STATE, game.GetGameState())
                 );
-
             }
         }
     }

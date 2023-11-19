@@ -26,11 +26,11 @@ namespace backend.Controllers
         }
     }
 
-    public class LockedObjectResult : ObjectResult
+    public class PaymentRequiredObjectResult : ObjectResult
     {
-        public LockedObjectResult(object? value) : base(value)
+        public PaymentRequiredObjectResult(object? value) : base(value)
         {
-            StatusCode = StatusCodes.Status423Locked;
+            StatusCode = StatusCodes.Status402PaymentRequired;
         }
     }
 
@@ -47,15 +47,13 @@ namespace backend.Controllers
         }
         [HttpPost]
         [Route("/loadGame")]
-        public IActionResult Get([FromBody] SavedGame savedGame)
+        public IActionResult Post([FromBody] SavedGame savedGame)
         {
 
             // TODO VALIDATION
-
             GameState state = savedGame.gameState;
             string serializedSaveGame = JsonSerializer.Serialize(new
             {
-                state._gameId,
                 state._fieldDimensions,
                 _playerNames = new
                 {
@@ -75,18 +73,23 @@ namespace backend.Controllers
                 return new NotAcceptableObjectResult("INVALID_SAVE_GAME_FILE");
             }
 
-            if(!_gameCache.TryAddGame(state._gameId, new Draughts(state), out string errorMessage))
+            if(!_gameCache.TryAddGame(state, out string gameId))
             {
-                if(errorMessage == "")
-                    return new InternalServerErrorObjectResult();
-
-                return new LockedObjectResult(errorMessage);
-                     
+                return new InternalServerErrorObjectResult();
             }
-
-
-            return Ok(savedGame.gameState._gameId);
+            return Ok(gameId);
         }
+
+        [HttpGet]
+        [Route("/loadRemoteGame")]
+        public IActionResult Get([FromQuery] string gameId)
+        {
+            return new PaymentRequiredObjectResult(null);
+        }
+        
+        
+        
+        
         [Route("/ws")]
         public async Task Get()
         {

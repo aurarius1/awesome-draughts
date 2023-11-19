@@ -11,9 +11,6 @@ namespace backend.Commands
         SaveRemote
     }
 
-
-    // moves --> getFieldsToHighlight
-    // move --> doMove
     public class ExitCommand : ICommand
     {
 
@@ -89,7 +86,7 @@ namespace backend.Commands
                     break;
                 case ExitType.SaveRemote:
                     response = new Response(ResponseTypes.DLC);
-                    break;
+                    return response;
             }
             if (!game.IsLocalGame())
             {

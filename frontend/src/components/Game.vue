@@ -7,17 +7,17 @@ import FontAwesomeBtn from "@/components/Buttons/FontAwesomeBtn.vue";
 import VFontAwesomeBtn from "@/components/Buttons/VFontAwesomeBtn.vue";
 import Settings from "@/components/Settings.vue";
 import {PlayerNames} from "@/draughts";
-import NameSelection from "@/components/GameSettings/NameSelection.vue";
 import Moves from "@/components/Draughts/Moves.vue";
 import LocalGameSettings from "@/components/GameSettings/LocalGameSettings.vue";
 import EndGameDialog from "@/components/Dialog/EndGameDialog.vue";
 import SaveGameDialog from "@/components/Dialog/SaveGameDialog.vue";
 import GameInfo from "@/components/GameInfo.vue";
 import {useGameStore} from "@/store";
+import WaitingForResponseDialog from "@/components/Dialog/WaitingForResponseDialog.vue";
 
 export default defineComponent({
   name: "Game.vue",
-  components: {GameInfo, SaveGameDialog, EndGameDialog, LocalGameSettings, Moves, NameSelection, Settings, VFontAwesomeBtn, FontAwesomeBtn, FontAwesomeIcon, GameField},
+  components: {WaitingForResponseDialog, GameInfo, SaveGameDialog, EndGameDialog, LocalGameSettings, Moves, Settings, VFontAwesomeBtn, FontAwesomeBtn, FontAwesomeIcon, GameField},
   setup()
   {
     const colorStore = useColorStore();
@@ -108,6 +108,11 @@ export default defineComponent({
     endGameDialogVisible(){
       const gameStore = useGameStore();
       return gameStore._currentApiGame?._gameOver ?? false
+    },
+    waitingForResponse()
+    {
+      const gameStore = useGameStore()
+      return gameStore.requestSent
     }
   }
 })
@@ -123,6 +128,10 @@ export default defineComponent({
     :visible="endGameDialogVisible"
     :text="endGameDialogText"
     :localize-text="endGameDialogTextLocalization"
+  />
+
+  <waiting-for-response-dialog
+      :visible="waitingForResponse"
   />
 
   <div

@@ -1,16 +1,13 @@
 import {defineStore} from "pinia"
 import colors from 'vuetify/lib/util/colors'
-import {RemovableRef, Serializer, useLocalStorage, useWebSocket} from '@vueuse/core'
+import {RemovableRef, useLocalStorage} from '@vueuse/core'
 import {i18n} from "@/lang";
 
-import Game, {PlayerNames} from "@/draughts"
+import {PlayerNames, Position} from "@/draughts"
 import fileDownload from 'js-file-download'
 
-import {ca} from "vuetify/locale";
-import {Exception} from "sass";
-import {ApiGame, ServerGame} from "@draughts/Game.ts";
-import {Position} from "@/draughts";
-import {LeaveTypes} from "@/globals.ts";
+import {ServerGame} from "@draughts/Game.ts";
+import {LeaveTypes, PermissionRequest} from "@/globals.ts";
 
 export const useColorStore = defineStore('colorStore',{
     state: () =>  {
@@ -69,52 +66,35 @@ export const useThemeStore = defineStore('themeStore',{
 })
 
 
-type test = {
-    _currentGame: RemovableRef<Game>,
-    _savedGames: RemovableRef<Array<number>>,
+type GameStore = {
     _currentApiGame: ServerGame | undefined,
     _clientId: RemovableRef<String>,
     _currentGameId: RemovableRef<String>,
+    _requestSent: RemovableRef<Boolean>,
     ws: any
 }
-function serializeGameState(value: Game): string
-{
-    return value.serialize()
-}
-function deserializeGameState(read: string, refresh=true): Game
-{
-    return new Game({
-        serialized: read,
-        refresh: refresh
-    })
-}
 
-let serializer: Serializer<Game> = {
-    write: serializeGameState,
-    read: deserializeGameState
-}
+
 export const useGameStore = defineStore('gameStore',{
-    state: (): test => {
+    state: (): GameStore => {
         return {
-            _currentGame: useLocalStorage("currentGame", new Game({fieldDimensions: -1}), { deep: true, listenToStorageChanges: true, serializer: serializer}),
-            _savedGames: useLocalStorage("savedGames", []),
             _currentApiGame: undefined,
             _clientId: useLocalStorage("clientId", ""),
             _currentGameId: useLocalStorage("gameId", ""),
+            _requestSent: useLocalStorage("request", false),
             ws: undefined
         }
     },
     actions: {
         startNewGame(dimensions: number, playerNames: PlayerNames = {"white": "Alice", "black": "Bob"}){
-            console.log("HALLO MAMA");
             this.startWebSocket(`local;${playerNames.white};${playerNames.black}`)
-
         },
         startNewRemoteGame(dimensions: number, color: "white"|"black", name: string){
             this._currentApiGame = new ServerGame({
                 fieldDimensions: dimensions,
                 playerName: name,
-                ownColor: color
+                ownColor: color,
+                isLocalGame: false,
             })
             this.startWebSocket("init;"+name+";"+color)
         },
@@ -125,6 +105,7 @@ export const useGameStore = defineStore('gameStore',{
                 ownColor: color,
                 gid: gid,
                 cid: cid,
+                isLocalGame: false
             })
         },
         joinGame(gid: string, name: string){
@@ -134,7 +115,6 @@ export const useGameStore = defineStore('gameStore',{
         {
             this._currentGameId = gid;
             this.startWebSocket(`load;${gid}`)
-            console.log("HALLLLO MARTIN", this._currentGameId);
         },
         startWebSocket(command: string){
 
@@ -194,7 +174,6 @@ export const useGameStore = defineStore('gameStore',{
                     break;
                 case "MOVES_OK":
                     this._currentApiGame?.addValidMoves(state.moves);
-                    //this.$emitter.emit("highlight-field", state.moves);
                     break;
                 case "MOVE_OK":
                     this._currentApiGame?.loadGameState(state.gameState);
@@ -202,14 +181,13 @@ export const useGameStore = defineStore('gameStore',{
                     this._currentApiGame?.setKillstreak(true);
                     break;
                 case "LOAD_OK":
-                    console.log("HALLO");
-                    
                     this.$router.replace("/game");
                 case "SYNC":
                     this._currentApiGame?.loadGameState(state.gameState);
                     this._currentApiGame?.addValidMoves([]);
                     this._currentApiGame?.setKillstreak(false);
                     this._currentApiGame?.selectPiece(-1);
+                    this._requestSent = false
                     break;
                 case "INVALID_MOVE":
                     switch(state.errorMessage ?? "")
@@ -222,14 +200,22 @@ export const useGameStore = defineStore('gameStore',{
                             break
                         default:
                             toast.warning(i18n.global.t('toasts.warning.invalid_move'))
-                            console.log("INVALID MOVE; ERROR UNKNOWN");
                     }
                     break
                 case "PERMISSION_REQUEST":
-                    this._currentApiGame?.setPermissionRequest(state.request)
+                    this._currentApiGame?.setPermissionRequest(parseInt(state.request))
                     break;
                 case "PERMISSION_REQUEST_ANSWERED":
-                    toast.info(state.requestAnswer)
+                    this._requestSent = false
+
+                    if(state.requestAnswer.toLowerCase() === "true")
+                    {
+                        toast.info(i18n.global.t('toasts.info.request_accepted'))
+                    }
+                    else
+                    {
+                        toast.info(i18n.global.t('toasts.info.request_denied'))
+                    }
                     break
                 case "RECONNECT_OK":
                     if(this._currentApiGame === undefined)
@@ -240,7 +226,6 @@ export const useGameStore = defineStore('gameStore',{
                     this._currentApiGame?.setOwnColor(state.color);
                     break;
                 case "LOCAL_OK":
-                    console.log(state.gameState);
                     this._currentApiGame = new ServerGame({
                         fieldDimensions: state.gameState._fieldDimensions,
                         isLocalGame: true,
@@ -250,25 +235,45 @@ export const useGameStore = defineStore('gameStore',{
                     this._currentGameId = state.gameState._gameId;
                     break;
                 case "DLC":
-                    toast.info(i18n.global.t('dlc'))
+                    toast.info(i18n.global.t('toasts.info.dlc'))
                     break;
                 case "EXIT_REQUEST":
                     this.$emitter.emit('opponentExited');
                     break;
                 case "SAVE_DATA":
                     fileDownload(JSON.stringify(state.gameState), `game-${this._currentGameId}.aw`)
+                    this.closeWS();
+                    this.$router.replace("/");
+                    break;
                 case "EXIT_OK":
                     this.closeWS();
                     this.$router.replace("/");
-
+                    break;
+                case "REQUEST_SENT":
+                    this._requestSent = true;
+                    break
+                case "ABORTED":
+                    this.closeWS();
+                    toast.error(i18n.global.t("toasts.error.game_aborted"));
+                    this.$router.replace("/");
+                    break;
             }
         },
         getValidMoves(pieceId: number, pieceColor: string)
         {
             const toast = useToast();
+
+            if(this._currentApiGame?._permissionRequest !== PermissionRequest.Nothing &&
+                this._currentApiGame?._permissionRequest !== PermissionRequest.Exit)
+            {
+                toast.error(i18n.global.t('toasts.error.answer_request_first'))
+                return false;
+            }
+
+
             if(
                 (this._currentApiGame?._currentPlayer === this._currentApiGame?._ownColor) ||
-                (this._currentApiGame?._isLocalGame && this._currentApiGame?._currentPlayer == pieceColor)
+                (this._currentApiGame?._singlePlayer && this._currentApiGame?._currentPlayer == pieceColor)
             )
             {
                 if(!this._currentApiGame?.isOnKillstreak)
@@ -281,7 +286,7 @@ export const useGameStore = defineStore('gameStore',{
             }
             else
             {
-                if(this._currentApiGame?._isLocalGame)
+                if(this._currentApiGame?._singlePlayer)
                 {
                     if(this._currentApiGame?._validMoves.length === 0)
                     {
@@ -296,6 +301,15 @@ export const useGameStore = defineStore('gameStore',{
         },
         move(pieceId: number, destination: Position)
         {
+            const toast = useToast();
+            if(this._currentApiGame?._permissionRequest !== PermissionRequest.Nothing &&
+                this._currentApiGame?._permissionRequest !== PermissionRequest.Exit)
+            {
+                toast.error(i18n.global.t('toasts.error.answer_request_first'))
+                return false;
+            }
+
+
             this.ws?.send(`move;${this._currentGameId};${this._clientId};${pieceId};${destination.x};${destination.y}`)
         },
         requestUndo()
@@ -318,6 +332,15 @@ export const useGameStore = defineStore('gameStore',{
         {
           this.ws?.send(`exit;${this._currentGameId};${this._clientId};${leaveType}`)
         },
+        renamePlayer(name: string, name2: string = ""){
+            let cmd = `rename;${this._currentGameId};${this._clientId};${name}`;
+
+            if(name2 !== "")
+            {
+                cmd += `;${name2}`
+            }
+            this.ws?.send(cmd)
+        },
         closeWS()
         {
             switch(this.ws?.readyState)
@@ -336,14 +359,14 @@ export const useGameStore = defineStore('gameStore',{
             }
 
         },
-        clear(){
-            this._currentGame = new Game({fieldDimensions: -1})
-        },
 
     },
     getters: {
         currentGame: (state) => {
             return state._currentApiGame
         },
+        requestSent: (state) => {
+            return state._requestSent
+        }
     }
 })

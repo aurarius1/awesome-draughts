@@ -29,18 +29,18 @@ export default defineComponent({
   {
     draw(){
       const gameStore = useGameStore();
-      return gameStore._currentApiGame?._draw ?? false;
+      return gameStore.currentGame?._draw ?? false;
     },
     endScreenMessage(){
       const gameStore = useGameStore();
-      let currentPlayer = gameStore._currentApiGame?._currentPlayer;
+      let currentPlayer = gameStore.currentGame?._currentPlayer;
 
       if(this.draw)
       {
         return this.$t('player.draw')
       }
 
-      if(currentPlayer === gameStore._currentApiGame?._ownColor)
+      if(currentPlayer === gameStore.currentGame?._ownColor)
       {
         return this.$t(`player.wins`)
       }

@@ -19,5 +19,10 @@ namespace backend.Models
             Disconnected = false;
         }
 
+        public void Rename(string newName)
+        {
+            this.Name = newName;
+        }
+
     }
 }

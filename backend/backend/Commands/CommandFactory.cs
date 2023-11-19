@@ -49,6 +49,8 @@ namespace backend.Commands
                     return new LocalCommand(socket, this._gameCache, commands.Skip(1).ToArray());
                 case "load":
                     return new LoadCommand(socket, this._gameCache, commands.Skip(1).ToArray());
+                case "rename":
+                    return new RenameCommand(socket, this._gameCache, commands.Skip(1).ToArray());
                 default:
                     return new UnknownCommand();
             }

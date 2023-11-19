@@ -6,12 +6,13 @@ import Settings from "@/components/Settings.vue";
 import FontAwesomeBtn from "@/components/Buttons/FontAwesomeBtn.vue";
 import LocalGameSettings from "@/components/GameSettings/LocalGameSettings.vue";
 import {PlayerNames} from "@/draughts";
-import {heightBreakpoints} from "@/globals.ts";
+import {heightBreakpoints, PermissionRequest} from "@/globals.ts";
 import {useGameStore} from "@/store";
+import RemoteGameSettings from "@/components/GameSettings/RemoteGameSettings.vue";
 
 export default defineComponent({
   name: "GameInfo",
-  components: {LocalGameSettings, FontAwesomeBtn, Settings, Moves, VFontAwesomeBtn},
+  components: {RemoteGameSettings, LocalGameSettings, FontAwesomeBtn, Settings, Moves, VFontAwesomeBtn},
   emits: {
     leaveRequest(){
       return true
@@ -61,33 +62,38 @@ export default defineComponent({
         margin: `0px ${this.borderThickness/2}px`,
       }
     },
-    computedGameInfoTextStyle(): StyleValue{
-      return {
-        height: `${this.dimensionsInPx*heightBreakpoints()}px`,
-      }
-    },
     activePlayerName(){
-      const gameStore = this.getGameStore()
-      return gameStore._currentApiGame?._playerNames[gameStore._currentApiGame?._currentPlayer];
+      const gameStore = this.getGameStore();
+      if(gameStore.currentGame === undefined)
+      {
+        return "";
+      }
+      return gameStore.currentGame._playerNames[gameStore.currentGame._currentPlayer];
     },
     activePlayer(){
-      const gameStore = this.getGameStore()
-      return gameStore._currentApiGame?._currentPlayer
+      return this.getGameStore().currentGame?._currentPlayer
     },
     playerNames() {
-      const gameStore = this.getGameStore()
-      return gameStore._currentApiGame?._playerNames
+      return this.getGameStore().currentGame?._playerNames
     },
     undoPossible() {
-      const gameStore = this.getGameStore()
-      return (gameStore._currentApiGame?._history?.moves?.length ?? 0) >= (gameStore._currentApiGame?._isLocalGame ? 1 : 2)
+
+      const gameStore = this.getGameStore();
+      return (gameStore.currentGame?._history?.moves?.length ?? 0) >= (gameStore.currentGame?._singlePlayer ? 1 : 2)
     },
     redoPossible(){
-      const gameStore = this.getGameStore()
-      return (gameStore._currentApiGame?._history?.revertedMoves?.length ?? 0) >= 1
+      return (this.getGameStore().currentGame?._history?.revertedMoves?.length ?? 0) >= 1
     },
-    currentBreakpoint(){
-      return this.$vuetify.display.name;
+    requestToAnswer(){
+      const gameStore = this.getGameStore();
+      if(gameStore.currentGame === undefined)
+        return false;
+
+      return gameStore.currentGame._permissionRequest !== PermissionRequest.Nothing &&
+          gameStore.currentGame._permissionRequest !== PermissionRequest.Exit
+    },
+    localGame(){
+      return this.getGameStore().currentGame?._singlePlayer ?? true;
     }
   }
 })
@@ -95,7 +101,7 @@ export default defineComponent({
 
 <template>
   <v-card
-      class="ml-game-info-card"
+      class="ml-game-info-card flexcard"
       :style="computedGameInfoCardStyle"
   >
     <v-card-title
@@ -133,8 +139,8 @@ export default defineComponent({
       </v-row>
     </v-card-title>
     <v-card-text
-        class="ml-game-info-card-content"
-        :style="computedGameInfoTextStyle"
+        class="grow"
+
     >
       <settings
           col-size="12"
@@ -143,9 +149,15 @@ export default defineComponent({
           @close-settings="settingsVisible=false"
       />
       <local-game-settings
-          v-else-if="gameSettingsVisible"
+          v-else-if="gameSettingsVisible && localGame"
           @leave-game-settings="gameSettingsVisible=false"
-          v-bind:player-names="playerNames"
+          v-bind:player-names="{...playerNames}"
+          :is-game-dialog="false"
+      />
+      <remote-game-settings
+          v-else-if="gameSettingsVisible && !localGame"
+          @leave-game-settings="gameSettingsVisible=false"
+          v-bind:player-names="{...playerNames}"
           :is-game-dialog="false"
       />
       <moves
@@ -157,7 +169,6 @@ export default defineComponent({
     <v-card-actions
         class="ml-game-info-card-actions"
     >
-
       <v-container
           class="container"
       >
@@ -168,7 +179,7 @@ export default defineComponent({
           >
             <v-font-awesome-btn
                 @click="getGameStore().requestUndo()"
-                :disabled="!undoPossible"
+                :disabled="!undoPossible || requestToAnswer"
                 :icon="['fas', 'fa-undo']"
                 icon-size="lg"
                 :icon-color="getColor()"
@@ -181,7 +192,7 @@ export default defineComponent({
           >
             <v-font-awesome-btn
                 @click="getGameStore().requestRedo()"
-                :disabled="!redoPossible"
+                :disabled="!redoPossible || requestToAnswer"
                 :icon="['fas', 'fa-redo']"
                 icon-size="lg"
                 :icon-color="getColor()"
@@ -200,6 +211,7 @@ export default defineComponent({
               cols="6"
           >
             <v-font-awesome-btn
+                :disabled="requestToAnswer"
                 :icon="['fas', 'fa-handshake']"
                 iconSize="lg"
                 :icon-color="getColor()"
@@ -212,6 +224,7 @@ export default defineComponent({
               cols="6"
           >
             <v-font-awesome-btn
+                :disabled="requestToAnswer"
                 @click="$emit('leaveRequest')"
                 :icon="['fas', 'sign-out-alt']"
                 iconSize="lg"
@@ -226,7 +239,7 @@ export default defineComponent({
 
 <style scoped lang="scss">
 @import "@/scss/ml-dialog";
-
+@import "@/scss/flexcard";
 
 .ml-game-info-card{
   width: 100%;

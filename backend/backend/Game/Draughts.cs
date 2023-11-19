@@ -100,9 +100,10 @@ namespace backend.Game
                     }
                     Field field = new Field
                     {
-                        position= position,
+                        position = position,
                         containsPiece = containsPiece,
-                        piece = piece,
+                        pieceId = piece?.id ?? -1,
+                        pieceColor = piece?.color ?? ""
                     };
                     this._field[y].Add(field);
                 }
@@ -123,22 +124,31 @@ namespace backend.Game
                     {
                         position = new Position { x = x, y = y },
                         containsPiece = false,
-                        piece = null
                     });
 
 
-                    if (ContainsPiece(x, y, out string pieceColor))
+                    if (ContainsPiece(x, y, out string pieceColor, out int pieceId))
                     {
+                        Piece? p = null;
+                        
+
                         if (pieceColor == "white" && this._field[y][x] != null)
                         {
-                            this._field[y][x].containsPiece = this._pieces.white.TryGetValue((y * _fieldDimensions) + x, out Piece? p);
-                            this._field[y][x].piece = p;
+                            this._field[y][x].containsPiece = this._pieces.white.TryGetValue(pieceId, out p);
+                            
                         }
                         if (pieceColor == "black" && this._field[y][x] != null)
                         {
-                            this._field[y][x].containsPiece = this._pieces.black.TryGetValue((y * _fieldDimensions) + x, out Piece? p);
-                            this._field[y][x].piece = p;
+                            this._field[y][x].containsPiece = this._pieces.black.TryGetValue(pieceId, out p);
                         }
+
+                        if(p == null)
+                        {
+                            // THIS SHOULD ACTUALLY NOT HAPPEN
+                            continue;
+                        }
+
+                        this._field[y][x].SetPiece(p.id, p.color);
                     }
                 }
             }
@@ -151,25 +161,29 @@ namespace backend.Game
 
             this._singlePlayer = true;
         }
-        private bool ContainsPiece(int x, int y, out string pieceColor)
+        private bool ContainsPiece(int x, int y, out string pieceColor, out int pieceId)
         {
-            for(int i = 0; i < this._pieces.white.Count; i++)
+            foreach(Piece piece in this._pieces.white.Values)
             {
-                if(this._pieces.white.TryGetValue((y * _fieldDimensions) + x, out Piece? piece))
+                if(piece.position.x == x && piece.position.y == y && piece.isAlive)
                 {
-                    pieceColor = "white";
-                    return piece.isAlive;
+                    pieceColor = piece.color;
+                    pieceId = piece.id;
+                    return true; 
                 }
             }
-            for (int i = 0; i < this._pieces.black.Count; i++)
+            foreach (Piece piece in this._pieces.black.Values)
             {
-                if (this._pieces.black.TryGetValue((y * _fieldDimensions) + x, out Piece? piece))
+                if (piece.position.x == x && piece.position.y == y && piece.isAlive)
                 {
-                    pieceColor = "black";
-                    return piece.isAlive;
+                    pieceColor = piece.color;
+                    pieceId = piece.id;
+                    return true;
                 }
             }
+
             pieceColor = "";
+            pieceId = -1;
             return false;
         }
         private Position evaluatePosition(Position? t, int offset, MoveOperations operation)
@@ -227,7 +241,7 @@ namespace backend.Game
 
                     if (this._field[pos.y][pos.x].containsPiece)
                     {
-                        bool notOpposing = this._field[pos.y][pos.x].piece?.color == piece?.color;
+                        bool notOpposing = this._field[pos.y][pos.x].pieceColor == piece?.color;
                         if (hitPiece || notOpposing)
                         {
                             break;
@@ -297,6 +311,21 @@ namespace backend.Game
 
 
         }
+        private int KillPiece(int deletingX, int deletingY)
+        {
+            int killedPiece = this._field[deletingY][deletingX].pieceId;
+
+            if (this._field[deletingY][deletingX].pieceColor == "white")
+            {
+                this._pieces.white.GetValueOrDefault(killedPiece)?.Die();
+            }
+            else
+            {
+                this._pieces.black.GetValueOrDefault(killedPiece)?.Die();
+            }
+            this._field[deletingY][deletingX].ClearPiece();
+            return killedPiece;
+        }
         public bool DoMove(int pieceId, Position newPosition, out List<Position> killStreakMoves, out string errorMessage)
         {
             Piece? piece;
@@ -334,12 +363,9 @@ namespace backend.Game
                 return false;
             }
 
-            this._field[piece.position.y][piece.position.x].containsPiece = false;
-            this._field[piece.position.y][piece.position.x].piece = null;
+            this._field[piece.position.y][piece.position.x].ClearPiece();
 
-            this._field[newPosition.y][newPosition.x].containsPiece = true;
-            this._field[newPosition.y][newPosition.x].piece = piece;
-
+            this._field[newPosition.y][newPosition.x].SetPiece(piece.id, piece.color);
             int killedPiece = -1;
             bool pieceUpgraded = false;
             if (piece.isKing)
@@ -356,10 +382,7 @@ namespace backend.Game
                     int deletingY = piece.position.y + (yOffset * multiplier);
                     if (this._field[deletingY][deletingX].containsPiece)
                     {
-                        killedPiece = this._field[deletingY][deletingX].piece?.id ?? -1;
-                        this._field[deletingY][deletingX].containsPiece = false;
-                        this._field[deletingY][deletingX].piece?.Die();
-                        this._field[deletingY][deletingX].piece = null;
+                        killedPiece = KillPiece(deletingX, deletingY);
                         break;
                     }
                 }
@@ -372,13 +395,7 @@ namespace backend.Game
                     int yDiff = newPosition.y - piece.position.y;
                     int deletingX = piece.position.x + (xDiff / 2);
                     int deletingY = piece.position.y + (yDiff / 2);
-
-                    killedPiece = this._field[deletingY][deletingX].piece?.id ?? -1;
-    
-                    this._field[deletingY][deletingX].containsPiece = false;
-                    this._field[deletingY][deletingX].piece?.Die();
-                    this._field[deletingY][deletingX].piece = null;
-
+                    killedPiece = KillPiece(deletingX, deletingY);
                 }
 
                 if (piece.color == "white" && newPosition.y == this._fieldDimensions - 1)
@@ -492,27 +509,31 @@ namespace backend.Game
                     case PermissionRequest.Exit:
                         break;
                 }
-                _permissionRequest = PermissionRequest.Nothing;
-                _permissionRequestee = "";
-
-                Response requestAnswer = new Response(ResponseTypes.PermissionRequestAnswered,
-                    new ResponseParam(ResponseKeys.REQUEST_ANSWER, accepted.ToString())
-                    );
-                Response sync = new Response(ResponseTypes.Sync, 
-                    new ResponseParam(ResponseKeys.GAME_STATE, GetGameState())
-                    );
-                
-                if (this._player1.Id == cid)
-                {
-                    _player2?.Socket?.sendMessage(requestAnswer.ResponseMessage);
-                    _player2?.Socket?.sendMessage(sync.ResponseMessage);
-                }
-                else
-                {
-                    _player1.Socket?.sendMessage(requestAnswer.ResponseMessage);
-                    _player1.Socket?.sendMessage(sync.ResponseMessage);
-                }
             }
+
+
+
+            _permissionRequest = PermissionRequest.Nothing;
+            _permissionRequestee = "";
+
+            Response requestAnswer = new Response(ResponseTypes.PermissionRequestAnswered,
+                new ResponseParam(ResponseKeys.REQUEST_ANSWER, accepted.ToString())
+                );
+            Response sync = new Response(ResponseTypes.Sync,
+                new ResponseParam(ResponseKeys.GAME_STATE, GetGameState())
+                );
+
+            if (this._player1.Id == cid)
+            {
+                _player2?.Socket?.sendMessage(requestAnswer.ResponseMessage);
+                _player2?.Socket?.sendMessage(sync.ResponseMessage);
+            }
+            else
+            {
+                _player1.Socket?.sendMessage(requestAnswer.ResponseMessage);
+                _player1.Socket?.sendMessage(sync.ResponseMessage);
+            }
+
 
         }
         public void Undo()
@@ -533,18 +554,15 @@ namespace backend.Game
                 {
                     return;
                 }
-                this._field[piece.position.y][piece.position.x].containsPiece = false;
-                this._field[piece.position.y][piece.position.x].piece = null;
+                this._field[piece.position.y][piece.position.x].ClearPiece();
                 piece.position = lastMove.start;
-                this._field[lastMove.start.y][lastMove.start.x].containsPiece = true;
-                this._field[lastMove.start.y][lastMove.start.x].piece = piece;
+                this._field[lastMove.start.y][lastMove.start.x].SetPiece(piece.id, piece.color);
 
 
                 Piece? killedPiece = this.findPieceInGamefield(lastMove.killedPieceId);
                 if (killedPiece !=null)
                 {
-                    this._field[killedPiece.position.y][killedPiece.position.x].containsPiece = true;
-                    this._field[killedPiece.position.y][killedPiece.position.x].piece = killedPiece;
+                    this._field[killedPiece.position.y][killedPiece.position.x].SetPiece(killedPiece.id, killedPiece.color);
                     killedPiece.UnDie();
                 }
                 if (lastMove.pieceUpgraded)
@@ -573,18 +591,15 @@ namespace backend.Game
                 {
                     return;
                 }
-                this._field[piece.position.y][piece.position.x].containsPiece = false;
-                this._field[piece.position.y][piece.position.x].piece = null;
+                this._field[piece.position.y][piece.position.x].ClearPiece();
                 piece.position = nextMove.end;
-                this._field[nextMove.end.y][nextMove.end.x].containsPiece = true;
-                this._field[nextMove.end.y][nextMove.end.x].piece = piece;
+                this._field[nextMove.end.y][nextMove.end.x].SetPiece(piece.id, piece.color);
 
 
                 Piece? killedPiece = this.findPieceInGamefield(nextMove.killedPieceId);
                 if (killedPiece != null)
                 {
-                    this._field[killedPiece.position.y][killedPiece.position.x].containsPiece = false;
-                    this._field[killedPiece.position.y][killedPiece.position.x].piece = null;
+                    this._field[killedPiece.position.y][killedPiece.position.x].ClearPiece();
                     killedPiece.Die();
                 }
                 if (nextMove.pieceUpgraded)
@@ -615,7 +630,6 @@ namespace backend.Game
             {
                 var gameState = new
                 {
-                    _gameId = _id+clientId,
                     _fieldDimensions,
                     _playerNames = new
                     {
@@ -632,7 +646,22 @@ namespace backend.Game
 
                 return JsonSerializer.Serialize(new
                 {
-                    gameState,
+                    gameState = new
+                    {
+                        _gameId = _id,
+                        _fieldDimensions,
+                        _playerNames = new
+                        {
+                            white = _player1.Color == "white" ? _player1.Name : _player2.Name,
+                            black = _player1.Color == "white" ? _player2.Name : _player1.Name,
+                        },
+                        _history,
+                        _pieces,
+                        _currentPlayer,
+                        _gameOver,
+                        _draw,
+                        _permissionRequest = (int)_permissionRequest
+                    },
                     hash = JsonSerializer.Serialize(gameState).HashGameState()
                 });
             }
@@ -652,7 +681,8 @@ namespace backend.Game
                 _currentPlayer,
                 _gameOver,
                 _draw,
-                _permissionRequest = (int)_permissionRequest
+                _permissionRequest = (int)_permissionRequest,
+                _singlePlayer
             });
         }
         public void AddClient(string id, WebSocket socket, out string color, string name = "Bob")
@@ -667,36 +697,22 @@ namespace backend.Game
 
             _ = _player1.Socket.sendMessage(response.ResponseMessage);
         }
-        public bool HasPlayer(string playerId, out string opponent)
+        public bool GetOpponentCid(string playerId, out Client? opponent)
         {
             if(_player1.Id == playerId)
             {
-                opponent = _player2?.Id ?? "";
+                opponent = _player2;
             }
             else if(_player2?.Id == playerId)
             {
-                opponent = _player1.Id;
+                opponent = _player1;
             }
             else
             {
-                opponent = "";
+                opponent = null;
                 return false;
             }
             return true;
-        }
-        public void SendSync(string playerId)
-        {
-            Response response = new Response(ResponseTypes.Sync,
-                    new ResponseParam(ResponseKeys.GAME_STATE, this.GetGameState())
-                   );
-            if (_player1.Id == playerId)
-            {
-                _player1.Socket?.sendMessage(response.ResponseMessage);
-            }
-            else
-            {
-                _player2?.Socket?.sendMessage(response.ResponseMessage);
-            }
         }
         public bool RemoveClient(string clientId)
         {
@@ -772,24 +788,7 @@ namespace backend.Game
         public void SendExitRequest(string clientId)
         {
             Response response = new Response(ResponseTypes.ExitRequest);
-
-            if(clientId == _player1.Id)
-            {
-                if (_player2 == null)
-                    return;
-                if(!_player2.Disconnected)
-                {
-                    _player2.Socket?.sendMessage(response.ResponseMessage);
-                }
-                
-            }
-            else
-            {
-                if(!_player1.Disconnected)
-                {
-                    _player1.Socket?.sendMessage(response.ResponseMessage);
-                }
-            }
+            SendOpponentMessage(clientId, response);
             this.RemoveClient(clientId);
         }
         public void AddSocketToLoadedGame(WebSocket socket)
@@ -798,6 +797,44 @@ namespace backend.Game
             this._player2 = new Client("", socket, this._playerNamesTemp.black, "black");
         }
        
+        public void RenamePlayer(string identifier, string newName, bool idIsColor=false)
+        {
+            if((idIsColor ? _player1.Color : _player1.Id) == identifier)
+            {
+                _player1.Rename(newName);
+            }
+            else
+            {
+                _player2?.Rename(newName);
+            }
+        }
+
+        public void SendOpponentMessage(string currentPlayerId, Response message)
+        {
+            if(_player1.Id == currentPlayerId)
+            {
+                _player2?.Socket?.sendMessage(message.ResponseMessage);
+            }
+            else
+            {
+                _player1.Socket?.sendMessage(message.ResponseMessage);
+            }
+        }
+        public void SendOpponentMessage(string currentPlayerId, ResponseTypes response)
+        {
+            Response message = new Response(ResponseTypes.NoResponse);
+            switch (response)
+            {
+                case ResponseTypes.Sync:
+                    message = new Response(ResponseTypes.Sync,
+                    new ResponseParam(ResponseKeys.GAME_STATE, this.GetGameState())
+                    );
+                    break;
+                default:
+                    break;
+            }
+            this.SendOpponentMessage(currentPlayerId, message);
+        }
         
     }
 }
