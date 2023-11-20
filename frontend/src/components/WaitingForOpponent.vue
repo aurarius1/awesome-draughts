@@ -6,7 +6,7 @@ import {FontAwesomeIcon} from "@fortawesome/vue-fontawesome";
 import FontAwesomeBtn from "@/components/Buttons/FontAwesomeBtn.vue";
 
 export default defineComponent({
-  name: "WaitingForOponent",
+  name: "WaitingForOpponent",
   components: {FontAwesomeBtn, FontAwesomeIcon, VFontAwesomeBtn},
   setup() {
     const colorStore = useColorStore();

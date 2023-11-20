@@ -4,7 +4,6 @@ export enum LeaveTypes {
     saveRemote  = 2,
     noLeave     = -1
 }
-
 export enum PermissionRequest
 {
     Nothing = 0,
@@ -13,6 +12,4 @@ export enum PermissionRequest
     Draw = 3,
     Exit = 4
 }
-
-
 

@@ -1,15 +1,7 @@
 import {PermissionRequest} from "@/globals.ts";
 
-
 export {Game}
-export type {Position, History, PieceColor}
-
-
-
-type History = {
-    moves: Array<Move>,
-    revertedMoves: Array<Move>
-}
+export type {Position, PieceColor, PlayerNames}
 
 type Move = {
     pieceId: number,
@@ -18,43 +10,32 @@ type Move = {
     killedPieceId: number,
     pieceUpgraded: boolean
 }
-
 type Position = {
     x: number,
     y: number,
 }
-
-
-export type PlayerNames = {
+type PlayerNames = {
     [key: string]: string
 }
-
-
 type PieceColor = "black"|"white"
-
-
 type ApiPiece = {
     id: number,
     isKing: boolean,
     isAlive: boolean,
-    color: 'white'|'black',
+    color: PieceColor,
     position: Position
 }
-
 type ApiField = {
     position: Position,
     containsPiece: boolean,
     pieceId: number,
     pieceColor: PieceColor
 }
-
 type ApiGameField = Array<Array<ApiField>>
-
 type ApiPieces = {
     white: Array<ApiPiece>,
     black: Array<ApiPiece>
 }
-
 type ApiHistory = {
     moves: Array<Move>,
     revertedMoves: Array<Move>
@@ -65,7 +46,7 @@ export interface ApiGame {
     _field: ApiGameField
     _pieces: ApiPieces
     _history: ApiHistory
-    _currentPlayer: 'white' | 'black'
+    _currentPlayer: PieceColor
     _fieldDimensions: number
     _playerNames: PlayerNames,
     _gameOver: boolean,
@@ -74,14 +55,14 @@ export interface ApiGame {
     _singlePlayer: boolean
 }
 
-export class ServerGame implements ApiGame
+class Game implements ApiGame
 {
     public _gameId: string = ""
-    public _field: ApiGameField
-    public _pieces: ApiPieces
-    public _history: History
-    public _currentPlayer: 'white' | 'black'
-    public _fieldDimensions: number
+    public _field!: ApiGameField
+    public _pieces!: ApiPieces
+    public _history!: ApiHistory
+    public _currentPlayer!: PieceColor
+    public _fieldDimensions!: number
     public _gameOver: boolean = false
     public _draw: boolean = false
     public _playerNames: PlayerNames = {
@@ -93,11 +74,9 @@ export class ServerGame implements ApiGame
     public _ownColor: string  = ""
     public _cid: string= ""
 
-
     public _validMoves: Array<Position> = []
-    public isOnKillstreak: boolean = false
+    public _isOnKillstreak: boolean = false
     public _selectedPiece: number = -1
-
     public _permissionRequest: PermissionRequest = PermissionRequest.Nothing
 
     constructor(
@@ -123,11 +102,28 @@ export class ServerGame implements ApiGame
         {
             this._fieldDimensions = fieldDimensions;
         }
+        else
+        {
+            this._fieldDimensions = 10
+        }
         this._singlePlayer = isLocalGame;
         this._ownColor = ownColor;
         this._playerNames[ownColor] = playerName;
         this._gameId = gid
         this._cid = cid
+
+        this._field = []
+        this._pieces = {
+            white: [],
+            black: []
+        }
+        this._history = {
+            moves: [],
+            revertedMoves: [],
+        }
+        this._currentPlayer = "white"
+
+
     }
 
     public loadGameState(state: ApiGame)
@@ -175,7 +171,7 @@ export class ServerGame implements ApiGame
 
     public setKillstreak(onKillstreak: boolean)
     {
-        this.isOnKillstreak = onKillstreak;
+        this._isOnKillstreak = onKillstreak;
     }
 
     public setPermissionRequest(request: PermissionRequest)

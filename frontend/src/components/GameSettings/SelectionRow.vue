@@ -1,13 +1,12 @@
 <script lang="ts">
 import {defineComponent, StyleValue} from 'vue'
-import {PlayerNames} from "@/draughts";
 import NameField from "@/components/TextFields/NameField.vue";
 
 export default defineComponent({
   name: "SelectionRow",
   components: {NameField},
   emits: {
-    playerNameChanged(playerType: string, playerName: string){
+    playerNameChanged(playerType: string, _: string){
       return playerType === "white" || playerType === "black";
     },
     switchPlayer(){
@@ -67,9 +66,7 @@ export default defineComponent({
     {
       if(this.remote)
       {
-        console.log("SWITCHING");
         this.$emit('switchPlayer');
-        console.log(this.player);
       }
 
     }

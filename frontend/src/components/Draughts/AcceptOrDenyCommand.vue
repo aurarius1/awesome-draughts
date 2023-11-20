@@ -1,9 +1,9 @@
 <script lang="ts">
 import {defineComponent, PropType} from 'vue'
-import VFontAwesomeBtn from "@/components/Buttons/VFontAwesomeBtn.vue";
-import {useGameStore} from "@/store";
-import {PermissionRequest} from "@/globals.ts";
-import colors from 'vuetify/lib/util/colors'
+import VFontAwesomeBtn from "@/components/Buttons/VFontAwesomeBtn.vue"
+import {useGameStore} from "@/store"
+import {PermissionRequest} from "@/globals.ts"
+import colors from "@/VuetifyColors.ts"
 
 export default defineComponent({
   name: "AcceptOrDenyCommand",
@@ -17,7 +17,6 @@ export default defineComponent({
   computed: {
     requestQuestion(){
       let param = ""
-      console.log(this.request);
       switch(this.request)
       {
         case PermissionRequest.Undo:
@@ -32,7 +31,6 @@ export default defineComponent({
         default:
           return ""
       }
-      console.log(param)
       return this.$t('moves.request', {request: param})
     }
   },

@@ -2,8 +2,7 @@
 import {defineComponent} from 'vue'
 import VFontAwesomeBtn from "@/components/Buttons/VFontAwesomeBtn.vue";
 import FontAwesomeBtn from "@/components/Buttons/FontAwesomeBtn.vue";
-import GameSettings from "@/components/GameSettings/GameSettings.vue";
-import RemoteGameSettings from "@/components/GameSettings/RemoteGameSettings.vue";
+import GameSettings from "./GameSettings.vue";
 
 export default defineComponent({
   name: "GameSettingsDialog",

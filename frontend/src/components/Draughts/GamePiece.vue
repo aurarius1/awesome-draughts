@@ -1,7 +1,7 @@
 <script lang="ts">
 import {PropType, StyleValue} from "vue";
 import {useColorStore, useGameStore} from "@/store";
-import {Position} from "@draughts/Game.ts";
+import {Position} from "@/draughts/Game.ts";
 import {FontAwesomeIcon} from "@fortawesome/vue-fontawesome";
 
 export default defineComponent({

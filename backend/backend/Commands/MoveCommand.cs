@@ -87,7 +87,10 @@ namespace backend.Commands
                             new ResponseParam(ResponseKeys.ERROR_MESSAGE, errorMessage)
                 );
             }
-            game.SendOpponentMessage(this._clientId, ResponseTypes.Sync);
+            if(!game.IsLocalGame())
+            {
+                game.SendOpponentMessage(this._clientId, ResponseTypes.Sync);
+            }
           
             if (killStreakMoves.Count > 0)
             {

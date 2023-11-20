@@ -23,9 +23,9 @@
   "redo": "Redo",
   "exit_dialog": {
     "title": "To save or not to save?",
-    "description": "If you want to save the game you have the option to do that on our server or locally (this will download a '.aw' file). If you do not want to keep your game state just hit 'exit' :)",
+    "description": "If you want to save the game you have the option to do that on our server or locally (this will download a '.mld' file). If you do not want to keep your game state just hit 'exit' :)",
     "tooltips": {
-      "save_local": "Downloads a '.aw' file",
+      "save_local": "Downloads a '.mld' file",
       "save_remote": "Save your game state on the server",
       "exit": "All unsaved data will be lost"
     },
@@ -36,14 +36,14 @@
   "leave_game": "Leave",
   "load_dialog": {
     "title": "Load saved game",
-    "description": "If you want to load your game you have the option to do that from our server or from a local '.aw' file. :)",
+    "description": "If you want to load your game you have the option to do that from our server or from a local '.mld' file. :)",
     "tooltips": {
       "back_btn": "Go back to load selection",
-      "load_local": "Upload a '.aw' file",
+      "load_local": "Upload a '.mld' file",
       "load_remote": "Select one of your remotely stored game states"
     },
     "load": "Load",
-    "upload_gamestate": "Upload your '.aw' file..."
+    "upload_gamestate": "Upload your '.mld' file..."
   },
   "game_settings_dialog": {
     "title": "Game Settings",
@@ -95,7 +95,7 @@
       "request_denied": "Your request has been denied!"
     },
     "error": {
-      "gamestate_invalid": "Your uploaded game state was invalid. Please supply a valid '.aw' file :)",
+      "gamestate_invalid": "Your uploaded game state was invalid. Please supply a valid '.mld' file :)",
       "on_kill_streak": "You're currently on a kill streak, you need to finish it before doing other moves! :)",
       "something_went_wrong": "Something went wrong",
       "game_save_invalid": "Your save state couldn't be validated.",

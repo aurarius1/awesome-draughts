@@ -13,7 +13,7 @@ import * as components from 'vuetify/components'
 import * as directives from 'vuetify/directives'
 
 
-import {createRouter, createWebHashHistory, createWebHistory} from "vue-router";
+import {createRouter, createWebHistory} from "vue-router";
 import { TinyEmitter } from 'tiny-emitter';
 import {i18n} from "@/lang";
 
@@ -23,13 +23,12 @@ import TitleScreen from "@/components/TitleScreen.vue";
 import Settings from "@/components/Settings.vue";
 import Game from "@/components/Game.vue";
 
-
 /* import the fontawesome core */
 import { library } from '@fortawesome/fontawesome-svg-core'
 /* import font awesome icon component */
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 /* import specific icons */
-import {faCheckCircle, faSun as farSun}  from '@fortawesome/free-regular-svg-icons'
+import {faCheckCircle as farCheckCircle, faSun as farSun}  from '@fortawesome/free-regular-svg-icons'
 import {
     faLanguage,
     faHome,
@@ -60,10 +59,10 @@ import {
 import Toast, {PluginOptions} from "vue-toastification";
 // Import the CSS or use your own!
 import "vue-toastification/dist/index.css";
-import WaitingForOponent from "@/components/WaitingForOponent.vue";
+import WaitingForOpponent from "@/components/WaitingForOpponent.vue";
 import JoinGame from "@/components/JoinGame.vue";
 
-library.add(faCheckCircle,
+library.add(farCheckCircle,
     faLanguage, faHome, fasSun,
     farSun,faSignOutAlt, faClose,
     faPaperclip, faArrowLeft, faUndo,
@@ -97,7 +96,7 @@ export const router = createRouter({
         {
             path: "/waiting",
             name: "waiting",
-            component: WaitingForOponent,
+            component: WaitingForOpponent,
         },
         {
             path: "/join/:gid",
@@ -145,7 +144,7 @@ app.use(router)
 
 const toastOptions: PluginOptions = {
     transition: "Vue-Toastification__bounce",
-    maxOpened: 20,
+    maxToasts: 20,
     newestOnTop: true
 }
 app.use(Toast, toastOptions);

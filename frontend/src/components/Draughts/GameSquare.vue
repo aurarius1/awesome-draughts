@@ -1,9 +1,9 @@
 <script lang="ts">
 import {defineComponent} from 'vue'
-import colors from 'vuetify/lib/util/colors'
+import colors from "@/VuetifyColors.ts"
 import GamePiece from "@/components/Draughts/GamePiece.vue";
-import {isPlayableField, positionEqual} from "@/draughts";
-import {Position} from "@draughts/Game.ts";
+import {isPlayableField} from "@/draughts";
+import {Position} from "@/draughts/Game.ts";
 import {useGameStore} from "@/store";
 
 export default defineComponent({
@@ -16,7 +16,7 @@ export default defineComponent({
     return {getColorStore: colorStore, toast};
   },
   emits: {
-    moveSelectedTo(gameSquarePos: Position){
+    moveSelectedTo(_: Position){
         return true;
     }
   },
@@ -59,7 +59,7 @@ export default defineComponent({
     },
     highlight() {
       const gameStore = useGameStore();
-      return gameStore._currentApiGame?._validMoves.find((field) => {
+      return gameStore._currentApiGame?._validMoves.find((field: Position) => {
         return field.x === this.position?.x && field.y === this.position?.y
       })
     }

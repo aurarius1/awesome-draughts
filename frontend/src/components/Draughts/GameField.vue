@@ -5,7 +5,6 @@ import GamePiece  from "@/components/Draughts/GamePiece.vue";
 import {
   positionEqual,
   Position,
-  PlayerNames,
   PieceColor
 } from "@/draughts";
 import {PropType, StyleValue} from "vue";

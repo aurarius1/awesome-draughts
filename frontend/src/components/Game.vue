@@ -21,7 +21,8 @@ export default defineComponent({
   {
     const colorStore = useColorStore();
     const toast = useToast();
-    return {getColorStore: colorStore, toast}
+    const gameStore = useGameStore();
+    return {getColorStore: colorStore, toast, gameStore}
   },
   created(){
 
@@ -30,8 +31,6 @@ export default defineComponent({
       this.endGameDialogText = "draw"
       this.endGameDialogTextLocalization = true
     })
-
-
     this.$emitter.on("opponentExited", () => {
       this.playerWantsToLeave = true;
     });
@@ -51,6 +50,10 @@ export default defineComponent({
     }
   },
   methods: {
+    getGameStore()
+    {
+      return this.gameStore;
+    },
     leaveGame(){
       this.exitType = LeaveTypes.exit
     },
@@ -58,11 +61,10 @@ export default defineComponent({
         return this.getColorStore.currentColor[color]
     },
     getPlayerName: function (player: string = "") {
-      const gameStore = useGameStore();
       if (player === "") {
-        player = this.currentPlayer
+        player = this.currentPlayer ?? ""
       }
-      return gameStore.currentGame?._playerNames[player];
+      return this.getGameStore().currentGame?._playerNames[player];
     },
     gameOver(winner: string) {
       this.endGameDialogText = this.$t(`player.wins`, {name: this.getPlayerName(winner)})
@@ -85,17 +87,14 @@ export default defineComponent({
       }
     },
     currentPlayer() {
-      const gameStore = useGameStore();
-      return gameStore._currentApiGame?._currentPlayer
+      return this.getGameStore()._currentApiGame?._currentPlayer
     },
     endGameDialogVisible(){
-      const gameStore = useGameStore();
-      return gameStore.currentGame?._gameOver ?? false
+      return this.getGameStore().currentGame?._gameOver ?? false
     },
     waitingForResponse()
     {
-      const gameStore = useGameStore()
-      return gameStore.requestSent
+      return this.getGameStore().requestSent
     }
   }
 })
@@ -131,6 +130,13 @@ export default defineComponent({
         @leave-request="playerWantsToLeave=true"
         :dimensions-in-px="dimensions"
         :border-thickness="borderThickness"
+        v-if="getGameStore().currentGame !== undefined"
+      />
+      <v-progress-circular
+        :indeterminate="true"
+        width="8"
+        size="100"
+        v-else
       />
     </div>
   </div>

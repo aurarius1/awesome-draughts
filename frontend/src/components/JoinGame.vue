@@ -57,7 +57,7 @@ export default defineComponent({
       <v-card-text>
         <name-field
           :name="name"
-          @updated="(value: string) => {console.log(value); name=value}"
+          @updated="(value: string) => {name=value}"
         />
       </v-card-text>
       <v-card-actions

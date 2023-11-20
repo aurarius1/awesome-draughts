@@ -23,9 +23,9 @@
   "redo": "Redo",
   "exit_dialog": {
     "title": "Speichern oder nicht speichern?",
-    "description": "Wenn du das Spiel speichern möchten, hast du die Möglichkeit, dies auf unserem Server oder lokal zu tun (dadurch wird eine '.aw'-Datei heruntergeladen). Wenn du deinen Spielstatus nicht behalten möchten, klick einfach auf 'Beenden' :)",
+    "description": "Wenn du das Spiel speichern möchten, hast du die Möglichkeit, dies auf unserem Server oder lokal zu tun (dadurch wird eine '.mld'-Datei heruntergeladen). Wenn du deinen Spielstatus nicht behalten möchten, klick einfach auf 'Beenden' :)",
     "tooltips": {
-      "save_local": "Lädt eine '.aw' Datei herunter",
+      "save_local": "Lädt eine '.mld' Datei herunter",
       "save_remote": "Speichert deinen Spielstatus auf unserem Server",
       "exit": "Alle nicht gespeicherten Daten gehen verloren"
     },
@@ -36,14 +36,14 @@
   "leave_game": "Verlassen",
   "load_dialog": {
     "title": "Lade gespeichertes Spiel",
-    "description": "Wenn du dein Spiel laden möchten, hast du die Möglichkeit, dies von unserem Server oder von einer lokalen '.aw'-Datei zu tun. :) ",
+    "description": "Wenn du dein Spiel laden möchten, hast du die Möglichkeit, dies von unserem Server oder von einer lokalen '.mld'-Datei zu tun. :) ",
     "tooltips": {
       "back_btn": "Zurück zum Ladebildschirm",
-      "load_local": "Eine '.aw' Datei hochladen",
+      "load_local": "Eine '.mld' Datei hochladen",
       "load_remote": "Wähle einen auf dem Server gespeicherten Spielstände aus"
     },
     "load": "Laden",
-    "upload_gamestate": "'.aw' Datei hochladen..."
+    "upload_gamestate": "'.mld' Datei hochladen..."
   },
   "game_settings_dialog": {
     "title": "Spieleinstellungen",
@@ -97,7 +97,7 @@
       "request_denied": "Deine Anfrage wurde abgelehnt!"
     },
     "error": {
-      "gamestate_invalid": "Dein hochgeladener Spielstatus war ungültig. Bitte gib eine gültige '.aw'-Datei an :)",
+      "gamestate_invalid": "Dein hochgeladener Spielstatus war ungültig. Bitte gib eine gültige '.mld'-Datei an :)",
       "on_kill_streak": "Du befindest dich gerade in einer Kill Streak, du musst diese beenden, bevor du andere Moves ausführen kannst! :)",
       "something_went_wrong": "Etwas ist schief gelaufen.",
       "game_save_invalid": "Dein Spielstand konnte nicht validiert werden.",

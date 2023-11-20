@@ -94,6 +94,10 @@ export default defineComponent({
     },
     localGame(){
       return this.getGameStore().currentGame?._singlePlayer ?? true;
+    },
+    playerNameInfo()
+    {
+      return this.$t(`player.${this.activePlayer}`, {name: this.activePlayerName})
     }
 
   }
@@ -116,7 +120,7 @@ export default defineComponent({
             sm="6"
             class="text-sm-body-1"
         >
-          {{ $t(`player.${activePlayer}`, {name: activePlayerName}) }}
+          {{ playerNameInfo }}
         </v-col>
         <v-col
           class="ml-dialog-title-btn-group"
@@ -140,8 +144,7 @@ export default defineComponent({
       </v-row>
     </v-card-title>
     <v-card-text
-        class="grow"
-
+        class="grow mt-4"
     >
       <settings
           col-size="12"
@@ -237,7 +240,7 @@ export default defineComponent({
 
 .ml-game-info-card{
   width: 100%;
-  box-shadow: 0px 0px 32px 2px rgba(54,54,54,1);
+  box-shadow: 0 0 32px 2px rgba(54,54,54,1);
 
   .ml-game-info-card-content{
     width: 100%;

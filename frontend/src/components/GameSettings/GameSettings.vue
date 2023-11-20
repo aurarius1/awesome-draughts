@@ -1,9 +1,14 @@
 <script lang="ts">
-import {defineComponent, renderList} from 'vue'
-import {PlayerNames} from "@/draughts";
-import {PropType} from "vue";
+import {defineComponent, renderList, PropType} from 'vue'
 import {useGameStore} from "@/store";
-import SelectionRow from "@/components/GameSettings/SelectionRow.vue";
+import {PieceColor, PlayerNames} from "@/draughts"
+import SelectionRow from "./SelectionRow.vue";
+
+type GameSettingsData = {
+  player: PieceColor,
+  _playerNames: PlayerNames
+}
+
 
 export default defineComponent({
   name: "GameSettings",
@@ -23,7 +28,7 @@ export default defineComponent({
             this.$emit("startNotPossible");
             return;
           }
-          gameStore.startNewGame(10, this._playerNames)
+          gameStore.startNewGame(this._playerNames)
           this.$router.replace('game')
         }
         else
@@ -78,7 +83,7 @@ export default defineComponent({
       default: false,
     }
   },
-  data(){
+  data(): GameSettingsData{
     return{
       player: "white",
       _playerNames: this.playerNames

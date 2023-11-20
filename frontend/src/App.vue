@@ -1,7 +1,6 @@
 
 <script lang="ts">
 import { useTheme } from 'vuetify'
-import {useGameStore} from "@/store";
 import {useRoute} from "vue-router";
 
 export default defineComponent({
@@ -18,9 +17,11 @@ export default defineComponent({
   {
     this.getVuetifyTheme.global.name.value = this.getThemeStore.currentTheme;
     this.$i18n.locale = this.getLanguageStore.currentLanguage;
-    if(this.$router.currentRoute.path === "/game")
+
+    const route = useRoute()
+    if(route.path === "/game")
     {
-      window.onbeforeunload = (event) => {
+      window.onbeforeunload = () => {
         return "";
       }
     }

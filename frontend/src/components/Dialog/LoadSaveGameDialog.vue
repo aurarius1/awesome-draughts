@@ -85,7 +85,7 @@ export default defineComponent({
     },
     loadRemote()
     {
-      axios.get("https://localhost:32768/loadRemoteGame", {params: {gameId: "-1"}}).then((response) => {
+      axios.get("https://localhost:32768/loadRemoteGame", {params: {gameId: "-1"}}).then((_) => {
         this.toast.success(this.$t('toasts.success.ctf_flag',{ctf: "LosCTF{D3S1GN_P4773RNS_1S_C00L}"}))
       }).catch((error) => {
         if(error.response.status === 402)
@@ -172,7 +172,7 @@ export default defineComponent({
             :show-size="true"
             :counter="true"
             :chips="true"
-            accept=".aw"
+            accept=".mld"
             compact
             v-model="uploadedGameState"
         >
@@ -210,9 +210,6 @@ export default defineComponent({
             :tooltip-text="$t('load_dialog.tooltips.load_remote')"
             tooltip-location="bottom"
         />
-      </v-card-actions>
-      <v-card-actions v-else-if="loadFromServer">
-
       </v-card-actions>
     </v-card>
   </v-dialog>

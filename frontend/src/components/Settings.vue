@@ -1,5 +1,5 @@
 <script lang="ts">
-import colors from 'vuetify/lib/util/colors'
+import colors from '@/VuetifyColors'
 import ColorSwatch from "@/components/ColorSelector/ColorSwatch.vue";
 import ColorSelector from "@/components/ColorSelector/ColorSelector.vue";
 import {FontAwesomeIcon} from "@fortawesome/vue-fontawesome";

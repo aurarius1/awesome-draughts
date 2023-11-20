@@ -4,7 +4,7 @@ import {defineComponent} from "vue";
 export default defineComponent({
   name: "NameField",
   emits: {
-    updated(value: string){
+    updated(_: string){
       return true
     }
   },

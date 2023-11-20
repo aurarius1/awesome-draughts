@@ -1,5 +1,5 @@
 <script lang="ts">
-import {useColorStore, useGameStore} from "@/store";
+import {useColorStore} from "@/store";
 import LoadSaveGameDialog from "@/components/Dialog/LoadSaveGameDialog.vue";
 import gameField from "@/components/Draughts/GameField.vue";
 import GameSettingsDialog from "@/components/GameSettings/GameSettingsDialog.vue";
