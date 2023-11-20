@@ -26,8 +26,6 @@ export default defineComponent({
       gameSettingsDialogVisible: false,
     }
   },
-  methods: {
-  }
 })
 </script>
 
@@ -36,13 +34,10 @@ export default defineComponent({
       :visible="loadDialogVisible"
       @update-visible="(newValue) => loadDialogVisible = newValue"
   />
-
   <game-settings-dialog
       :visible="gameSettingsDialogVisible"
       @close-me="gameSettingsDialogVisible=false"
   />
-
-
   <v-container>
 
     <v-row

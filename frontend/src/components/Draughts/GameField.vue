@@ -2,7 +2,11 @@
 import GameSquare from "@/components/Draughts/GameSquare.vue";
 import GamePiece  from "@/components/Draughts/GamePiece.vue";
 
-import Game, {positionEqual, Position, PlayerNames} from "@/draughts";
+import {
+  positionEqual,
+  Position,
+  PieceColor
+} from "@/draughts";
 import {PropType, StyleValue} from "vue";
 import {useGameStore} from "@/store";
 import {LeaveTypes} from "@/globals.ts"
@@ -13,122 +17,19 @@ export default defineComponent({
   setup()
   {
     const colorStore = useColorStore()
+    const gameStore = useGameStore()
     const toast = useToast()
 
-    return {getColorStore: colorStore, toast}
+    return {getColorStore: colorStore, toast, gameStore}
   },
   emits: {
-    playerSwitched(payload: string)
-    {
-      return payload === "white" || payload === "black"
-    },
-    redoPossible(payload: boolean)
-    {
-      return true
-    },
-    undoPossible(payload: boolean)
-    {
-      return true
-    },
-    undoServed(payload: string){
-      return payload === "white" || payload === "black"
-    },
-    redoServed(payload: string)  {
-      return payload === "white" || payload === "black"
-    },
-    gameOver(payload: string)
-    {
-      return payload === "white" || payload === "black"
-    },
-    playerNames(payload: PlayerNames)
-    {
-      return payload.white !== "" && payload.black !== ""
-    },
     dimensions(dimensionsInPx: number, borderThickness: number)
     {
       return dimensionsInPx > 0 && borderThickness > 0;
     }
   },
   created(){
-    this.$emitter.on('piece-selected', (piece: number) => {
-      if(this.isOnKillStreak)
-      {
-        return
-      }
-      this.currentlySelectedPiece = piece
-      this.$emitter.emit("highlight-field", this.gameState.getFieldsToHighlight(piece));
-    })
-
-
-    this.$emitter.on('player-name-changed', (player: string, name: string) => {
-      this.gameState.updatePlayerName(player, name)
-      this.$emit('playerNames', this.gameState.playerNames)
-    })
-
-    this.$emitter.on('draw', () => {
-      const gameStore = useGameStore()
-      gameStore.clear();
-    })
-
     this.$emit('dimensions', this.dimensionsInPx, this.borderThickness)
-
-  },
-  watch: {
-    leave(newVal)
-    {
-      const gameStore = useGameStore();
-      switch(newVal)
-      {
-        case LeaveTypes.saveLocal:
-          gameStore.endAndSave(false)
-          break
-        case LeaveTypes.saveRemote:
-          gameStore.endAndSave(true)
-          break
-        case LeaveTypes.exit:
-          gameStore.clear()
-          break
-        default:
-          return
-      }
-      this.$router.replace('/')
-    },
-    undoRequest(newVal)
-    {
-      if(!newVal){
-        return
-      }
-
-      if(this.isOnKillStreak)
-      {
-        this.toast.warning(this.$t('toasts.warning.undo_on_killstreak'))
-        this.$emit("undoServed", this.gameState.activePlayer)
-        return;
-      }
-
-      this.toast.info(this.$t('toasts.info.undo_successful'));
-      if(this.gameState.undoMove())
-      {
-        this.$emit('undoPossible', false)
-      }
-      this.$emit('redoPossible', true)
-      this.$emit("undoServed", this.gameState.activePlayer)
-
-    },
-    redoRequest(newVal)
-    {
-      if(!newVal){
-        return
-      }
-      this.toast.info(this.$t('toasts.info.redo_successful'));
-      if(this.gameState.redoMove())
-      {
-        this.$emit('redoPossible', false)
-      }
-      this.$emit('undoPossible', true)
-
-      this.$emit("redoServed", this.gameState.activePlayer)
-    }
   },
   props: {
     cardDimensions: {
@@ -155,23 +56,16 @@ export default defineComponent({
       default: false
     },
   },
-  data()
-  {
-    return {
-      _gameState: undefined as undefined|Game,
-      currentlySelectedPiece: -1,
-      isOnKillStreak: false
-    }
-  },
   beforeMount()
   {
-    const gameStore = useGameStore()
-    gameStore.startNewGame(this.fieldDimensions)
-
-    this.$emit('undoPossible', this.gameState.undoPossible())
-    this.$emit('redoPossible', this.gameState.redoPossible())
-    this.$emit('playerSwitched', this.gameState.activePlayer)
-    this.$emit('playerNames', this.gameState.playerNames)
+    const gameStore = useGameStore();
+    if(gameStore._currentApiGame === undefined && gameStore._currentGameId !== "")
+    {
+      gameStore.startWebSocket("");
+    }
+    window.onbeforeunload = function(){
+      return "";
+    }
   },
   computed: {
     dimensionsInPx(){
@@ -187,7 +81,6 @@ export default defineComponent({
         dim = Math.floor(document.documentElement.clientWidth*scale*(2/3))
       }
       dim = dim - dim%this.fieldDimensions
-      console.log(dim)
       return dim
     },
     gameFieldStyle(): StyleValue{
@@ -225,88 +118,45 @@ export default defineComponent({
       }
     },
     gameField(){
-      return this.gameState.field
+      const gameStore = useGameStore();
+      return gameStore.currentGame?._field
     },
-    gameState(): Game{
+    currentlySelectedPiece()
+    {
       const gameStore = useGameStore()
-      if(gameStore.currentGame.fieldDimensions === -1)
-      {
-        gameStore.startNewGame(this.fieldDimensions)
-        this.$emit('playerNames', this.gameState.playerNames)
-        this.$emit('dimensions', this.dimensionsInPx)
-      }
-      return gameStore.currentGame
+      return gameStore.currentGame?._selectedPiece ?? -1
     }
   },
   methods: {
-    movePiece(targetPosition: Position, isHighlighted: Boolean)
+    movePiece(targetPosition: Position)
     {
-      let selectedPiecePosition = this.gameState.getPositionOfPiece(this.currentlySelectedPiece)
+
+      let selectedPiecePosition = this.gameStore.currentGame?.getPositionOfPiece(this.currentlySelectedPiece)
       if(selectedPiecePosition === undefined || positionEqual(selectedPiecePosition, targetPosition))
       {
         return
       }
-
-      if(!isHighlighted)
-      {
-        if(this.isOnKillStreak)
-        {
-          this.toast.error(this.$t('toasts.error.on_kill_streak'))
-        }
-        else
-        {
-          this.toast.warning(this.$t('toasts.warning.invalid_move'))
-        }
-        return
-      }
-      this.$emitter.emit('highlight-field', [])
-      let killStreakPossible = this.gameState.movePiece(this.currentlySelectedPiece, targetPosition)
-      if(killStreakPossible.length !== 0)
-      {
-        this.$emitter.emit('highlight-field', killStreakPossible)
-        this.isOnKillStreak = true
-        return;
-      }
-      else
-      {
-        this.isOnKillStreak = false
-      }
-
-
-
-      this.currentlySelectedPiece = -1
-
-      let winner = this.gameState?.isGameOver()
-
-      if(winner === this.gameState?.activePlayer)
-      {
-        const gameStore = useGameStore()
-        gameStore.clear()
-        this.$emit('gameOver', winner)
-        return;
-      }
-
-
-
-
-
-      this.gameState.switchActivePlayer();
-      this.$emit('undoPossible', true)
-      this.$emit('redoPossible', false)
-      this.$emit('playerSwitched', this.gameState.activePlayer ?? "");
+      this.gameStore.move(this.currentlySelectedPiece, targetPosition)
     },
     invalidSelect()
     {
       if(this.currentlySelectedPiece !== -1)
       {
         // no need to emit warning, different warning is already displayed
-
         return;
       }
-      this.toast.warning(this.$t("toasts.warning.not_your_turn"))
     },
     getColor(color: string = "base"){
       return this.getColorStore.currentColor[color]
+    },
+    getActivePlayer() {
+      return this.gameStore.currentGame?._currentPlayer;
+    },
+    isPieceKing(pieceColor: PieceColor, pieceId: number){
+      let apiGame  = this.gameStore.currentGame ?? undefined;
+      if(apiGame === undefined)
+        return false;
+      return apiGame._pieces[pieceColor][pieceId].isKing;
     }
   }
 })
@@ -334,18 +184,16 @@ export default defineComponent({
               :style="squareStyle"
               :position="col.position"
               @move-selected-to="movePiece"
-
           >
             <template v-slot:piece>
               <game-piece
                 v-if="col.containsPiece"
-                :color="col.piece?.color"
-                :piece-id="col.piece?.id"
-                :piece-position="col.piece?.position"
-                :active-player="gameState.activePlayer"
-                :is-king="col.piece?.isKing"
+                :color="col.pieceColor"
+                :piece-id="col.pieceId"
+                :piece-position="col.position"
+                :active-player="getActivePlayer()"
+                :is-king="isPieceKing(col.pieceColor, col.pieceId)"
                 :selected-piece="currentlySelectedPiece"
-                @invalid-select="invalidSelect()"
               />
             </template>
           </game-square>

@@ -1,7 +1,6 @@
 <script lang="ts">
-import {defineComponent, PropType, StyleValue} from 'vue'
+import {defineComponent, StyleValue} from 'vue'
 import {FontAwesomeIcon} from "@fortawesome/vue-fontawesome";
-import {FaSizes} from "./VFontAwesomeBtn.vue";
 
 export default defineComponent({
   name: "FontAwesomeBtn",

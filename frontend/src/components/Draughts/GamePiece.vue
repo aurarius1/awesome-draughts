@@ -1,7 +1,7 @@
 <script lang="ts">
 import {PropType, StyleValue} from "vue";
-import {useColorStore} from "@/store";
-import {Position} from "@draughts/Game.ts";
+import {useColorStore, useGameStore} from "@/store";
+import {Position} from "@/draughts/Game.ts";
 import {FontAwesomeIcon} from "@fortawesome/vue-fontawesome";
 
 export default defineComponent({
@@ -9,8 +9,9 @@ export default defineComponent({
   components: {FontAwesomeIcon},
   setup(){
     const colorStore = useColorStore();
+    const gameStore = useGameStore();
     const toast = useToast();
-    return {getColorStore: colorStore, toast};
+    return {getColorStore: colorStore, toast, gameStore};
   },
   emits: {
     pieceSelected(payload: number){
@@ -82,13 +83,7 @@ export default defineComponent({
   {
     selectPiece()
     {
-      if(this.activePlayer === this.color)
-      {
-        this.$emitter.emit('piece-selected', this.pieceId);
-      }
-      else {
-        this.$emit("invalidSelect")
-      }
+      this.gameStore.getValidMoves(this.pieceId);
     },
     getColor(type: string = "base")
     {

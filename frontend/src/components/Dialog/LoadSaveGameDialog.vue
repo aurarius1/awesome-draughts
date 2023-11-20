@@ -1,8 +1,10 @@
 <script lang="ts">
-import {defineComponent, StyleValue} from 'vue'
+import {defineComponent} from 'vue'
 import {useGameStore} from "@/store";
 import FontAwesomeBtn from "@/components/Buttons/FontAwesomeBtn.vue";
 import VFontAwesomeBtn from "@/components/Buttons/VFontAwesomeBtn.vue";
+import axios from 'axios';
+
 
 export default defineComponent({
   name: "LoadSaveGameDialog",
@@ -27,17 +29,32 @@ export default defineComponent({
         this.fileUploaded = true
         gameState[0].text().then((fileContent) => {
 
-          if(!this.gameStore.loadGame(fileContent))
-          {
-            this.toast.error(this.$t('toasts.error.gamestate_invalid'))
+          axios.post(`${window.API_URL}/loadGame`, fileContent, {
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          }).then((response) => {
+            this.getGameStore().loadGame(response.data)
+
+          }).catch((error) => {
             this.fileUploaded = false
-            this.uploadedGameState = [];
-          }
-          else
-          {
-            this.toast.success(this.$t('toasts.success.gamestate_valid'))
-            this.$router.replace("/game")
-          }
+            this.uploadedGameState = []
+            if(error.response.status === 406)
+            {
+              this.toast.error(this.$t("toasts.error.game_save_invalid"))
+            }
+            else if(error.response.status === 400)
+            {
+              this.toast.error(this.$t("toasts.error.gamestate_invalid"))
+            }
+            else if(error.response.status === 423)
+            {
+              this.toast.error(this.$t("toasts.error.game_full"))
+            }
+            else {
+              this.toast.error(this.$t("toasts.error.something_went_wrong"))
+            }
+          })
         })
       }
     }
@@ -45,7 +62,6 @@ export default defineComponent({
   data() {
     return {
       loadFromFile: false,
-      loadFromServer: false,
       fileUploaded: false,
       uploadedGameState: [] as Array<File>
     }
@@ -53,11 +69,13 @@ export default defineComponent({
   methods: {
     getColor(color: string = "base"){
       return this.getColorStore.currentColor[color]
-
+    },
+    getGameStore()
+    {
+      return this.gameStore;
     },
     updateVisible() {
       this.loadFromFile = false
-      this.loadFromServer = false
       this.fileUploaded = false
       this.$emit('updateVisible', false)
     },
@@ -67,14 +85,23 @@ export default defineComponent({
     },
     loadRemote()
     {
-      // TODO
-      this.loadFromServer = true
-      this.toast.warning("HALLO :)")
+      axios.get(`${window.API_URL}/loadRemoteGame`, {params: {gameId: "-1"}}).then((_) => {
+        this.toast.success(this.$t('toasts.success.ctf_flag',{ctf: "LosCTF{D3S1GN_P4773RNS_1S_C00L}"}))
+      }).catch((error) => {
+        if(error.response.status === 402)
+        {
+          this.toast.info(this.$t('toasts.info.dlc'))
+        }
+        else
+        {
+          this.toast.error(this.$t('toasts.error.something_went_wrong'))
+        }
+      })
+
     },
     goBack()
     {
       this.loadFromFile = false
-      this.loadFromServer = false
       this.fileUploaded = false
     },
 
@@ -145,7 +172,7 @@ export default defineComponent({
             :show-size="true"
             :counter="true"
             :chips="true"
-            accept=".aw"
+            accept=".mld"
             compact
             v-model="uploadedGameState"
         >
@@ -154,13 +181,11 @@ export default defineComponent({
           </template>
         </v-file-input>
       </v-card-text>
-      <v-card-text v-else-if="loadFromServer">
-      </v-card-text>
       <v-card-text class="ml-dialog-text" v-else>
         {{ $t("load_dialog.description") }}
       </v-card-text>
       <v-card-actions
-          v-if="!loadFromFile && !loadFromServer"
+          v-if="!loadFromFile"
           class="ml-dialog-actions evenly"
       >
         <v-font-awesome-btn
@@ -185,9 +210,6 @@ export default defineComponent({
             :tooltip-text="$t('load_dialog.tooltips.load_remote')"
             tooltip-location="bottom"
         />
-      </v-card-actions>
-      <v-card-actions v-else-if="loadFromServer">
-
       </v-card-actions>
     </v-card>
   </v-dialog>

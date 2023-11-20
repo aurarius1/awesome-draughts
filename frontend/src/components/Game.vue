@@ -6,46 +6,43 @@ import {LeaveTypes} from '@/globals.ts'
 import FontAwesomeBtn from "@/components/Buttons/FontAwesomeBtn.vue";
 import VFontAwesomeBtn from "@/components/Buttons/VFontAwesomeBtn.vue";
 import Settings from "@/components/Settings.vue";
-import {PlayerNames} from "@/draughts";
-import NameSelection from "@/components/GameSettings/NameSelection.vue";
 import Moves from "@/components/Draughts/Moves.vue";
-import GameSettings from "@/components/GameSettings/GameSettings.vue";
+import LocalGameSettings from "@/components/GameSettings/GameSettings.vue";
 import EndGameDialog from "@/components/Dialog/EndGameDialog.vue";
 import SaveGameDialog from "@/components/Dialog/SaveGameDialog.vue";
 import GameInfo from "@/components/GameInfo.vue";
+import {useGameStore} from "@/store";
+import WaitingForResponseDialog from "@/components/Dialog/WaitingForResponseDialog.vue";
 
 export default defineComponent({
   name: "Game.vue",
-  components: {GameInfo, SaveGameDialog, EndGameDialog, GameSettings, Moves, NameSelection, Settings, VFontAwesomeBtn, FontAwesomeBtn, FontAwesomeIcon, GameField},
+  components: {WaitingForResponseDialog, GameInfo, SaveGameDialog, EndGameDialog, LocalGameSettings, Moves, Settings, VFontAwesomeBtn, FontAwesomeBtn, FontAwesomeIcon, GameField},
   setup()
   {
     const colorStore = useColorStore();
     const toast = useToast();
-    return {getColorStore: colorStore, toast}
+    const gameStore = useGameStore();
+    return {getColorStore: colorStore, toast, gameStore}
   },
   created(){
+
     this.$emitter.on("draw", () => {
-
-
-
       this.endGameDialogVisible=true
       this.endGameDialogText = "draw"
       this.endGameDialogTextLocalization = true
     })
+    this.$emitter.on("opponentExited", () => {
+      this.playerWantsToLeave = true;
+    });
+
+
   },
   data() {
     return{
-      currentPlayer: "",
       playerWantsToLeave: false,
       exitType: LeaveTypes.noLeave,
-      undoRequest: false,
-      redoRequest: false,
-      undoPossible: false,
-      redoPossible: false,
       settingsVisible: false,
       gameSettingsVisible: false,
-      playerNames: {} as PlayerNames,
-      endGameDialogVisible: false,
       endGameDialogText: "",
       dimensions: 0,
       borderThickness: 0,
@@ -53,11 +50,9 @@ export default defineComponent({
     }
   },
   methods: {
-    leaveAndSaveRemote() {
-      this.exitType = LeaveTypes.saveRemote
-    },
-    leaveAndSaveLocal(){
-      this.exitType = LeaveTypes.saveLocal
+    getGameStore()
+    {
+      return this.gameStore;
     },
     leaveGame(){
       this.exitType = LeaveTypes.exit
@@ -65,34 +60,14 @@ export default defineComponent({
     getColor(color: string = 'lighten1'){
         return this.getColorStore.currentColor[color]
     },
-    setCurrentPlayer(player: string) {
-      this.currentPlayer = player
-    },
-    undoServed(player: string) {
-      this.undoRequest = false
-      this.setCurrentPlayer(player)
-    },
-    redoServed(player: string) {
-      this.redoRequest = false
-      this.setCurrentPlayer(player)
-    },
-    getPlayerName(player: string = "") {
-
-      if(player === "")
-      {
-        player = this.currentPlayer
+    getPlayerName: function (player: string = "") {
+      if (player === "") {
+        player = this.currentPlayer ?? ""
       }
-      return this.playerNames[player]
+      return this.getGameStore().currentGame?._playerNames[player];
     },
     gameOver(winner: string) {
       this.endGameDialogText = this.$t(`player.wins`, {name: this.getPlayerName(winner)})
-      this.endGameDialogVisible=true;
-    },
-    setPlayerNames(playerNames: PlayerNames){
-
-      this.playerNames = {
-        ...playerNames
-      }
     },
     setDimensions(dimensions: number, borderThickness: number)
     {
@@ -105,16 +80,22 @@ export default defineComponent({
     infoCardContainerStyle(): StyleValue{
       return {
         height: `${this.dimensions+this.borderThickness}px`,
-
-
         minWidth: "300px",
         aspectRatio: '1/2',
         backgroundColor: this.getColor('lighten3'),
         borderRadius: "4px"
-
       }
+    },
+    currentPlayer() {
+      return this.getGameStore()._currentApiGame?._currentPlayer
+    },
+    endGameDialogVisible(){
+      return this.getGameStore().currentGame?._gameOver ?? false
+    },
+    waitingForResponse()
+    {
+      return this.getGameStore().requestSent
     }
-
   }
 })
 </script>
@@ -123,14 +104,13 @@ export default defineComponent({
   <save-game-dialog
     :visible="playerWantsToLeave"
     @close-me="playerWantsToLeave=false"
-    @exit="leaveGame()"
-    @save-local="leaveAndSaveLocal()"
-    @save-remote="leaveAndSaveRemote()"
   />
   <end-game-dialog
     :visible="endGameDialogVisible"
-    :text="endGameDialogText"
-    :localize-text="endGameDialogTextLocalization"
+  />
+
+  <waiting-for-response-dialog
+      :visible="waitingForResponse"
   />
 
   <div
@@ -139,15 +119,7 @@ export default defineComponent({
     <game-field
       :leave="exitType"
       :card-dimensions="80"
-      @player-switched="setCurrentPlayer"
-      @undo-served="undoServed"
-      @redo-served="redoServed"
-      @undo-possible="(possible: boolean) => {undoPossible=possible}"
-      @redo-possible="(possible: boolean) => {redoPossible=possible}"
       @game-over="gameOver"
-      @player-names="setPlayerNames"
-      :undo-request="undoRequest"
-      :redo-request="redoRequest"
       @dimensions="setDimensions"
     />
     <div
@@ -156,14 +128,15 @@ export default defineComponent({
     >
       <game-info
         @leave-request="playerWantsToLeave=true"
-        v-bind:player-names="playerNames"
-        :current-player="currentPlayer"
-        @undo-request="undoRequest=true"
-        @redo-request="redoRequest=true"
-        :undo-possible="undoRequest || !undoPossible"
-        :redo-possible="redoRequest || !redoPossible"
         :dimensions-in-px="dimensions"
         :border-thickness="borderThickness"
+        v-if="getGameStore().currentGame !== undefined"
+      />
+      <v-progress-circular
+        :indeterminate="true"
+        width="8"
+        size="100"
+        v-else
       />
     </div>
   </div>

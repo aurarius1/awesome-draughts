@@ -4,6 +4,11 @@ import path from 'path'
 import AutoImport from 'unplugin-auto-import/vite'
 
 // https://vitejs.dev/config/
+
+
+
+
+
 export default defineConfig({
   plugins: [
       vue(),
@@ -29,17 +34,10 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, "./src"),
-      '@draughts': path.resolve(__dirname, './src/draughts')
     }
   },
   server: {
     port: 3000,
-    proxy: {
-      "/api": {
-        target: "localhost:32768",
-        changeOrigin: true
-      }
-    }
   },
   css: {
     preprocessorOptions: {

@@ -1,12 +1,12 @@
 <script lang="ts">
-import {defineComponent, PropType, StyleValue} from 'vue'
+import {defineComponent, StyleValue} from 'vue'
 import VFontAwesomeBtn from "@/components/Buttons/VFontAwesomeBtn.vue";
 import Moves from "@/components/Draughts/Moves.vue";
 import Settings from "@/components/Settings.vue";
 import FontAwesomeBtn from "@/components/Buttons/FontAwesomeBtn.vue";
 import GameSettings from "@/components/GameSettings/GameSettings.vue";
-import {PlayerNames} from "@/draughts";
-import {heightBreakpoints} from "@/globals.ts";
+import {PermissionRequest} from "@/globals.ts";
+import {useGameStore} from "@/store";
 
 export default defineComponent({
   name: "GameInfo",
@@ -14,36 +14,24 @@ export default defineComponent({
   emits: {
     leaveRequest(){
       return true
-    },
-    undoRequest(){
-      return true
-    },
-    redoRequest(){
-      return true
-    },
+    }
   },
   setup()
   {
     const colorStore = useColorStore();
-    return {colorStore}
+    const gameStore = useGameStore();
+    return {colorStore, gameStore}
+  },
+  watch: {
+    requestToAnswer(newVal){
+      if(newVal)
+      {
+        this.gameSettingsVisible=false
+        this.settingsVisible = false
+      }
+    }
   },
   props: {
-    playerNames: {
-      type: Object as PropType<PlayerNames>,
-      required: true
-    },
-    currentPlayer: {
-      type: String,
-      required: true
-    },
-    undoPossible: {
-      type: Boolean,
-      required: true
-    },
-    redoPossible:{
-      type: Boolean,
-      required: true
-    },
     dimensionsInPx: {
       type: Number,
       required: true
@@ -62,7 +50,11 @@ export default defineComponent({
   methods: {
     getColor(color: string = 'lighten1'){
       return this.colorStore.currentColor[color]
-    }
+    },
+    getGameStore()
+    {
+      return this.gameStore;
+    },
   },
   computed: {
     computedGameInfoCardStyle(): StyleValue{
@@ -71,21 +63,50 @@ export default defineComponent({
         margin: `0px ${this.borderThickness/2}px`,
       }
     },
-    computedGameInfoTextStyle(): StyleValue{
-      return {
-        height: `${this.dimensionsInPx*heightBreakpoints()}px`,
+    activePlayerName(){
+      const gameStore = this.getGameStore();
+      if(gameStore.currentGame === undefined)
+      {
+        return "";
       }
+      return gameStore.currentGame._playerNames[gameStore.currentGame._currentPlayer];
     },
-    currentBreakpoint(){
-      return this.$vuetify.display.name;
+    activePlayer(){
+      return this.getGameStore().currentGame?._currentPlayer
+    },
+    playerNames() {
+      return this.getGameStore().currentGame?._playerNames
+    },
+    undoPossible() {
+      const gameStore = this.getGameStore();
+      return (gameStore.currentGame?._history?.moves?.length ?? 0) >= (gameStore.currentGame?._singlePlayer ? 1 : 2)
+    },
+    redoPossible(){
+      return (this.getGameStore().currentGame?._history?.revertedMoves?.length ?? 0) >= 1
+    },
+    requestToAnswer(){
+      const gameStore = this.getGameStore();
+      if(gameStore.currentGame === undefined)
+        return false;
+
+      return gameStore.currentGame._permissionRequest !== PermissionRequest.Nothing &&
+          gameStore.currentGame._permissionRequest !== PermissionRequest.Exit
+    },
+    localGame(){
+      return this.getGameStore().currentGame?._singlePlayer ?? true;
+    },
+    playerNameInfo()
+    {
+      return this.$t(`player.${this.activePlayer}`, {name: this.activePlayerName})
     }
+
   }
 })
 </script>
 
 <template>
   <v-card
-      class="ml-game-info-card"
+      class="ml-game-info-card flexcard"
       :style="computedGameInfoCardStyle"
   >
     <v-card-title
@@ -99,7 +120,7 @@ export default defineComponent({
             sm="6"
             class="text-sm-body-1"
         >
-          {{ this.$t(`player.${currentPlayer}`, {name: playerNames[currentPlayer]}) }}
+          {{ playerNameInfo }}
         </v-col>
         <v-col
           class="ml-dialog-title-btn-group"
@@ -123,8 +144,7 @@ export default defineComponent({
       </v-row>
     </v-card-title>
     <v-card-text
-        class="ml-game-info-card-content"
-        :style="computedGameInfoTextStyle"
+        class="grow mt-4"
     >
       <settings
           col-size="12"
@@ -133,21 +153,19 @@ export default defineComponent({
           @close-settings="settingsVisible=false"
       />
       <game-settings
+          :local="localGame"
           v-else-if="gameSettingsVisible"
           @leave-game-settings="gameSettingsVisible=false"
-          v-bind:player-names="playerNames"
+          v-bind:player-names="{...playerNames}"
           :is-game-dialog="false"
       />
       <moves
           v-else
       />
-
-
     </v-card-text>
     <v-card-actions
         class="ml-game-info-card-actions"
     >
-
       <v-container
           class="container"
       >
@@ -157,12 +175,12 @@ export default defineComponent({
               cols="6"
           >
             <v-font-awesome-btn
-                @click="$emit('undoRequest')"
-                :disabled="undoPossible"
+                @click="getGameStore().requestUndo()"
+                :disabled="!undoPossible || requestToAnswer"
                 :icon="['fas', 'fa-undo']"
                 icon-size="lg"
                 :icon-color="getColor()"
-                :text="this.$t('undo')"
+                :text="$t('undo')"
             />
           </v-col>
           <v-col
@@ -170,8 +188,8 @@ export default defineComponent({
               cols="6"
           >
             <v-font-awesome-btn
-                @click="$emit('redoRequest')"
-                :disabled="redoPossible"
+                @click="getGameStore().requestRedo()"
+                :disabled="!redoPossible || requestToAnswer"
                 :icon="['fas', 'fa-redo']"
                 icon-size="lg"
                 :icon-color="getColor()"
@@ -190,11 +208,12 @@ export default defineComponent({
               cols="6"
           >
             <v-font-awesome-btn
+                :disabled="requestToAnswer"
                 :icon="['fas', 'fa-handshake']"
                 iconSize="lg"
                 :icon-color="getColor()"
                 :text="$t('draw')"
-                @click="$emitter.emit('draw')"
+                @click="getGameStore().requestDraw()"
             />
           </v-col>
           <v-col
@@ -202,6 +221,7 @@ export default defineComponent({
               cols="6"
           >
             <v-font-awesome-btn
+                :disabled="requestToAnswer"
                 @click="$emit('leaveRequest')"
                 :icon="['fas', 'sign-out-alt']"
                 iconSize="lg"
@@ -216,11 +236,11 @@ export default defineComponent({
 
 <style scoped lang="scss">
 @import "@/scss/ml-dialog";
-
+@import "@/scss/flexcard";
 
 .ml-game-info-card{
   width: 100%;
-  box-shadow: 0px 0px 32px 2px rgba(54,54,54,1);
+  box-shadow: 0 0 32px 2px rgba(54,54,54,1);
 
   .ml-game-info-card-content{
     width: 100%;

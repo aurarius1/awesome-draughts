@@ -1,5 +1,5 @@
 {
-  "draughts-title": "Awesome draughts",
+  "draughts-title": "ML draughts",
   "start_game": "New game",
   "load_game": "Load game",
   "settings": "Settings",
@@ -14,16 +14,18 @@
   "player": {
     "white": "WHITE: {name}",
     "black": "BLACK: {name}",
-    "wins": "\uD83D\uDC51\uD83D\uDC51\uD83D\uDC51Player {name} wins\uD83D\uDC51\uD83D\uDC51\uD83D\uDC51",
-    "draw": "Draw"
+    "wins": "\uD83D\uDC51\uD83D\uDC51\uD83D\uDC51YOU WIN!\uD83D\uDC51\uD83D\uDC51\uD83D\uDC51",
+    "loses": "You lost \uD83D\uDE14",
+    "draw": "Draw",
+    "sp_end": "\uD83D\uDC51\uD83D\uDC51\uD83D\uDC51Player {name} wins!\uD83D\uDC51\uD83D\uDC51\uD83D\uDC51"
   },
-  "undo": "UNDO",
-  "redo": "REDO",
+  "undo": "Undo",
+  "redo": "Redo",
   "exit_dialog": {
     "title": "To save or not to save?",
-    "description": "If you want to save the game you have the option to do that on our server or locally (this will download a '.aw' file). If you do not want to keep your game state just hit 'exit' :)",
+    "description": "If you want to save the game you have the option to do that on our server or locally (this will download a '.mld' file). If you do not want to keep your game state just hit 'exit' :)",
     "tooltips": {
-      "save_local": "Downloads a '.aw' file",
+      "save_local": "Downloads a '.mld' file",
       "save_remote": "Save your game state on the server",
       "exit": "All unsaved data will be lost"
     },
@@ -34,23 +36,50 @@
   "leave_game": "Leave",
   "load_dialog": {
     "title": "Load saved game",
-    "description": "If you want to load your game you have the option to do that from our server or from a local '.aw' file. :)",
+    "description": "If you want to load your game you have the option to do that from our server or from a local '.mld' file. :)",
     "tooltips": {
       "back_btn": "Go back to load selection",
-      "load_local": "Upload a '.aw' file",
+      "load_local": "Upload a '.mld' file",
       "load_remote": "Select one of your remotely stored game states"
     },
     "load": "Load",
-    "upload_gamestate": "Upload your '.aw' file..."
+    "upload_gamestate": "Upload your '.mld' file..."
   },
   "game_settings_dialog": {
     "title": "Game Settings",
-    "start_game": "Start game"
+    "start_game": "Start game",
+    "local": "Local",
+    "remote": "Play with friend"
   },
   "end_game_dialog": {
     "title": "Game ended",
     "go_home": "Back to title screen"
   },
+  "moves": {
+    "request": "Your opponent requested {request}. Accept or deny?",
+    "draw": "a draw",
+    "redo": "a redo",
+    "undo":  "an undo",
+    "accept": "Accept",
+    "deny": "Deny"
+  },
+  "waiting_for_opponent": {
+    "waiting": "Waiting for opponent \uD83E\uDD3C\u200D♂\uFE0F",
+    "description": "Copy the url below and send it to a friend to play with them! :)",
+    "leave": "Your friends abandoned you? Stop waiting now!"
+  },
+  "join_game": {
+    "title": "Please enter your name",
+    "join": "Join"
+  },
+  "validator": {
+    "enter_name": "A name must be entered"
+  },
+  "game_settings": {
+    "save": "Save",
+    "exit": "Exit"
+  },
+  "waiting_for_response": "Wait until your opponent accepts your request.",
   "toasts": {
     "warning":{
       "invalid_move": "This move is not valid :(",
@@ -59,14 +88,28 @@
     },
     "info": {
       "undo_successful": "Undo of last move was successful",
-      "redo_successful": "Redo of last undo was successful"
+      "redo_successful": "Redo of last undo was successful",
+      "copied": "Copied to clipboard",
+      "dlc": "This feature is only available with the DLC. Consider buying it if you want to use it.",
+      "request_accepted": "Your request has been accepted!",
+      "request_denied": "Your request has been denied!"
     },
     "error": {
-      "gamestate_invalid": "Your uploaded game state was invalid. Please supply a valid '.aw' file :)",
-      "on_kill_streak": "You're currently on a kill streak, you need to finish it before doing other moves! :)"
+      "gamestate_invalid": "Your uploaded game state was invalid. Please supply a valid '.mld' file :)",
+      "on_kill_streak": "You're currently on a kill streak, you need to finish it before doing other moves! :)",
+      "something_went_wrong": "Something went wrong",
+      "game_save_invalid": "Your save state couldn't be validated.",
+      "game_full": "This game is already full, please start a new one.",
+      "game_aborted": "Your opponent aborted the game.",
+      "unknown_error": "Unknown error with move.",
+      "invalid_arguments": "Invalid arguments for command (if you see this, please contact the server administrator).",
+      "invalid_request": "Invalid request (if you see this, please contact the server administrator).",
+      "server_error": "An error occurred on the server, please contact the administrator.",
+      "unknown_command": "Unknown command supplied (if you see this, please contact the server administrator)."
     },
     "success": {
-      "gamestate_valid": "Your provided game state was loaded successful"
+      "gamestate_valid": "Your provided game state was loaded successful",
+      "ctf_flag": "This should not be possible. You are amazing, be quick, here's the flag: {ctf}"
     }
   }
 }

@@ -21,7 +21,7 @@ export default defineComponent({
     }
   },
   watch:{
-    selectedColor(newVal, oldVal){
+    selectedColor(){
       this.selected = this.selectedColor
     }
   },

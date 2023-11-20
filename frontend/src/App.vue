@@ -1,6 +1,7 @@
 
 <script lang="ts">
 import { useTheme } from 'vuetify'
+import {useRoute} from "vue-router";
 
 export default defineComponent({
   setup()
@@ -16,13 +17,21 @@ export default defineComponent({
   {
     this.getVuetifyTheme.global.name.value = this.getThemeStore.currentTheme;
     this.$i18n.locale = this.getLanguageStore.currentLanguage;
-  },
-  created(){
-  },
-  beforeMount()
-  {
 
-  }
+    const route = useRoute()
+    if(route.path === "/game")
+    {
+      window.onbeforeunload = () => {
+        return "";
+      }
+    }
+    else
+    {
+      window.onbeforeunload = null;
+    }
+
+
+  },
 
 })
 </script>

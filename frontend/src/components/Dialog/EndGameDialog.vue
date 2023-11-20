@@ -2,6 +2,7 @@
 import {defineComponent} from 'vue'
 import FontAwesomeBtn from "@/components/Buttons/FontAwesomeBtn.vue";
 import VFontAwesomeBtn from "@/components/Buttons/VFontAwesomeBtn.vue";
+import {useGameStore} from "@/store";
 
 export default defineComponent({
   name: "EndGameDialog",
@@ -14,14 +15,44 @@ export default defineComponent({
     visible: {
       type: Boolean,
       default: false
+    }
+  },
+  computed:
+  {
+    draw(){
+      const gameStore = useGameStore();
+      return gameStore.currentGame?._draw ?? false;
     },
-    text: {
-      type: String,
-      default: ""
-    },
-    localizeText: {
-      type: Boolean,
-      default: false
+    endScreenMessage(){
+      const gameStore = useGameStore();
+
+      if(gameStore.currentGame === undefined)
+        return "";
+
+
+      let currentPlayer = gameStore.currentGame?._currentPlayer;
+      if(this.draw)
+      {
+        return this.$t('player.draw')
+      }
+
+      if(gameStore.currentGame?._singlePlayer ?? true)
+      {
+        let playerName = ""
+        if(currentPlayer !== undefined) {
+          playerName = gameStore.currentGame?._playerNames[currentPlayer] ?? "";
+        }
+        return this.$t('player.sp_end', {name: playerName})
+      }
+      else
+      {
+        if(currentPlayer === gameStore.currentGame?._ownColor)
+        {
+          return this.$t(`player.wins`)
+        }
+        return this.$t('player.loses')
+
+      }
     }
   },
   methods: {
@@ -29,7 +60,11 @@ export default defineComponent({
       return this.colorStore;
     },
     goToTitleScreen(){
-      this.$router.replace('/')
+      const gameStore = useGameStore();
+
+      this.$router.replace('/').then(() => {
+        gameStore.closeWS();
+      })
     }
   }
 })
@@ -46,7 +81,7 @@ export default defineComponent({
       <v-card-text
         class="ml-dialog-text text-h4"
       >
-        {{  localizeText ? $t(text) : text }}
+        {{ endScreenMessage }}
       </v-card-text>
       <v-card-actions
           class="ml-dialog-actions center"

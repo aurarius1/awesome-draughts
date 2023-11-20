@@ -2,7 +2,7 @@
 import {defineComponent} from 'vue'
 import VFontAwesomeBtn from "@/components/Buttons/VFontAwesomeBtn.vue";
 import FontAwesomeBtn from "@/components/Buttons/FontAwesomeBtn.vue";
-import GameSettings from "@/components/GameSettings/GameSettings.vue";
+import GameSettings from "./GameSettings.vue";
 
 export default defineComponent({
   name: "GameSettingsDialog",
@@ -24,13 +24,15 @@ export default defineComponent({
   data(){
     return{
       startGame: false,
+      local: true,
     }
   },
   methods: {
     getColorStore(){
       return this.colorStore;
     }
-  }
+  },
+
 
 })
 </script>
@@ -50,7 +52,7 @@ export default defineComponent({
           <v-col
             cols="11"
           >
-            {{ this.$t('game_settings_dialog.title')}}
+            {{ $t('game_settings_dialog.title')}}
           </v-col>
           <v-col
             cols="1"
@@ -62,16 +64,40 @@ export default defineComponent({
             />
           </v-col>
         </v-row>
+        <v-row
+            class="align-center"
+        >
+          <v-col
+              class="ml-dialog-actions evenly"
+          >
+            <v-font-awesome-btn
+                :btn-color="getColorStore().currentColor.lighten1"
+                :icon="['fas', 'fa-play']"
+                :text="$t('game_settings_dialog.local')"
+                :btn-variant="local ? 'elevated' : undefined"
+                btn-rounded="lg"
+                @click="local=true;"
+
+            />
+            <v-font-awesome-btn
+                :btn-color="getColorStore().currentColor.lighten1"
+                :icon="['fas', 'fa-play']"
+                :text="$t('game_settings_dialog.remote')"
+                :btn-variant="!local ? 'elevated' : undefined"
+                btn-rounded="lg"
+                @click="local=false;"
+            />
+          </v-col>
+        </v-row>
 
       </v-card-title>
       <v-card-text>
         <game-settings
             :start-new-game="startGame"
-            v-bind:player-names=" {
-              'white': 'Alice',
-              'black': 'Bob'
-            }"
+            :local="local"
+            @start-not-possible="() => startGame=false"
         />
+
       </v-card-text>
       <v-card-actions
         class="justify-end"
@@ -82,7 +108,7 @@ export default defineComponent({
           :btn-color="getColorStore().currentColor.lighten1"
           btn-variant="elevated"
           icon-text-spacing="me-2"
-          @click="() => {startGame = true; $router.replace('game');}"
+          @click="() => {startGame = true}"
         />
       </v-card-actions>
     </v-card>
@@ -90,6 +116,7 @@ export default defineComponent({
 </template>
 
 <style scoped lang="scss">
+@import '@/scss/ml-dialog';
 .ml-btn-end{
   display: flex;
   justify-content: end;

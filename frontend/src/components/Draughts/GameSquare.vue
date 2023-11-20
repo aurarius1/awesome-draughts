@@ -1,9 +1,10 @@
 <script lang="ts">
 import {defineComponent} from 'vue'
-import colors from 'vuetify/lib/util/colors'
+import colors from "@/VuetifyColors.ts"
 import GamePiece from "@/components/Draughts/GamePiece.vue";
-import {isPlayableField, positionEqual} from "@/draughts";
-import {Position} from "@draughts/Game.ts";
+import {isPlayableField} from "@/draughts";
+import {Position} from "@/draughts/Game.ts";
+import {useGameStore} from "@/store";
 
 export default defineComponent({
   name: "GameSquare",
@@ -15,22 +16,12 @@ export default defineComponent({
     return {getColorStore: colorStore, toast};
   },
   emits: {
-    moveSelectedTo(gameSquarePos: Position, isHighlighted: boolean){
+    moveSelectedTo(_: Position){
         return true;
     }
   },
   created()
   {
-    this.$emitter.on('highlight-field', (fields: Array<Position>) => {
-      this.highlight = false;
-      let searchResult = fields.find((field) => {
-        return field.x === this.position?.x && field.y === this.position?.y
-      })
-      if(searchResult){
-          this.highlight = true;
-      }
-    })
-
   },
   props: {
     color: {
@@ -53,7 +44,7 @@ export default defineComponent({
   data()
   {
     return {
-      highlight: false,
+      _highlight: false,
       pieceSelected: false,
     }
   },
@@ -66,6 +57,12 @@ export default defineComponent({
         aspectRatio: '1/1'
       }
     },
+    highlight() {
+      const gameStore = useGameStore();
+      return gameStore._currentApiGame?._validMoves.find((field: Position) => {
+        return field.x === this.position?.x && field.y === this.position?.y
+      })
+    }
   },
   methods: {
     getTileColor()
@@ -78,7 +75,7 @@ export default defineComponent({
     },
     moveToMe()
     {
-      this.$emit('moveSelectedTo', this.position, this.highlight)
+      this.$emit('moveSelectedTo', this.position)
 
     }
   },
