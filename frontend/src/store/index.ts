@@ -27,7 +27,7 @@ export const useColorStore = defineStore('colorStore',{
         }
     },
     getters: {
-        currentColor(state): Color{
+        currentColor(state): VuetifyColor{
             return state._currentColor
         }
     }
@@ -131,8 +131,7 @@ export const useGameStore = defineStore('gameStore',{
                 this._requestSent = false
             }
 
-            // TODO THIS SHOULD NOT BE HARDCODED
-            const url = "wss://localhost:32768/ws";
+            const url = `${window.SOCKET_URL}/ws`;
             this.ws = new WebSocket(url)
             this.ws.onopen = () => {
                 if(this._currentGameId !== "" && command === "")

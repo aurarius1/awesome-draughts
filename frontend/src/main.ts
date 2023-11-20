@@ -73,6 +73,19 @@ library.add(farCheckCircle,
 
 )
 
+declare global {
+    interface Window {
+        API_URL: string;
+        SOCKET_URL: string;
+    }
+}
+
+if(window.SOCKET_URL === "")
+{
+    window.SOCKET_URL = window.API_URL.replace("http", "ws")
+}
+
+
 const app = createApp(App)
 const pinia = createPinia();
 export const router = createRouter({

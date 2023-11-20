@@ -1,0 +1,20 @@
+version: '3'
+services: 
+  backend: 
+    container_name: backend
+    build:
+      context: ./backend/
+      dockerfile: ./backend/Dockerfile
+    ports:
+      - "32678:80"
+  frontend: 
+    container_name: frontend
+    build: ./frontend
+    environment: 
+      ML_DRAUGHTS_API_URL: http://localhost:32678
+    ports: 
+      - "8081:80"
+    depends_on:
+      - backend
+
+    

@@ -23,8 +23,7 @@ export default defineComponent({
       return gameStore._currentGameId;
     },
     url(){
-      // TODO THIS SHOULD NOT BE HARDCODED
-      return "http://localhost:3000/join/" + this.gid;
+      return `${window.location.origin}/join/` + this.gid;
     }
   },
   methods: {

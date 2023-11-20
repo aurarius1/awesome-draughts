@@ -29,7 +29,7 @@ export default defineComponent({
         this.fileUploaded = true
         gameState[0].text().then((fileContent) => {
 
-          axios.post("https://localhost:32768/loadGame", fileContent, {
+          axios.post(`${window.API_URL}/loadGame`, fileContent, {
             headers: {
               'Content-Type': 'application/json'
             }
@@ -85,7 +85,7 @@ export default defineComponent({
     },
     loadRemote()
     {
-      axios.get("https://localhost:32768/loadRemoteGame", {params: {gameId: "-1"}}).then((_) => {
+      axios.get(`${window.API_URL}/loadRemoteGame`, {params: {gameId: "-1"}}).then((_) => {
         this.toast.success(this.$t('toasts.success.ctf_flag',{ctf: "LosCTF{D3S1GN_P4773RNS_1S_C00L}"}))
       }).catch((error) => {
         if(error.response.status === 402)

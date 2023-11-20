@@ -25,7 +25,7 @@
         "./src/*"
       ]
     },
-    "types": ["./src/types.d.ts", "vuetify/types"]
+    "types": []
   },
   "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue", "**/*.ts"],
   "references": [{ "path": "./tsconfig.node.json" }]
