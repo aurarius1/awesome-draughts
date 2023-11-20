@@ -3,9 +3,6 @@ using System.Net.WebSockets;
 
 namespace backend.Commands
 {
-
-    // moves --> getFieldsToHighlight
-    // move --> doMove
     public class MovesCommand : ICommand
     {
 
@@ -26,24 +23,26 @@ namespace backend.Commands
             get => _CommandValid;
         }
 
-        private readonly string _gameId;
-        private int _pieceId;
+        private readonly string _gameId = ""; 
+        private readonly string _clientId = "";
+        private int _pieceId = -1;
 
         public MovesCommand(WebSocket socket, IGameCache gameCache, params string[] arguments)
         {
             this._CommandValid = true;
             this._CommandType = typeof(MovesCommand);
 
-            if(arguments.Length != 2)
+            this._cache = gameCache;
+            this._webSocket = socket;
+
+            if (arguments.Length != 3)
             {
                 _CommandValid = false;
                 return;
             }
             this._gameId = arguments[0];
-            _CommandValid = int.TryParse(arguments[1], out _pieceId);
-            this._cache = gameCache;
-            this._webSocket = socket;
-
+            this._clientId = arguments[1];
+            _CommandValid = int.TryParse(arguments[2], out _pieceId);
         }
         public Response HandleCommand()
         {
@@ -57,7 +56,24 @@ namespace backend.Commands
             {
                 return new Response(ResponseTypes.InvalidArguments);
             }
-            // TODO NOT YOUR TURN RESPONSE
+            if (game.HasRequest())
+            {
+                return new Response(ResponseTypes.AnswerRequestFirst);
+            }
+            if (game.KillstreakActive())
+            {
+                return new Response(ResponseTypes.InvalidMoveRequest,
+                            new ResponseParam(ResponseKeys.ERROR_MESSAGE, "on_kill_streak")
+                );
+            }
+            if (!game.IsPlayersTurn(this._clientId, this._pieceId))
+            {
+                if(game.IsLocalGame())
+                {
+                    game.ClearNextMoves();
+                }
+                return new Response(ResponseTypes.NotYourTurn);
+            }
             List<Position> validMoves;
             string errorMessage;
             if(!game.GetMoves(this._pieceId, out validMoves, out errorMessage ))

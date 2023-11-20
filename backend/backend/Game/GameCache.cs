@@ -9,7 +9,7 @@ namespace backend.Game
 
     public interface IGameCache
     {
-        public Draughts Get(string gameId);
+        public Draughts? Get(string gameId);
         public bool TryAddClient(string gameId, WebSocket socket, string name, string color, out string clientId);
         public bool AddSecondPlayer(string gameId, WebSocket socket, string name);
         public bool CreateLocalGame(string gameId, WebSocket socket, string playerWhite, string playerBlack, out string gameState);

@@ -23,15 +23,18 @@ namespace backend.Commands
         }
 
 
-        private string _name;
-        private string _color; 
+        private string _name = "";
+        private string _color = ""; 
 
         public InitCommand(WebSocket socket, IGameCache gameCache, params string[] arguments)
         {
             this._CommandValid = true;
             this._CommandType = typeof(InitCommand);
 
-            if(arguments.Length == 2)
+            this._cache = gameCache;
+            this._webSocket = socket;
+
+            if (arguments.Length == 2)
             {
                 this._name = arguments[0];
                 this._color = arguments[1];
@@ -45,10 +48,6 @@ namespace backend.Commands
                 this._CommandValid = false;
                 return;
             }
-
-
-            this._cache = gameCache;
-            this._webSocket = socket;
         }
         public Response HandleCommand()
         {

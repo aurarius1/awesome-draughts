@@ -3,9 +3,6 @@ using System.Net.WebSockets;
 
 namespace backend.Commands
 {
-
-    // moves --> getFieldsToHighlight
-    // move --> doMove
     public class UndoCommand : ICommand
     {
 
@@ -26,24 +23,24 @@ namespace backend.Commands
             get => _CommandValid;
         }
 
-        private readonly string _gameId;
-        private readonly string _clientId; 
+        private readonly string _gameId = "";
+        private readonly string _clientId = ""; 
 
         public UndoCommand(WebSocket socket, IGameCache gameCache, params string[] arguments)
         {
             this._CommandValid = true;
             this._CommandType = typeof(UndoCommand);
 
-            if(arguments.Length != 2)
+            this._cache = gameCache;
+            this._webSocket = socket;
+
+            if (arguments.Length != 2)
             {
                 _CommandValid = false;
                 return;
             }
             this._gameId = arguments[0];
             this._clientId = arguments[1];
-            this._cache = gameCache;
-            this._webSocket = socket;
-
         }
         public Response HandleCommand()
         {
@@ -68,7 +65,12 @@ namespace backend.Commands
                 );
             }
 
-            if(!game.SetRequestParameter(PermissionRequest.Undo, _clientId))
+            if (game.HasRequest())
+            {
+                return new Response(ResponseTypes.AnswerRequestFirst);
+            }
+
+            if (!game.SetRequestParameter(PermissionRequest.Undo, _clientId))
             {
                 return new Response(ResponseTypes.InvalidPermissionRequest);
             }

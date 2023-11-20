@@ -3,9 +3,6 @@ using System.Net.WebSockets;
 
 namespace backend.Commands
 {
-
-    // moves --> getFieldsToHighlight
-    // move --> doMove
     public class ReconnectCommand : ICommand
     {
 
@@ -26,23 +23,24 @@ namespace backend.Commands
             get => _CommandValid;
         }
 
-        private readonly string _gameId;
-        private readonly string _clientId;
+        private readonly string _gameId = "";
+        private readonly string _clientId = "";
 
         public ReconnectCommand(WebSocket socket, IGameCache gameCache, params string[] arguments)
         {
             this._CommandValid = true;
             this._CommandType = typeof(ReconnectCommand);
 
-            if(arguments.Length != 2)
+            this._cache = gameCache;
+            this._webSocket = socket;
+
+            if (arguments.Length != 2)
             {
                 _CommandValid = false;
                 return;
             }
             this._gameId = arguments[0];
             this._clientId = arguments[1];
-            this._cache = gameCache;
-            this._webSocket = socket;
         }
         public Response HandleCommand()
         {

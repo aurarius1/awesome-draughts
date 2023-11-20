@@ -29,6 +29,9 @@ namespace backend.Commands
         ExitRequest,
         LoadOk,
         GameAborted,
+        AnswerRequestFirst,
+        NotYourTurn,
+        ServerError,
         NoResponse = int.MaxValue,
     }
 
@@ -157,6 +160,15 @@ namespace backend.Commands
                     break;
                 case ResponseTypes.GameAborted:
                     ResponseMessage = "{" + String.Format(ResponseMessage, "\"state\": \"ABORTED\"") + "}";
+                    break;
+                case ResponseTypes.AnswerRequestFirst:
+                    ResponseMessage = "{" + String.Format(ResponseMessage, "\"state\": \"ANSWER_REQUEST_FIRST\"") + "}";
+                    break;
+                case ResponseTypes.NotYourTurn:
+                    ResponseMessage = "{" + String.Format(ResponseMessage, "\"state\": \"NOT_YOUR_TURN\"") + "}";
+                    break;
+                case ResponseTypes.ServerError:
+                    ResponseMessage = "{" + String.Format(ResponseMessage, "\"state\": \"SERVER_ERROR\"") + "}";
                     break;
                 case ResponseTypes.UnknownCommand:
                 default: 

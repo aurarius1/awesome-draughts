@@ -131,7 +131,7 @@ export default defineComponent({
     movePiece(targetPosition: Position)
     {
 
-      let selectedPiecePosition = this.gameStore._currentApiGame?.getPositionOfPiece(this.currentlySelectedPiece)
+      let selectedPiecePosition = this.gameStore.currentGame?.getPositionOfPiece(this.currentlySelectedPiece)
       if(selectedPiecePosition === undefined || positionEqual(selectedPiecePosition, targetPosition))
       {
         return

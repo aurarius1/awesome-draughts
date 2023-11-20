@@ -1,9 +1,4 @@
-﻿using System;
-using System.Drawing;
-using System.IO.Pipelines;
-using System.Net.WebSockets;
-using System.Runtime.Intrinsics.Arm;
-using System.Security.Cryptography;
+﻿using System.Net.WebSockets;
 using System.Text.Json;
 using backend.Commands;
 using backend.Models;
@@ -114,7 +109,8 @@ namespace backend.Game
         {
             this._id = state._gameId;
             this._fieldDimensions = state._fieldDimensions;
-            this._pieces = state._pieces;
+            this._pieces = state._pieces!;
+            this._player1 = null!;
             for (int y = 0; y < this._fieldDimensions; y++)
             {
                 this._field.Add(new());
@@ -154,7 +150,7 @@ namespace backend.Game
             }
 
 
-            this._history = state._history;
+            this._history = state._history!;
             this._currentPlayer = state._currentPlayer;
 
             this._playerNamesTemp = state._playerNames;
@@ -633,8 +629,8 @@ namespace backend.Game
                     _fieldDimensions,
                     _playerNames = new
                     {
-                        white = _player1.Color == "white" ? _player1.Name : _player2.Name,
-                        black = _player1.Color == "white" ? _player2.Name : _player1.Name,
+                        white = _player1.Color == "white" ? _player1.Name : _player2?.Name,
+                        black = _player1.Color == "white" ? _player2?.Name : _player1.Name,
                     },
                     _history,
                     _pieces,
@@ -652,8 +648,8 @@ namespace backend.Game
                         _fieldDimensions,
                         _playerNames = new
                         {
-                            white = _player1.Color == "white" ? _player1.Name : _player2.Name,
-                            black = _player1.Color == "white" ? _player2.Name : _player1.Name,
+                            white = _player1.Color == "white" ? _player1.Name : _player2?.Name,
+                            black = _player1.Color == "white" ? _player2?.Name : _player1.Name,
                         },
                         _history,
                         _pieces,
@@ -672,8 +668,8 @@ namespace backend.Game
                 _fieldDimensions,
                 _playerNames = new
                 {
-                    white = _player1.Color == "white" ? _player1.Name : _player2.Name,
-                    black = _player1.Color == "white" ? _player2.Name : _player1.Name,
+                    white = _player1.Color == "white" ? _player1.Name : _player2?.Name,
+                    black = _player1.Color == "white" ? _player2?.Name : _player1.Name,
                 },
                 _field,
                 _history,
@@ -795,8 +791,7 @@ namespace backend.Game
         {
             this._player1 = new Client("", socket, this._playerNamesTemp.white, "white");
             this._player2 = new Client("", socket, this._playerNamesTemp.black, "black");
-        }
-       
+        } 
         public void RenamePlayer(string identifier, string newName, bool idIsColor=false)
         {
             if((idIsColor ? _player1.Color : _player1.Id) == identifier)
@@ -808,7 +803,6 @@ namespace backend.Game
                 _player2?.Rename(newName);
             }
         }
-
         public void SendOpponentMessage(string currentPlayerId, Response message)
         {
             if(_player1.Id == currentPlayerId)
@@ -835,6 +829,33 @@ namespace backend.Game
             }
             this.SendOpponentMessage(currentPlayerId, message);
         }
-        
+        public bool HasRequest()
+        {
+            return this._permissionRequest != PermissionRequest.Nothing;
+        }
+        public bool IsPlayersTurn(string clientId, int pieceId)
+        {
+            if(this.IsLocalGame())
+            {
+                Piece? piece = this.findPieceInGamefield(pieceId);
+                return piece?.color == this._currentPlayer;
+            }
+            if(this._player1.Id == clientId)
+            {
+                return this._player1.Color == this._currentPlayer; 
+            }
+            else
+            {
+                return this._player2!.Color == this._currentPlayer;
+            }
+        }
+        public bool KillstreakActive()
+        {
+            return this._onKillStreak;
+        }
+        public void ClearNextMoves()
+        {
+            this._nextMoves.Clear();
+        }
     }
 }

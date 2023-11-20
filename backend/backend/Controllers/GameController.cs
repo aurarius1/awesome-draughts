@@ -49,8 +49,10 @@ namespace backend.Controllers
         [Route("/loadGame")]
         public IActionResult Post([FromBody] SavedGame savedGame)
         {
-
-            // TODO VALIDATION
+            if(savedGame.gameState == null || savedGame.gameState._pieces == null || savedGame.gameState._history == null)
+            {
+                return new NotAcceptableObjectResult("INVALID_SAVE_GAME_FILE");
+            }
             GameState state = savedGame.gameState;
             string serializedSaveGame = JsonSerializer.Serialize(new
             {
@@ -90,11 +92,10 @@ namespace backend.Controllers
         [Route("/ws")]
         public async Task Get()
         {
-            System.Diagnostics.Debug.WriteLine("HALLO");
             if (HttpContext.WebSockets.IsWebSocketRequest)
             {
                 using var webSocket = await HttpContext.WebSockets.AcceptWebSocketAsync();
-                await this.Echo(webSocket, true);
+                await this.HandleCommunication(webSocket, true);
             }
             else
             {
@@ -102,7 +103,7 @@ namespace backend.Controllers
             }
         }
 
-        private async Task Echo(WebSocket webSocket, bool initialConnection)        
+        private async Task HandleCommunication(WebSocket webSocket, bool initialConnection)        
         {
             var receiveResult = await webSocket.receiveMessage();
             while (!(receiveResult.Item1?.CloseStatus.HasValue ?? true))
@@ -125,8 +126,6 @@ namespace backend.Controllers
                 }
                 receiveResult = await webSocket.receiveMessage();
             }
-            System.Diagnostics.Debug.WriteLine("DISCONNECT MESSAGE");
-
             string[] description = (receiveResult?.Item1?.CloseStatusDescription ?? "").Split(";");
             if(description.Length == 2)
             {
@@ -136,11 +135,9 @@ namespace backend.Controllers
             {
                 _gameCache.EndGame(webSocket);
             }
-            
-
             await webSocket.CloseAsync(
-                receiveResult.Item1.CloseStatus.Value,
-                receiveResult.Item1.CloseStatusDescription,
+                receiveResult?.Item1?.CloseStatus ?? WebSocketCloseStatus.Empty,
+                receiveResult?.Item1?.CloseStatusDescription ?? "EMPTY",
                 CancellationToken.None);
         }
     }

@@ -3,9 +3,6 @@ using System.Net.WebSockets;
 
 namespace backend.Commands
 {
-
-    // moves --> getFieldsToHighlight
-    // move --> doMove
     public class DrawCommand : ICommand
     {
 
@@ -26,13 +23,16 @@ namespace backend.Commands
             get => _CommandValid;
         }
 
-        private readonly string _gameId;
-        private readonly string _clientId;
+        private readonly string _gameId = "";
+        private readonly string _clientId = "";
 
         public DrawCommand(WebSocket socket, IGameCache gameCache, params string[] arguments)
         {
             this._CommandValid = true;
             this._CommandType = typeof(DrawCommand);
+
+            this._cache = gameCache;
+            this._webSocket = socket;
 
             if (arguments.Length != 2)
             {
@@ -41,8 +41,6 @@ namespace backend.Commands
             }
             this._gameId = arguments[0];
             this._clientId = arguments[1];
-            this._cache = gameCache;
-            this._webSocket = socket;
         }
         public Response HandleCommand()
         {
@@ -64,6 +62,10 @@ namespace backend.Commands
                 );
             }
 
+            if (game.HasRequest())
+            {
+                return new Response(ResponseTypes.AnswerRequestFirst);
+            }
 
             if (!game.SetRequestParameter(PermissionRequest.Draw, _clientId))
             {

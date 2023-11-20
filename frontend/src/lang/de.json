@@ -102,7 +102,12 @@
       "something_went_wrong": "Etwas ist schief gelaufen.",
       "game_save_invalid": "Dein Spielstand konnte nicht validiert werden.",
       "game_full": "Dieses Spiel ist schon voll, bitte starte ein neues.",
-      "game_aborted": "Dein Gegner hat das Spiel abgebrochen."
+      "game_aborted": "Dein Gegner hat das Spiel abgebrochen.",
+      "unknown_error": "Unbekannter Fehler beim Spielzug.",
+      "invalid_arguments": "Ungültige Argumente für den Befehl (wenn du das siest, wende dich bitte an den Serveradministrator).",
+      "invalid_request": "Ungültige Anfrage (wenn du das siest, wende dich bitte an den Serveradministrator).",
+      "server_error": "Auf dem Server ist ein Fehler aufgetreten. Bitte wende dich an den Administrator.",
+      "unknown_command": "Unbekannter Befehl angegeben (wenn du das siest, wende dich bitte an den Serveradministrator)."
     },
     "success": {
       "gamestate_valid": "Dein bereitgestellter Spielstatus wurde erfolgreich geladen",

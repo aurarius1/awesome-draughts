@@ -83,7 +83,7 @@ export default defineComponent({
   {
     selectPiece()
     {
-      this.gameStore.getValidMoves(this.pieceId, this.color);
+      this.gameStore.getValidMoves(this.pieceId);
     },
     getColor(type: string = "base")
     {

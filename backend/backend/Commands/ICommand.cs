@@ -7,9 +7,7 @@ namespace backend.Commands
     {
         public Type CommandType { get; set; }
         public Boolean CommandValid { get;}
-
         public Response HandleCommand();
-
 
     }
 }

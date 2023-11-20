@@ -24,9 +24,9 @@ namespace backend.Commands
             get => _CommandValid;
         }
 
-        private readonly string _gameId;
-        private readonly string _clientId;
-        private int _pieceId;
+        private readonly string _gameId = "";
+        private readonly string _clientId = "";
+        private int _pieceId = -1;
         private Position _destinationPosition;
 
         public MoveCommand(WebSocket socket, IGameCache gameCache, params string[] arguments)
@@ -34,11 +34,15 @@ namespace backend.Commands
             this._CommandValid = true;
             this._CommandType = typeof(MoveCommand);
 
-            if(arguments.Length != 5)
+            this._cache = gameCache;
+            this._webSocket = socket;
+
+            if (arguments.Length != 5)
             {
                 _CommandValid = false;
                 return;
             }
+
             this._gameId = arguments[0];
             int x = -1, y = -1;
 
@@ -57,10 +61,6 @@ namespace backend.Commands
 
 
             this._destinationPosition = new Position {x= x, y=y };
-            this._cache = gameCache;
-            this._webSocket = socket;
-            
-
         }
         public Response HandleCommand()
         {
@@ -77,6 +77,10 @@ namespace backend.Commands
             if(!game.GameFull())
             {
                 return new Response(ResponseTypes.InvalidArguments);
+            }
+            if (game.HasRequest())
+            {
+                return new Response(ResponseTypes.AnswerRequestFirst);
             }
             List<Position> killStreakMoves;
             string errorMessage;

@@ -3,9 +3,6 @@ using System.Net.WebSockets;
 
 namespace backend.Commands
 {
-
-    // moves --> getFieldsToHighlight
-    // move --> doMove
     public class RenameCommand : ICommand
     {
 
@@ -50,9 +47,6 @@ namespace backend.Commands
             this._name2 = arguments.ElementAtOrDefault(3) ?? "";
 
             this._CommandValid = this._name.Length > 0;
-            
-
-
         }
         public Response HandleCommand()
         {

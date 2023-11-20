@@ -3,9 +3,6 @@ using System.Net.WebSockets;
 
 namespace backend.Commands
 {
-
-    // moves --> getFieldsToHighlight
-    // move --> doMove
     public class LoadCommand : ICommand
     {
 
@@ -26,21 +23,22 @@ namespace backend.Commands
             get => _CommandValid;
         }
 
-        private readonly string _gameId;
+        private readonly string _gameId = "";
 
         public LoadCommand(WebSocket socket, IGameCache gameCache, params string[] arguments)
         {
             this._CommandValid = true;
             this._CommandType = typeof(LoadCommand);
 
-            if(arguments.Length != 1)
+            this._cache = gameCache;
+            this._webSocket = socket;
+
+            if (arguments.Length != 1)
             {
                 _CommandValid = false;
                 return;
             }
             this._gameId = arguments[0];
-            this._cache = gameCache;
-            this._webSocket = socket;
         }
         public Response HandleCommand()
         {

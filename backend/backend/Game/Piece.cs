@@ -12,7 +12,7 @@
         public int id { get; set; }
         public bool isKing { get; set; } = false;
         public bool isAlive { get; set; } = true;
-        public string color { get; set; }
+        public string color { get; set; } = "white";
         public Position position { get; set; }
 
         public void Die()

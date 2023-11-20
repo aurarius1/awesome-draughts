@@ -2,7 +2,7 @@
 {
     public class SavedGame
     {
-        public GameState gameState { get; set; }
-        public string hash { get; set; }
+        public GameState? gameState { get; set; }
+        public string hash { get; set; } = "";
     }
 }

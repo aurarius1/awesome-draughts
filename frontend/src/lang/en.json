@@ -100,7 +100,12 @@
       "something_went_wrong": "Something went wrong",
       "game_save_invalid": "Your save state couldn't be validated.",
       "game_full": "This game is already full, please start a new one.",
-      "game_aborted": "Your opponent aborted the game."
+      "game_aborted": "Your opponent aborted the game.",
+      "unknown_error": "Unknown error with move.",
+      "invalid_arguments": "Invalid arguments for command (if you see this, please contact the server administrator).",
+      "invalid_request": "Invalid request (if you see this, please contact the server administrator).",
+      "server_error": "An error occurred on the server, please contact the administrator.",
+      "unknown_command": "Unknown command supplied (if you see this, please contact the server administrator)."
     },
     "success": {
       "gamestate_valid": "Your provided game state was loaded successful",

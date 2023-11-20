@@ -151,7 +151,6 @@ export const useGameStore = defineStore('gameStore',{
         {
             let state: ResponseJson = JSON.parse(msg.data);
             const toast = useToast();
-            // TODO HANDLE ERROR STATES
             switch(state.state)
             {
                 case "INIT_OK":
@@ -205,7 +204,7 @@ export const useGameStore = defineStore('gameStore',{
                             toast.error(i18n.global.t("toasts.error.on_kill_streak"))
                             break
                         default:
-                            toast.warning(i18n.global.t('toasts.warning.invalid_move'))
+                            toast.warning(i18n.global.t('toasts.warning.unknown_error'))
                     }
                     break
                 case "PERMISSION_REQUEST":
@@ -265,61 +264,46 @@ export const useGameStore = defineStore('gameStore',{
                         toast.error(i18n.global.t("toasts.error.game_aborted"));
                         this.closeWS();
                     });
-
                     break;
+                case "ANSWER_REQUEST_FIRST":
+                    toast.error(i18n.global.t('toasts.error.answer_request_first'))
+                    this._currentApiGame?.selectPiece(-1);
+                    break
+                case "NOT_YOUR_TURN":
+                    toast.warning(i18n.global.t("toasts.warning.not_your_turn"))
+                    this._currentApiGame?.selectPiece(-1);
+                    break
+                case "INVALID_ARGUMENTS":
+                    toast.error(i18n.global.t('toasts.error.invalid_arguments'))
+                    break
+                case "INVALID_REQUEST":
+                case "INVALID_PERMISSION_REQUEST":
+                    toast.error(i18n.global.t('toasts.error.invalid_request'))
+                    break
+                case "SERVER_ERROR":
+                    toast.error(i18n.global.t('toasts.error.server_error'))
+                    break
+                case "UNKNOWN_COMMAND":
+                    toast.error(i18n.global.t('toasts.error.unknown_command'))
+                    break
+
             }
         },
-        getValidMoves(pieceId: number, pieceColor: string)
+        getValidMoves(pieceId: number)
         {
-            const toast = useToast();
-
-            if(this._currentApiGame?._permissionRequest !== PermissionRequest.Nothing &&
-                this._currentApiGame?._permissionRequest !== PermissionRequest.Exit)
+            if(this._currentApiGame?._isOnKillstreak)
             {
-                toast.error(i18n.global.t('toasts.error.answer_request_first'))
-                return false;
+                return;
             }
-
-
-            if(
-                (this._currentApiGame?._currentPlayer === this._currentApiGame?._ownColor) ||
-                (this._currentApiGame?._singlePlayer && this._currentApiGame?._currentPlayer == pieceColor)
-            )
+            this._currentApiGame?.selectPiece(pieceId);
+            if(this._currentApiGame?._singlePlayer)
             {
-                if(!this._currentApiGame?._isOnKillstreak)
-                {
-                    this._currentApiGame?.selectPiece(pieceId);
-                    this.ws?.send(`moves;${this._currentGameId};${pieceId}`)
-                    return true;
-                }
-                return false;
+                this._currentApiGame!._validMoves = []
             }
-            else
-            {
-                if(this._currentApiGame?._singlePlayer)
-                {
-                    if(this._currentApiGame?._validMoves.length === 0)
-                    {
-                        toast.warning(i18n.global.t("toasts.warning.not_your_turn"))
-                    }
-                }
-                else{
-                    toast.warning(i18n.global.t("toasts.warning.not_your_turn"))
-                }
-                return false;
-            }
+            this.ws?.send(`moves;${this._currentGameId};${this._clientId};${pieceId}`)
         },
         move(pieceId: number, destination: Position)
         {
-            const toast = useToast();
-            if(this._currentApiGame?._permissionRequest !== PermissionRequest.Nothing &&
-                this._currentApiGame?._permissionRequest !== PermissionRequest.Exit)
-            {
-                toast.error(i18n.global.t('toasts.error.answer_request_first'))
-                return false;
-            }
-
-
             this.ws?.send(`move;${this._currentGameId};${this._clientId};${pieceId};${destination.x};${destination.y}`)
         },
         requestUndo()

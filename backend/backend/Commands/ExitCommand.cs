@@ -8,7 +8,9 @@ namespace backend.Commands
     {
         Exit, 
         SaveLocal, 
-        SaveRemote
+        SaveRemote,
+
+        NoExit = Int16.MaxValue
     }
 
     public class ExitCommand : ICommand
@@ -31,16 +33,19 @@ namespace backend.Commands
             get => _CommandValid;
         }
 
-        private readonly string _gameId;
-        private readonly string _clientId;
-        private ExitType _exitType;
+        private readonly string _gameId = "";
+        private readonly string _clientId = "";
+        private ExitType _exitType = ExitType.NoExit;
 
         public ExitCommand(WebSocket socket, IGameCache gameCache, params string[] arguments)
         {
             this._CommandValid = true;
             this._CommandType = typeof(ExitCommand);
 
-            if(arguments.Length != 3)
+            this._cache = gameCache;
+            this._webSocket = socket;
+
+            if (arguments.Length != 3)
             {
                 _CommandValid = false;
                 return;
@@ -57,8 +62,6 @@ namespace backend.Commands
                 }
                 _exitType = (ExitType)temp;
             }
-            this._cache = gameCache;
-            this._webSocket = socket;
 
         }
         public Response HandleCommand()
@@ -93,8 +96,15 @@ namespace backend.Commands
                 game.SendExitRequest(this._clientId);
                 // todo send other hurensohn msg;
             }
+
+
+            if (game.HasRequest())
+            {
+                return new Response(ResponseTypes.AnswerRequestFirst);
+            }
+
             this._cache.EndGame(this._gameId, this._clientId);
-            return response;
+            return response ?? new Response(ResponseTypes.ServerError);
         }
     }
 }

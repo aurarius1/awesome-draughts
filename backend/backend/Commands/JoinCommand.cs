@@ -23,23 +23,25 @@ namespace backend.Commands
             get => _CommandValid;
         }
 
-        private readonly string _gameId;
-        private string _name;
+        private readonly string _gameId = "";
+        private string _name = "";
 
         public JoinCommand(WebSocket socket, IGameCache gameCache, params string[] arguments)
         {
             this._CommandValid = true;
             this._CommandType = typeof(JoinCommand);
 
-            if(arguments.Length != 2)
+            this._cache = gameCache;
+            this._webSocket = socket;
+
+            if (arguments.Length != 2)
             {
                 _CommandValid = false;
+                return;
             }
             
             this._gameId = arguments[0];
             this._name = arguments[1];
-            this._cache = gameCache;
-            this._webSocket = socket;
         }
         public Response HandleCommand()
         {
@@ -51,7 +53,12 @@ namespace backend.Commands
             {
                 return new Response(ResponseTypes.GameAborted);
             }
-            return new Response(ResponseTypes.GameStarted, new ResponseParam(ResponseKeys.GAME_STATE, this._cache.Get(this._gameId).GetGameState()));
+            Draughts? game = this._cache.Get(this._gameId);
+            if (game == null)
+            {
+                return new Response(ResponseTypes.ServerError);
+            }
+            return new Response(ResponseTypes.GameStarted, new ResponseParam(ResponseKeys.GAME_STATE, game.GetGameState()));
         }
     }
 }
