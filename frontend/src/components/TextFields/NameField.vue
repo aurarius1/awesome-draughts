@@ -8,6 +8,11 @@ export default defineComponent({
       return true
     }
   },
+  watch: {
+    name(newVal){
+      this._name = newVal
+    }
+  },
   props:{
     name: {
       type: String,

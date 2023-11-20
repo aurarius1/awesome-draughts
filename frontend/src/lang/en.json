@@ -1,5 +1,5 @@
 {
-  "draughts-title": "Awesome draughts",
+  "draughts-title": "ML draughts",
   "start_game": "New game",
   "load_game": "Load game",
   "settings": "Settings",
@@ -16,7 +16,8 @@
     "black": "BLACK: {name}",
     "wins": "\uD83D\uDC51\uD83D\uDC51\uD83D\uDC51YOU WIN!\uD83D\uDC51\uD83D\uDC51\uD83D\uDC51",
     "loses": "You lost \uD83D\uDE14",
-    "draw": "Draw"
+    "draw": "Draw",
+    "sp_end": "\uD83D\uDC51\uD83D\uDC51\uD83D\uDC51Player {name} wins!\uD83D\uDC51\uD83D\uDC51\uD83D\uDC51"
   },
   "undo": "Undo",
   "redo": "Redo",

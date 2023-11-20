@@ -26,10 +26,6 @@ export default defineComponent({
       gameSettingsDialogVisible: false,
     }
   },
-  beforeMount() {
-
-
-  }
 })
 </script>
 

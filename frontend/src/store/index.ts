@@ -242,20 +242,24 @@ export const useGameStore = defineStore('gameStore',{
                     break;
                 case "SAVE_DATA":
                     fileDownload(JSON.stringify(state.gameState), `game-${this._currentGameId}.aw`)
-                    this.closeWS();
-                    this.$router.replace("/");
+                    this.$router.replace("/").then(() => {
+                        this.closeWS();
+                    });
                     break;
                 case "EXIT_OK":
-                    this.closeWS();
-                    this.$router.replace("/");
+                    this.$router.replace("/").then(() => {
+                        this.closeWS();
+                    });
                     break;
                 case "REQUEST_SENT":
                     this._requestSent = true;
                     break
                 case "ABORTED":
-                    this.closeWS();
-                    toast.error(i18n.global.t("toasts.error.game_aborted"));
-                    this.$router.replace("/");
+                    this.$router.replace("/").then(() => {
+                        toast.error(i18n.global.t("toasts.error.game_aborted"));
+                        this.closeWS();
+                    });
+
                     break;
             }
         },
@@ -346,9 +350,10 @@ export const useGameStore = defineStore('gameStore',{
             switch(this.ws?.readyState)
             {
                 case WebSocket.OPEN:
-                    this.ws?.close(1000, `${this._currentGameId};${this._clientId}`);
-                    this._currentGameId = "";
-                    this._clientId = "";
+                    this.ws?.close(1000, `${this._currentGameId};${this._clientId}`)
+                    this._currentGameId = ""
+                    this._clientId = ""
+                    this._currentApiGame = undefined
                     break;
                 case WebSocket.CLOSED:
                 case WebSocket.CLOSING:

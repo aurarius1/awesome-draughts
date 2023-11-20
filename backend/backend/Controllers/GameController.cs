@@ -87,9 +87,6 @@ namespace backend.Controllers
             return new PaymentRequiredObjectResult(null);
         }
         
-        
-        
-        
         [Route("/ws")]
         public async Task Get()
         {

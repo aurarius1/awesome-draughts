@@ -1,34 +1,35 @@
 <script lang="ts">
-import {defineComponent, PropType, StyleValue} from 'vue'
+import {defineComponent, StyleValue} from 'vue'
 import VFontAwesomeBtn from "@/components/Buttons/VFontAwesomeBtn.vue";
 import Moves from "@/components/Draughts/Moves.vue";
 import Settings from "@/components/Settings.vue";
 import FontAwesomeBtn from "@/components/Buttons/FontAwesomeBtn.vue";
-import LocalGameSettings from "@/components/GameSettings/LocalGameSettings.vue";
-import {PlayerNames} from "@/draughts";
-import {heightBreakpoints, PermissionRequest} from "@/globals.ts";
+import GameSettings from "@/components/GameSettings/GameSettings.vue";
+import {PermissionRequest} from "@/globals.ts";
 import {useGameStore} from "@/store";
-import RemoteGameSettings from "@/components/GameSettings/RemoteGameSettings.vue";
 
 export default defineComponent({
   name: "GameInfo",
-  components: {RemoteGameSettings, LocalGameSettings, FontAwesomeBtn, Settings, Moves, VFontAwesomeBtn},
+  components: {GameSettings, FontAwesomeBtn, Settings, Moves, VFontAwesomeBtn},
   emits: {
     leaveRequest(){
       return true
-    },
-    undoRequest(){
-      return true
-    },
-    redoRequest(){
-      return true
-    },
+    }
   },
   setup()
   {
     const colorStore = useColorStore();
     const gameStore = useGameStore();
     return {colorStore, gameStore}
+  },
+  watch: {
+    requestToAnswer(newVal){
+      if(newVal)
+      {
+        this.gameSettingsVisible=false
+        this.settingsVisible = false
+      }
+    }
   },
   props: {
     dimensionsInPx: {
@@ -77,7 +78,6 @@ export default defineComponent({
       return this.getGameStore().currentGame?._playerNames
     },
     undoPossible() {
-
       const gameStore = this.getGameStore();
       return (gameStore.currentGame?._history?.moves?.length ?? 0) >= (gameStore.currentGame?._singlePlayer ? 1 : 2)
     },
@@ -95,6 +95,7 @@ export default defineComponent({
     localGame(){
       return this.getGameStore().currentGame?._singlePlayer ?? true;
     }
+
   }
 })
 </script>
@@ -148,14 +149,9 @@ export default defineComponent({
           :in-game="true"
           @close-settings="settingsVisible=false"
       />
-      <local-game-settings
-          v-else-if="gameSettingsVisible && localGame"
-          @leave-game-settings="gameSettingsVisible=false"
-          v-bind:player-names="{...playerNames}"
-          :is-game-dialog="false"
-      />
-      <remote-game-settings
-          v-else-if="gameSettingsVisible && !localGame"
+      <game-settings
+          :local="localGame"
+          v-else-if="gameSettingsVisible"
           @leave-game-settings="gameSettingsVisible=false"
           v-bind:player-names="{...playerNames}"
           :is-game-dialog="false"
@@ -163,8 +159,6 @@ export default defineComponent({
       <moves
           v-else
       />
-
-
     </v-card-text>
     <v-card-actions
         class="ml-game-info-card-actions"

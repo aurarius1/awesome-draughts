@@ -1,6 +1,5 @@
 <script lang="ts">
 import {defineComponent} from 'vue'
-import {useGameStore} from "@/store";
 
 export default defineComponent({
   name: "WaitingForResponseDialog",

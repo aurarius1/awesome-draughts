@@ -6,9 +6,8 @@ import {LeaveTypes} from '@/globals.ts'
 import FontAwesomeBtn from "@/components/Buttons/FontAwesomeBtn.vue";
 import VFontAwesomeBtn from "@/components/Buttons/VFontAwesomeBtn.vue";
 import Settings from "@/components/Settings.vue";
-import {PlayerNames} from "@/draughts";
 import Moves from "@/components/Draughts/Moves.vue";
-import LocalGameSettings from "@/components/GameSettings/LocalGameSettings.vue";
+import LocalGameSettings from "@/components/GameSettings/GameSettings.vue";
 import EndGameDialog from "@/components/Dialog/EndGameDialog.vue";
 import SaveGameDialog from "@/components/Dialog/SaveGameDialog.vue";
 import GameInfo from "@/components/GameInfo.vue";
@@ -36,18 +35,15 @@ export default defineComponent({
     this.$emitter.on("opponentExited", () => {
       this.playerWantsToLeave = true;
     });
+
+
   },
   data() {
     return{
       playerWantsToLeave: false,
       exitType: LeaveTypes.noLeave,
-      undoRequest: false,
-      redoRequest: false,
-      undoPossible: false,
-      redoPossible: false,
       settingsVisible: false,
       gameSettingsVisible: false,
-      _endGameDialogVisible: false,
       endGameDialogText: "",
       dimensions: 0,
       borderThickness: 0,
@@ -55,34 +51,21 @@ export default defineComponent({
     }
   },
   methods: {
-    leaveAndSaveRemote() {
-      this.exitType = LeaveTypes.saveRemote
-    },
-    leaveAndSaveLocal(){
-      this.exitType = LeaveTypes.saveLocal
-    },
     leaveGame(){
       this.exitType = LeaveTypes.exit
     },
     getColor(color: string = 'lighten1'){
         return this.getColorStore.currentColor[color]
     },
-    undoServed() {
-      this.undoRequest = false
-    },
-    redoServed() {
-      this.redoRequest = false
-    },
     getPlayerName: function (player: string = "") {
       const gameStore = useGameStore();
       if (player === "") {
         player = this.currentPlayer
       }
-      return gameStore._currentApiGame?._playerNames[player];
+      return gameStore.currentGame?._playerNames[player];
     },
     gameOver(winner: string) {
       this.endGameDialogText = this.$t(`player.wins`, {name: this.getPlayerName(winner)})
-      this._endGameDialogVisible=true;
     },
     setDimensions(dimensions: number, borderThickness: number)
     {
@@ -107,7 +90,7 @@ export default defineComponent({
     },
     endGameDialogVisible(){
       const gameStore = useGameStore();
-      return gameStore._currentApiGame?._gameOver ?? false
+      return gameStore.currentGame?._gameOver ?? false
     },
     waitingForResponse()
     {
@@ -122,12 +105,9 @@ export default defineComponent({
   <save-game-dialog
     :visible="playerWantsToLeave"
     @close-me="playerWantsToLeave=false"
-
   />
   <end-game-dialog
     :visible="endGameDialogVisible"
-    :text="endGameDialogText"
-    :localize-text="endGameDialogTextLocalization"
   />
 
   <waiting-for-response-dialog
@@ -140,13 +120,7 @@ export default defineComponent({
     <game-field
       :leave="exitType"
       :card-dimensions="80"
-      @undo-served="undoServed"
-      @redo-served="redoServed"
-      @undo-possible="(possible: boolean) => {undoPossible=possible}"
-      @redo-possible="(possible: boolean) => {redoPossible=possible}"
       @game-over="gameOver"
-      :undo-request="undoRequest"
-      :redo-request="redoRequest"
       @dimensions="setDimensions"
     />
     <div

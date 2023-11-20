@@ -2,12 +2,12 @@
 import {defineComponent} from 'vue'
 import VFontAwesomeBtn from "@/components/Buttons/VFontAwesomeBtn.vue";
 import FontAwesomeBtn from "@/components/Buttons/FontAwesomeBtn.vue";
-import LocalGameSettings from "@/components/GameSettings/LocalGameSettings.vue";
+import GameSettings from "@/components/GameSettings/GameSettings.vue";
 import RemoteGameSettings from "@/components/GameSettings/RemoteGameSettings.vue";
 
 export default defineComponent({
   name: "GameSettingsDialog",
-  components: {RemoteGameSettings, LocalGameSettings, FontAwesomeBtn, VFontAwesomeBtn},
+  components: {GameSettings, FontAwesomeBtn, VFontAwesomeBtn},
   emits: {
     closeMe(){}
   },
@@ -93,16 +93,12 @@ export default defineComponent({
 
       </v-card-title>
       <v-card-text>
-        <local-game-settings
+        <game-settings
             :start-new-game="startGame"
-            v-if="local"
+            :local="local"
             @start-not-possible="() => startGame=false"
         />
-        <remote-game-settings
-            :start-new-game="startGame"
-            v-else
-            @start-not-possible="() => startGame=false"
-        />
+
       </v-card-text>
       <v-card-actions
         class="justify-end"

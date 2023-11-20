@@ -38,8 +38,10 @@ export default defineComponent({
     },
     leaveGame(){
       const gameStore = useGameStore();
-      gameStore.closeWS();
-      this.$router.replace("/");
+
+      this.$router.replace("/").then(() => {
+        gameStore.closeWS();
+      });
     }
   }
 })

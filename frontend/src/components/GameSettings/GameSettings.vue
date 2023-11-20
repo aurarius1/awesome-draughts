@@ -6,7 +6,7 @@ import {useGameStore} from "@/store";
 import SelectionRow from "@/components/GameSettings/SelectionRow.vue";
 
 export default defineComponent({
-  name: "LocalGameSettings",
+  name: "GameSettings",
   emits: {
     leaveGameSettings(){return true;},
     startNotPossible(){return true;}
@@ -15,20 +15,40 @@ export default defineComponent({
     startNewGame(startGame){
       if(startGame)
       {
-        if(this._playerNames.white.length <= 0 || this._playerNames.black.length <= 0)
+        const gameStore = useGameStore();
+        if(this.local)
         {
-          this.$emit("startNotPossible");
-          return;
+          if(this._playerNames.white.length <= 0 || this._playerNames.black.length <= 0)
+          {
+            this.$emit("startNotPossible");
+            return;
+          }
+          gameStore.startNewGame(10, this._playerNames)
+          this.$router.replace('game')
+        }
+        else
+        {
+          if(this._playerNames[this.player].length <= 0)
+          {
+            this.$emit("startNotPossible");
+            return;
+          }
+          gameStore.startNewRemoteGame(10, this.player, this._playerNames[this.player]);
+          this.$router.replace("/waiting");
         }
 
-
-        const gameStore = useGameStore();
-        gameStore.startNewGame(10, this._playerNames)
-        this.$router.replace('game')
       }
     },
     playerNames(newValue){
       this._playerNames = newValue;
+    },
+    local()
+    {
+      this.player="white"
+      this._playerNames = {
+        "white": "Alice",
+        "black": "Bob"
+      }
     }
   },
   setup()
@@ -45,6 +65,10 @@ export default defineComponent({
         "black": "Bob"
       }
     },
+    local: {
+      type: Boolean,
+      default: true,
+    },
     isGameDialog: {
       type: Boolean,
       default: true,
@@ -56,10 +80,17 @@ export default defineComponent({
   },
   data(){
     return{
+      player: "white",
       _playerNames: this.playerNames
     }
   },
   computed: {
+    playerColor(){
+      if(this.isGameDialog)
+        return this.player;
+      const gameStore = useGameStore();
+      return gameStore.currentGame?._ownColor ?? "white";
+    }
   },
   methods: {
     renderList,
@@ -70,9 +101,20 @@ export default defineComponent({
     changePlayerName(playerType: string, playerName: string){
       this._playerNames[playerType] = playerName;
     },
+    switchPlayer()
+    {
+      if(!this.isGameDialog)
+      {
+        return;
+      }
+      this.player = (this.player == 'white' ? 'black' : 'white')
+    },
     saveGameSettings(){
       const gameStore = useGameStore();
-      gameStore.renamePlayer(this._playerNames["white"], this._playerNames["black"])
+      if(this.local)
+        gameStore.renamePlayer(this._playerNames["white"], this._playerNames["black"])
+      else
+        gameStore.renamePlayer(this._playerNames[this.playerColor])
       this.$emit('leaveGameSettings')
     },
   }
@@ -82,12 +124,15 @@ export default defineComponent({
 <template>
 
   <selection-row
-      player="white"
-      :name="_playerNames.white"
+      :remote="!local"
+      :player="playerColor"
+      :name="_playerNames[playerColor]"
       class="ml-name-selection"
+      @switch-player="switchPlayer()"
       @player-name-changed="changePlayerName"
   />
   <selection-row
+      v-if="local"
       player="black"
       :name="_playerNames.black"
       class="ml-name-selection"

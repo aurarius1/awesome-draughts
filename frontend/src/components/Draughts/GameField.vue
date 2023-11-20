@@ -24,92 +24,13 @@ export default defineComponent({
     return {getColorStore: colorStore, toast, gameStore}
   },
   emits: {
-    redoPossible(payload: boolean)
-    {
-      return true
-    },
-    undoPossible(payload: boolean)
-    {
-      return true
-    },
-    undoServed(){
-      return true
-    },
-    redoServed()  {
-      return true
-    },
-    gameOver(payload: string)
-    {
-      return payload === "white" || payload === "black"
-    },
-    playerNames(payload: PlayerNames)
-    {
-      return payload.white !== "" && payload.black !== ""
-    },
     dimensions(dimensionsInPx: number, borderThickness: number)
     {
       return dimensionsInPx > 0 && borderThickness > 0;
     }
   },
   created(){
-    /*this.$emitter.on('piece-selected', (piece: number) => {
-      if(this.isOnKillStreak)
-      {
-        return
-      }
-      this._currentlySelectedPiece = piece
-
-      this.gameStore.getValidMoves(piece);
-
-      //
-    })*/
-
-
-    this.$emitter.on('player-name-changed', (player: string, name: string) => {
-      //this.gameState.updatePlayerName(player, name)
-    })
-
-
     this.$emit('dimensions', this.dimensionsInPx, this.borderThickness)
-
-  },
-  watch: {
-    undoRequest(newVal)
-    {
-      if(!newVal){
-        return
-      }
-
-      if(this.isOnKillStreak)
-      {
-        this.toast.warning(this.$t('toasts.warning.undo_on_killstreak'))
-        this.$emit("undoServed")
-        return;
-      }
-
-      this.toast.info(this.$t('toasts.info.undo_successful'));
-      //if(this.gameState.undoMove())
-      {
-        this.$emit('undoPossible', false)
-      }
-      this.$emit('redoPossible', true)
-      this.$emit("undoServed")
-
-    },
-    redoRequest(newVal)
-    {
-      if(!newVal){
-        return
-      }
-      this.toast.info(this.$t('toasts.info.redo_successful'));
-      //if(this.gameState.redoMove())
-      {
-        this.$emit('redoPossible', false)
-      }
-      this.$emit('undoPossible', true)
-
-      this.$emit("redoServed")
-    }
   },
   props: {
     cardDimensions: {
@@ -136,13 +57,6 @@ export default defineComponent({
       default: false
     },
   },
-  data()
-  {
-    return {
-      _gameState: undefined as undefined|Game,
-      _currentlySelectedPiece: -1,
-    }
-  },
   beforeMount()
   {
     const gameStore = useGameStore();
@@ -168,7 +82,6 @@ export default defineComponent({
         dim = Math.floor(document.documentElement.clientWidth*scale*(2/3))
       }
       dim = dim - dim%this.fieldDimensions
-      console.log(dim)
       return dim
     },
     gameFieldStyle(): StyleValue{
@@ -207,21 +120,16 @@ export default defineComponent({
     },
     gameField(){
       const gameStore = useGameStore();
-      return gameStore._currentApiGame?._field
-    },
-
-    isOnKillStreak(){
-      const gameStore = useGameStore()
-      return gameStore._currentApiGame?.isOnKillstreak
+      return gameStore.currentGame?._field
     },
     currentlySelectedPiece()
     {
       const gameStore = useGameStore()
-      return gameStore._currentApiGame?._selectedPiece ?? -1
+      return gameStore.currentGame?._selectedPiece ?? -1
     }
   },
   methods: {
-    movePiece(targetPosition: Position, isHighlighted: Boolean)
+    movePiece(targetPosition: Position)
     {
 
       let selectedPiecePosition = this.gameStore._currentApiGame?.getPositionOfPiece(this.currentlySelectedPiece)
@@ -277,7 +185,6 @@ export default defineComponent({
               :style="squareStyle"
               :position="col.position"
               @move-selected-to="movePiece"
-
           >
             <template v-slot:piece>
               <game-piece

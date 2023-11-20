@@ -16,18 +16,14 @@ export default defineComponent({
       if(startGame)
       {
 
-        if(this._playerNames[this.player].length <= 0)
-        {
-          this.$emit("startNotPossible");
-          return;
-        }
+
 
 
         const gameStore = useGameStore();
-        gameStore.startNewRemoteGame(10, this.player, this._playerNames[this.player]);
+
         console.log(this._playerNames);
 
-        this.$router.replace("/waiting");
+
       }
     },
     playerNames(newValue){
@@ -59,18 +55,12 @@ export default defineComponent({
   },
   data(){
     return{
-      player: "white",
+
       _playerNames: this.playerNames
     }
   },
   computed: {
-    playerColor(){
-      if(this.isGameDialog)
-        return this.player;
-      const gameStore = useGameStore();
-      return gameStore.currentGame?._ownColor ?? "white";
 
-    }
   },
   methods: {
     renderList,
@@ -78,17 +68,10 @@ export default defineComponent({
     {
       return this.colorStore
     },
-    switchPlayer()
-    {
-      if(!this.isGameDialog)
-      {
-        return;
-      }
-      this.player = (this.player == 'white' ? 'black' : 'white')
-    },
+
     saveGameSettings(){
       const gameStore = useGameStore();
-      gameStore.renamePlayer(this._playerNames[this.playerColor])
+
       this.$emit('leaveGameSettings')
     },
   }

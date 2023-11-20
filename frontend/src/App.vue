@@ -18,12 +18,19 @@ export default defineComponent({
   {
     this.getVuetifyTheme.global.name.value = this.getThemeStore.currentTheme;
     this.$i18n.locale = this.getLanguageStore.currentLanguage;
+    if(this.$router.currentRoute.path === "/game")
+    {
+      window.onbeforeunload = (event) => {
+        return "";
+      }
+    }
+    else
+    {
+      window.onbeforeunload = null;
+    }
+
+
   },
-  created(){
-  },
-  beforeMount()
-  {
-  }
 
 })
 </script>

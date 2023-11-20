@@ -1,5 +1,5 @@
 {
-  "draughts-title": "Tolle Dame",
+  "draughts-title": "ML Dame",
   "start_game": "Neues Spiel",
   "load_game": "Lade Spiel",
   "settings": "Einstellungen",
@@ -16,7 +16,8 @@
     "black": "SCHWARZ: {name}",
     "wins": "\uD83D\uDC51\uD83D\uDC51\uD83D\uDC51DU HAST GEWONNNEN!\uD83D\uDC51\uD83D\uDC51\uD83D\uDC51",
     "loses": "Du hast verloren \uD83D\uDE14",
-    "draw": "Unentschieden"
+    "draw": "Unentschieden",
+    "sp_end": "\uD83D\uDC51\uD83D\uDC51\uD83D\uDC51Spieler {name} gewinnt!\uD83D\uDC51\uD83D\uDC51\uD83D\uDC51"
   },
   "undo": "Undo",
   "redo": "Redo",

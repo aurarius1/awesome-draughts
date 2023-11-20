@@ -15,14 +15,6 @@ export default defineComponent({
     visible: {
       type: Boolean,
       default: false
-    },
-    text: {
-      type: String,
-      default: ""
-    },
-    localizeText: {
-      type: Boolean,
-      default: false
     }
   },
   computed:
@@ -33,20 +25,34 @@ export default defineComponent({
     },
     endScreenMessage(){
       const gameStore = useGameStore();
-      let currentPlayer = gameStore.currentGame?._currentPlayer;
 
+      if(gameStore.currentGame === undefined)
+        return "";
+
+
+      let currentPlayer = gameStore.currentGame?._currentPlayer;
       if(this.draw)
       {
         return this.$t('player.draw')
       }
 
-      if(currentPlayer === gameStore.currentGame?._ownColor)
+      if(gameStore.currentGame?._singlePlayer ?? true)
       {
-        return this.$t(`player.wins`)
+        let playerName = ""
+        if(currentPlayer !== undefined) {
+          playerName = gameStore.currentGame?._playerNames[currentPlayer] ?? "";
+        }
+        return this.$t('player.sp_end', {name: playerName})
       }
-      return this.$t('player.loses')
+      else
+      {
+        if(currentPlayer === gameStore.currentGame?._ownColor)
+        {
+          return this.$t(`player.wins`)
+        }
+        return this.$t('player.loses')
 
-
+      }
     }
   },
   methods: {
@@ -55,8 +61,10 @@ export default defineComponent({
     },
     goToTitleScreen(){
       const gameStore = useGameStore();
-      gameStore.closeWS();
-      this.$router.replace('/')
+
+      this.$router.replace('/').then(() => {
+        gameStore.closeWS();
+      })
     }
   }
 })

@@ -16,23 +16,12 @@ export default defineComponent({
     return {getColorStore: colorStore, toast};
   },
   emits: {
-    moveSelectedTo(gameSquarePos: Position, isHighlighted: boolean){
+    moveSelectedTo(gameSquarePos: Position){
         return true;
     }
   },
   created()
   {
-    /*
-      TODO TEST IF NEEDED
-    this.$emitter.on('highlight-field', (fields: Array<Position>) => {
-      this._highlight = false;
-      let searchResult = fields.find((field) => {
-        return field.x === this.position?.x && field.y === this.position?.y
-      })
-      if(searchResult){
-          this._highlight = true;
-      }
-    })*/
   },
   props: {
     color: {
@@ -86,7 +75,7 @@ export default defineComponent({
     },
     moveToMe()
     {
-      this.$emit('moveSelectedTo', this.position, this.highlight)
+      this.$emit('moveSelectedTo', this.position)
 
     }
   },
