@@ -13,6 +13,7 @@ export default defineConfig({
   plugins: [
       vue(),
       AutoImport({
+        dts: './auto-import.d.ts',
         include: [
           /\.ts$/, // .ts, .tsx, .js, .jsx
           /\.tsx$/,
@@ -28,7 +29,8 @@ export default defineConfig({
             "@/store": [ "useLanguageStore", "useThemeStore", "useColorStore" ],
             "vue-toastification": ["useToast"]
           },
-        ]
+        ],
+        vueTemplate: true
       })
   ],
   resolve: {
