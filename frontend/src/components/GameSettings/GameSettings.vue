@@ -94,6 +94,12 @@ export default defineComponent({
       if(this.isGameDialog)
         return this.player;
       const gameStore = useGameStore();
+
+      if(gameStore.currentGame?._singlePlayer)
+      {
+        return "white"
+      }
+
       return gameStore.currentGame?._ownColor ?? "white";
     }
   },
