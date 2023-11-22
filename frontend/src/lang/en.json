@@ -3,6 +3,7 @@
   "start_game": "New game",
   "load_game": "Load game",
   "settings": "Settings",
+  "join_game_ts": "Join game",
   "select_language": "Select language",
   "select_color": "Select color scheme",
   "select_theme": "Select theme",
@@ -73,13 +74,18 @@
     "join": "Join"
   },
   "validator": {
-    "enter_name": "A name must be entered"
+    "enter_name": "A name must be entered",
+    "enter_url": "Please enter a valid join URL"
   },
   "game_settings": {
     "save": "Save",
     "exit": "Exit"
   },
   "waiting_for_response": "Wait until your opponent accepts your request.",
+  "join_game_dialog": {
+    "title": "Enter a URL to join a game",
+    "join": "Join the game!"
+  },
   "toasts": {
     "warning":{
       "invalid_move": "This move is not valid :(",

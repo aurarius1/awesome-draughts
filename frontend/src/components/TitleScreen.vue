@@ -3,9 +3,10 @@ import {useColorStore} from "@/store";
 import LoadSaveGameDialog from "@/components/Dialog/LoadSaveGameDialog.vue";
 import gameField from "@/components/Draughts/GameField.vue";
 import GameSettingsDialog from "@/components/GameSettings/GameSettingsDialog.vue";
+import JoinGameDialog from "@/components/Dialog/JoinGameDialog.vue";
 export default defineComponent({
   name: "TitleScreen",
-  components: {GameSettingsDialog, LoadSaveGameDialog},
+  components: {JoinGameDialog, GameSettingsDialog, LoadSaveGameDialog},
   setup()
   {
     const colorStore = useColorStore();
@@ -24,6 +25,7 @@ export default defineComponent({
     return {
       loadDialogVisible: false,
       gameSettingsDialogVisible: false,
+      joinDialogVisible: false
     }
   },
 })
@@ -38,6 +40,11 @@ export default defineComponent({
       :visible="gameSettingsDialogVisible"
       @close-me="gameSettingsDialogVisible=false"
   />
+  <join-game-dialog
+    :visible="joinDialogVisible"
+    @close-me="joinDialogVisible=false"
+  />
+
   <v-container>
 
     <v-row
@@ -60,6 +67,18 @@ export default defineComponent({
                 @click="gameSettingsDialogVisible=true"
             >
               {{ $t('start_game') }}
+            </v-btn>
+          </v-list-item>
+          <v-list-item
+              class="mt-4 mb-4"
+          >
+            <v-btn
+                :block="true"
+                size="x-large"
+                :color="selectedColor.base"
+                @click="joinDialogVisible=true"
+            >
+              {{ $t('join_game_ts') }}
             </v-btn>
           </v-list-item>
           <v-list-item

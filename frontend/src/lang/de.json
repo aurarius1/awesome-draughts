@@ -7,6 +7,7 @@
   "select_color": "Farbschema wählen",
   "select_theme": "Theme wählen",
   "exit_settings": "Verlasse Einstellungen",
+  "join_game_ts": "Spiel beitreten",
   "language": {
     "de": "Deutsch",
     "en": "English"
@@ -75,13 +76,18 @@
 
   },
   "validator": {
-    "enter_name": "Ein Name muss angegeben werden"
+    "enter_name": "Ein Name muss angegeben werden",
+    "enter_url": "Bitte gib eine valide URL zum Beitreten an!"
   },
   "game_settings": {
     "save": "Speichern",
     "exit": "Schließen"
   },
   "waiting_for_response": "Warte bis dein Gegner deine Anfrage bestätigt.",
+  "join_game_dialog": {
+    "title": "Gib eine URL zum Beitreten zu einem Spiel an",
+    "join": "Spiel beitreten!"
+  },
   "toasts": {
     "warning": {
       "invalid_move": "Dieser Zug ist nicht valide :(",
