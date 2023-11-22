@@ -19,3 +19,7 @@ Implemented with love in vue.js & c# (.net).
 
 ### BONUS: 
 * Can you get the flag (be honest & don't copy it from the source code)?
+
+### Acknowledgements
+* Icon was created with https://hotpot.ai
+* Docker container (replace_env.sh and general config) was inspired by https://kolaente.dev/vikunja/frontend
