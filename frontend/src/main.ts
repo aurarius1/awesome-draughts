@@ -57,6 +57,8 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 
 import Toast, {PluginOptions} from "vue-toastification";
+
+import { VueHeadMixin, createHead } from '@unhead/vue'
 // Import the CSS or use your own!
 import "vue-toastification/dist/index.css";
 import WaitingForOpponent from "@/components/WaitingForOpponent.vue";
@@ -161,5 +163,9 @@ const toastOptions: PluginOptions = {
     newestOnTop: true
 }
 app.use(Toast, toastOptions);
+
+const head = createHead()
+app.mixin(VueHeadMixin)
+app.use(head)
 
 app.mount('#app')

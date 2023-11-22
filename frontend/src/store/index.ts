@@ -24,6 +24,7 @@ export const useColorStore = defineStore('colorStore',{
     actions: {
         changeColor(newColor: VuetifyColor){
             this._currentColor = newColor
+            document?.querySelector('meta[name="theme-color"]')?.setAttribute('content',  this._currentColor.lighten1);
         }
     },
     getters: {
@@ -36,7 +37,7 @@ export const useColorStore = defineStore('colorStore',{
 export const useLanguageStore = defineStore('languageStore',{
     state: () =>  {
         return {
-            _currentLanguage: useLocalStorage("language", navigator.language),
+            _currentLanguage: useLocalStorage("language", navigator.language.split("-")[0].toLowerCase()),
         }
     },
     actions: {
@@ -206,6 +207,17 @@ export const useGameStore = defineStore('gameStore',{
                             toast.warning(i18n.global.t('toasts.warning.unknown_error'))
                     }
                     break
+                case "INVALID_MOVES_REQUEST":
+                    switch(state.errorMessage ?? "")
+                    {
+                        case "wrong_color":
+                            toast.error(i18n.global.t('toasts.error.not_your_color'))
+                            break
+                        default:
+                            toast.error(i18n.global.t('toasts.error.invalid_request'))
+                            break
+                    }
+                    break
                 case "PERMISSION_REQUEST":
                     this._currentApiGame?.setPermissionRequest(parseInt(state.request))
                     break;
@@ -275,7 +287,6 @@ export const useGameStore = defineStore('gameStore',{
                 case "INVALID_ARGUMENTS":
                     toast.error(i18n.global.t('toasts.error.invalid_arguments'))
                     break
-                case "INVALID_REQUEST":
                 case "INVALID_PERMISSION_REQUEST":
                     toast.error(i18n.global.t('toasts.error.invalid_request'))
                     break

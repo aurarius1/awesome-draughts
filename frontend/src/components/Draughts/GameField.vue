@@ -96,11 +96,12 @@ export default defineComponent({
     cardStyle(): StyleValue{
       return {
         height: `${this.dimensionsInPx+this.borderThickness}px`,
-        display: 'flex',
-        alignContent: 'center',
-        alignItems: 'center',
-        verticalAlign: 'center',
         aspectRatio: '1/1',
+        display: 'flex',
+        justifyContent: 'center !important',
+        flexDirection: 'column',
+        alignItems: 'center',
+        alignContent: 'center'
       }
     },
     borderThickness() {
@@ -223,8 +224,7 @@ export default defineComponent({
 }
 
 .ml-game-card{
-  overflow-x: scroll;
-  overflow-y: scroll;
+  overflow: auto;
 }
 
 

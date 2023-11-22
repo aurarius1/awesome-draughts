@@ -13,7 +13,7 @@ services:
     environment: 
       ML_DRAUGHTS_API_URL: http://localhost:32678
     ports: 
-      - "8081:80"
+      - "7776:80"
     depends_on:
       - backend
 

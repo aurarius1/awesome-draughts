@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "D:\\Documents\\awesome-draughts\\backend\\backend\\backend.csproj": {}
+    "D:\\Documents\\ml-draughts\\backend\\backend\\backend.csproj": {}
   },
   "projects": {
-    "D:\\Documents\\awesome-draughts\\backend\\backend\\backend.csproj": {
+    "D:\\Documents\\ml-draughts\\backend\\backend\\backend.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\Documents\\awesome-draughts\\backend\\backend\\backend.csproj",
+        "projectUniqueName": "D:\\Documents\\ml-draughts\\backend\\backend\\backend.csproj",
         "projectName": "backend",
-        "projectPath": "D:\\Documents\\awesome-draughts\\backend\\backend\\backend.csproj",
+        "projectPath": "D:\\Documents\\ml-draughts\\backend\\backend\\backend.csproj",
         "packagesPath": "C:\\Users\\lukas\\.nuget\\packages\\",
-        "outputPath": "D:\\Documents\\awesome-draughts\\backend\\backend\\obj\\",
+        "outputPath": "D:\\Documents\\ml-draughts\\backend\\backend\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\lukas\\AppData\\Roaming\\NuGet\\NuGet.Config",

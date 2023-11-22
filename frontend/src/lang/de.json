@@ -107,7 +107,8 @@
       "invalid_arguments": "Ungültige Argumente für den Befehl (wenn du das siest, wende dich bitte an den Serveradministrator).",
       "invalid_request": "Ungültige Anfrage (wenn du das siest, wende dich bitte an den Serveradministrator).",
       "server_error": "Auf dem Server ist ein Fehler aufgetreten. Bitte wende dich an den Administrator.",
-      "unknown_command": "Unbekannter Befehl angegeben (wenn du das siest, wende dich bitte an den Serveradministrator)."
+      "unknown_command": "Unbekannter Befehl angegeben (wenn du das siest, wende dich bitte an den Serveradministrator).",
+      "not_your_color": "Bitte wähle einen Spielstein deiner Farbe aus."
     },
     "success": {
       "gamestate_valid": "Dein bereitgestellter Spielstatus wurde erfolgreich geladen",

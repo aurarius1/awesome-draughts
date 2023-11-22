@@ -120,7 +120,7 @@ namespace backend.Commands
                     ResponseMessage = String.Format(ResponseMessage, "\"state\": \"INVALID_MOVE\"{0}");
                     break;
                 case ResponseTypes.InvalidMovesRequest:
-                    ResponseMessage = String.Format(ResponseMessage, "\"state\": \"INVALID_REQUEST\"{0}");
+                    ResponseMessage = String.Format(ResponseMessage, "\"state\": \"INVALID_MOVES_REQUEST\"{0}");
                     break;
                 case ResponseTypes.InvalidArguments:
                     ResponseMessage = "{" +  String.Format(ResponseMessage, "\"state\": \"INVALID_ARGUMENTS\"") + "}";

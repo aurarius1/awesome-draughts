@@ -2,6 +2,7 @@
 <script lang="ts">
 import { useTheme } from 'vuetify'
 import {useRoute} from "vue-router";
+import {i18n} from "@/lang";
 
 export default defineComponent({
   setup()
@@ -10,6 +11,11 @@ export default defineComponent({
     const themeStore = useThemeStore();
     const vuetifyTheme = useTheme()
     return {getLanguageStore: languageStore, getThemeStore: themeStore, getVuetifyTheme: vuetifyTheme}
+  },
+  head() {
+    return {
+      title: i18n.global.t('draughts-title')
+    }
   },
   components: {
   },

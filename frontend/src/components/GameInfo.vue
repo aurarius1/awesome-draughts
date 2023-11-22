@@ -98,6 +98,16 @@ export default defineComponent({
     playerNameInfo()
     {
       return this.$t(`player.${this.activePlayer}`, {name: this.activePlayerName})
+    },
+    playerNameColor(): StyleValue{
+      if(this.getGameStore().currentGame?._singlePlayer)
+        return {}
+      let color = ""
+      if(this.getGameStore().currentGame?._ownColor == this.getGameStore().currentGame?._currentPlayer)
+        color = this.getColor()
+      return {
+        color: color
+      }
     }
 
   }
@@ -119,6 +129,7 @@ export default defineComponent({
             cols="10"
             sm="6"
             class="text-sm-body-1"
+            :style="playerNameColor"
         >
           {{ playerNameInfo }}
         </v-col>

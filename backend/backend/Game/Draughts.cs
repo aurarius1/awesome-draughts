@@ -291,7 +291,7 @@ namespace backend.Game
             {
                 if (!_pieces.white.TryGetValue(pieceId, out piece))
                 {
-                    errorMessage = "something_went_wrong";
+                    errorMessage = "wrong_color";
                     return false;
                 }
             }
@@ -299,7 +299,7 @@ namespace backend.Game
             {
                 if (!_pieces.black.TryGetValue(pieceId, out piece))
                 {
-                    errorMessage = "something_went_wrong";
+                    errorMessage = "wrong_color";
                     return false;
                 }
             }
